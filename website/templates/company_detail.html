@@ -40,16 +40,5 @@
             <input type="url" name="job_link" id="job_link" required>
             <button type="submit">Submit</button>
         </form>
-        <div class="pagination">
-            <span class="step-links">
-                {% if prev_company %}
-                    <a href="{% url 'company_detail' slug=prev_company.slug %}" class="prev-company">&laquo; {{ prev_company.name }}</a>
-                {% endif %}
-                |
-                {% if next_company %}
-                    <a href="{% url 'company_detail' slug=next_company.slug %}" class="next-company">{{ next_company.name }} &raquo;</a>
-                {% endif %}
-            </span>
-        </div>
     </div>
 {% endblock %}
