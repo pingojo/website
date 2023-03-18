@@ -228,7 +228,7 @@ text-align: center;
 
   .marquee ul {
     display: inline-block;
-    animation: marquee 90s linear infinite;
+    animation: marquee 20s linear infinite;
   }
 
   .marquee ul:hover {
@@ -256,6 +256,6 @@ text-align: center;
   }
 
   @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(calc(-1 * (100% + 50px))); } /* Adjust the 50px value to accommodate the content width */
+    0% { transform: translateX(var(--startPosition)); }
+    100% { transform: translateX(var(--endPosition)); }
   }
