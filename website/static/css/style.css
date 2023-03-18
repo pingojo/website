@@ -257,7 +257,6 @@ text-align: center;
   }
 
   @keyframes marquee {
-    0% { transform: translateX(0%); }
+    0% { transform: translateX(100vw); } /* Change this to 100vw */
     100% { transform: translateX(-100%); }
-
   }
