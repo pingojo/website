@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<!-- Masthead-->
+<header class="masthead text-white text-center">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-9 mx-auto">
+                <h1 class="mb-5">Enter a company domain name.</h1>
+            </div>
+            <div class="col-md-10 col-lg-8 col-xl-7 mx-auto">
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="col-12 col-md-9 mb-2 mb-md-0">
+                            <input class="form-control form-control-lg" required name="input" placeholder="company.com"
+                                value="{{form.input.value|default:''}}" />
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <button class="btn btn-block btn-lg btn-primary" type="submit">Apply!</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+{% endblock %}
