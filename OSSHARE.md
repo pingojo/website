@@ -6,5 +6,5 @@ By sending BCH to this qzc7g7cn69rmn5qv6srt92dq9tthdp589ukx4xtvgv - it will auto
 
 | Name | Shares | BCH Address |
 | -------- | -------- | -------- |
-| W8gReZW | 1,000,000 | qzc7g7cn69rmn5qv6srt92dq9tthdp589ukx4xtvgv |
+| W8gReZW | 990,000 | qzc7g7cn69rmn5qv6srt92dq9tthdp589ukx4xtvgv |
 | User2 | 10,000 | BCH address coming soon |
