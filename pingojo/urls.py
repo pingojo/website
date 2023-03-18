@@ -24,6 +24,6 @@ urlpatterns = [
         name="application-detail",
     ),
     path("dashboard/", Dashboard.as_view()),
-    path(os.environ("ADMIN_URL","admin/"), admin.site.urls),
+    path(os.environ.get("ADMIN_URL","admin/"), admin.site.urls),
     path("accounts/", include("allauth.urls")),
 ]
