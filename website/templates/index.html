@@ -1,154 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pingojo - Crowd-Powered Hiring</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" 
-     crossorigin="anonymous">
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        background-color: #f5f5f5;
-    }
+{% extends 'base.html' %}
 
-    header {
-        background-color: #2c3e50;
-        padding: 20px;
-        text-align: center;
-        color: white;
-        position: relative;
-    }
-
-    .search-bar {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-    }
-
-    .search-bar input {
-        padding: 5px;
-        border: none;
-        border-radius: 5px;
-        width: 200px;
-    }
-
-    .main-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
-        flex-grow: 1;
-    }
-
-    .job-stats {
-        display: flex;
-        justify-content: space-around;
-        flex-wrap: wrap;
-        width: 100%;
-        margin-bottom: 20px;
-    }
-
-    .stat {
-        font-size: 1.2em;
-        padding: 15px;
-        background-color: #ffffff;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-    }
-
-    .signup {
-        background-color: #3498db;
-        padding: 10px 20px;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        margin-bottom: 20px;
-    }
-
-    .upload-resume {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .upload-resume input {
-        display: none;
-    }
-
-    .upload-resume label {
-        background-color: #2ecc71;
-        padding: 10px 20px;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-    }
-
-    .benefits {
-        display: flex;
-        justify-content: space-around;
-        flex-wrap: wrap;
-    }
-
-    .benefit {
-        width: 30%;
-        padding: 20px;
-        box-sizing: border-box;
-        text-align: center;
-        background-color: #ffffff;
-        margin-bottom: 20px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-    }
-
-    .benefit h3 {
-        margin-top: 0;
-    }
-
-    .benefit i {
-        font-size: 2em;
-        margin-bottom: 10px;
-    }
-
-    footer {
-        background-color: #2c3e50;
-        color: white;
-        padding:
-        20px;
-text-align: center;
-}
-@media (max-width: 768px) {
-        .benefit {
-            width: 100%;
-        }
-
-        .job-stats {
-            flex-direction: column;
-        }
-
-        .stat {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-    }
-</style>
-</head>
-<body>
-    <header>
-        <h1>Pingojo - Crowd-Powered Hiring</h1>
-        <div class="search-bar">
-            <input type="search" placeholder="Search jobs...">
-        </div>
-    </header>
+{% block content %}
+<div class="marquee">
+    <ul>
+      {% for company in companies %}
+        <li style="display: inline;">
+          <a href="{% url 'company_detail' slug=company.slug %}">Jobs at {{ company.name }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
     <section class="main-content">
         <div class="job-stats">
             <div class="stat">
@@ -208,9 +69,5 @@ text-align: center;
             </div>
         </div>
     </section>
-    
-    <footer>
-        &copy; Pingojo - All Rights Reserved | Privacy Policy | Terms of Service | <a href="https://github.com/pingojo/website">Github</a>
-    </footer>
-</body>
-</html>
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <div class="pagination">
+        {% if prev_company %}
+            <a href="{% url 'company_detail' slug=prev_company.slug %}" class="prev-company btn">&laquo; {{ prev_company.name }}</a>
+        {% endif %}
+        {% if next_company %}
+            <a href="{% url 'company_detail' slug=next_company.slug %}" class="next-company btn">{{ next_company.name }} &raquo;</a>
+        {% endif %}
+    </div>
+
+        <h1 class="company-name">{{ company.name }}</h1>
+        <div class="company-details">
+            <p><strong>Twitter:</strong> <a href="{{ company.twitter_url }}">{{ company.twitter_url }}</a></p>
+            <p><strong>Number of employees:</strong> {{ company.number_of_employees_min }} - {{ company.number_of_employees_max }}</p>
+            <p><strong>Description:</strong> {{ company.description }}</p>
+            <p><strong>Website:</strong> <a href="{{ company.website }}">{{ company.website }}</a></p>
+            <p><strong>Location:</strong> {{ company.city }}, {{ company.state }}, {{ company.country }}</p>
+            <p><strong>CEO:</strong> {{ company.ceo }} (<a href="{{ company.ceo_twitter }}">Twitter</a>)</p>
+        </div>
+
+        <h2 class="jobs-heading">Jobs</h2>
+        <ul class="job-list">
+            {% for job in company.job_set.all %}
+                <li class="job-item">
+                    <a href="{{ job.link }}">{{ job.title }}</a>
+                </li>
+            {% empty %}
+                <li class="job-item">No jobs available.</li>
+            {% endfor %}
+        </ul>
+
+        <h3 class="add-job-heading">Add a new job link</h3>
+        <form method="post" action="{% url 'add_job_link' company.slug %}" class="add-job-form">
+            {% csrf_token %}
+            <label for="job_link">Job Link:</label>
+            <input type="url" name="job_link" id="job_link" required>
+            <button type="submit">Submit</button>
+        </form>
+        <div class="pagination">
+            <span class="step-links">
+                {% if prev_company %}
+                    <a href="{% url 'company_detail' slug=prev_company.slug %}" class="prev-company">&laquo; {{ prev_company.name }}</a>
+                {% endif %}
+                |
+                {% if next_company %}
+                    <a href="{% url 'company_detail' slug=next_company.slug %}" class="next-company">{{ next_company.name }} &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+{% endblock %}

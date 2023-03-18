@@ -12,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('SECRET_KEY','secret')
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['www.pingojo.com']
+ALLOWED_HOSTS = ['www.pingojo.com','127.0.0.1']
 ALLOWED_HOSTS.append(socket.getaddrinfo(socket.gethostname(), 'http')[0][4][0])
 
 if 'CODESPACE_NAME' in os.environ:

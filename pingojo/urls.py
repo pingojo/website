@@ -6,10 +6,13 @@ from django.contrib.auth.decorators import login_required
 from website.utils import HashIdConverter
 
 import os
+from website import views
 
 register_converter(HashIdConverter, "hashid")
 
 admin.autodiscover()
+app_name = 'pingojo'
+
 
 urlpatterns = [
     path("", Index.as_view(), name="index"),
@@ -23,6 +26,8 @@ urlpatterns = [
         login_required(ApplicationDetailView.as_view()),
         name="application-detail",
     ),
+    path('company/<slug:slug>/', views.CompanyDetailView.as_view(), name='company_detail'),
+    path('company/<slug:slug>/add_job_link/', views.add_job_link, name='add_job_link'),
     path("dashboard/", Dashboard.as_view()),
     path(os.environ.get("ADMIN_URL","admin/"), admin.site.urls),
     path("accounts/", include("allauth.urls")),

@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pingojo - Crowd-Powered Hiring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" 
+     crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+<body>
+    <header>
+        <h1>Pingojo - Crowd-Powered Hiring</h1>
+        <div class="search-bar">
+            <input type="search" placeholder="Search jobs...">
+        </div>
+    </header>
+    {% block content %}
+    {% endblock %}
+    
+    <footer>
+        &copy; Pingojo - All Rights Reserved | Privacy Policy | Terms of Service | <a href="https://github.com/pingojo/website">Github</a>
+    </footer>
+</body>
+</html>
