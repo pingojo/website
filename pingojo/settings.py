@@ -129,4 +129,4 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 # used for generating unique urls that can't be guessed
-HASHID_FIELD_SALT = (os.getenv("HASHID_FIELD_SALT","salt123"))
+HASHID_FIELD_SALT = (os.getenv.get("HASHID_FIELD_SALT","salt123"))
