@@ -14,6 +14,10 @@ admin.autodiscover()
 app_name = 'pingojo'
 
 
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
+
 urlpatterns = [
     path("", Index.as_view(), name="index"),
     path(
@@ -32,5 +36,6 @@ urlpatterns = [
     path(os.environ.get("ADMIN_URL","admin/"), admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path('update_website_status/', views.UpdateWebsiteStatusView.as_view(), name='update_website_status'),
+    path('sentry-debug/', trigger_error),
 
 ]
