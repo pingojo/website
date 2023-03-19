@@ -19,6 +19,7 @@ nltk = "^3.8.1"
 pdfminer-six = "^20221105"
 docx2txt = "^0.8"
 sentry-sdk = "^1.17.0"
+sendgrid = "^6.9.7"
 
 [tool.poetry.dev-dependencies]
 
