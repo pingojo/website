@@ -112,6 +112,13 @@ USE_TZ = True
 SITE_ID = 1
 LOGIN_REDIRECT_URL = "/"
 
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+
+ACCOUNT_FORMS = {
+    'signup': 'website.forms.CustomSignupForm',
+}
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": [
@@ -135,3 +142,15 @@ AUTHENTICATION_BACKENDS = (
 )
 # used for generating unique urls that can't be guessed
 HASHID_FIELD_SALT = (os.environ.get("HASHID_FIELD_SALT","salt123"))
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY","your_sendgrid_api_key")
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER","apikey")
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL","email@server.com")
+
+SLACK_WEBHOOK_URL =  os.environ.get("SLACK_WEBHOOK_URL","your_slack_webhook_url")

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main-content centered-form">
+    <div class="container">
+        <div class="form-container">
+            <form method="post">
+                <h2>Sign Up</h2>
+                {% csrf_token %}
+                <label for="{{ form.first_name.auto_id }}">{{ form.first_name.label }}</label>
+                {{ form.first_name }}
+
+                <label for="{{ form.last_name.auto_id }}">{{ form.last_name.label }}</label>
+                {{ form.last_name }}
+
+                <label for="{{ form.email.auto_id }}">{{ form.email.label }}</label>
+                {{ form.email }}
+
+                <label for="{{ form.password1.auto_id }}">{{ form.password1.label }}</label>
+                {{ form.password1 }}
+                
+                <button type="submit">Sign Up</button>
+                <div>
+                    <p>Already have an account? <a href="{% url 'account_login' %}">Log in</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
