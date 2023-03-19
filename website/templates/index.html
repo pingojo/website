@@ -5,7 +5,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
       const marqueeList = document.querySelector(".marquee ul");
-      marqueeList.style.setProperty("--startPosition", "100%");
+      marqueeList.style.setProperty("--startPosition", "0");
       marqueeList.style.setProperty("--endPosition", `calc(-1 * ${marqueeList.scrollWidth}px)`);
   
       // Optional: Adjust animation duration based on content width
