@@ -50,6 +50,8 @@ class Company(BaseModel):
     number_of_employees_max = models.IntegerField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     website = models.URLField(blank=True, null=True)
+    website_status = models.IntegerField(null=True, blank=True)
+    website_status_updated = models.DateTimeField(null=True, blank=True)
     city = models.CharField(max_length=255)
     state = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
@@ -58,6 +60,9 @@ class Company(BaseModel):
     greenhouse_url = models.URLField(blank=True, null=True)
     wellfound_url = models.URLField(blank=True, null=True)
     lever_url = models.URLField(blank=True, null=True)
+    careers_url = models.URLField(blank=True, null=True)
+    careers_url_status = models.IntegerField(null=True, blank=True)
+    careers_url_status_updated = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name

@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
+
+{% block seo_header %}
+<title>{{ company.name }} - Jobs</title>
+<meta name="description" content="{{ company.name }}">
+<meta name="keywords" content="Pingojo, recruitment platform, job seekers, recruiters, companies, job matching, virtual recruitment, contact management, real-time dashboard">
+{% endblock %}
+
+<script src="{% static 'js/website_status_checker.js' %}"></script>
+{% csrf_token %}
 
 <div class="container">
     <div class="pagination">
@@ -41,4 +50,14 @@
             <button type="submit">Submit</button>
         </form>
     </div>
+
+    <script>
+
+
+        const companyId = '{{company.id}}';
+        const url = '{{company.website}}';
+        const websiteStatusUpdated = '{{company.website_status_updaated}}';
+
+        checkWebsiteStatus(companyId, url, websiteStatusUpdated);
+    </script>
 {% endblock %}

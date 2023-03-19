@@ -4,11 +4,17 @@ from website.models import Application
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView, CreateView
 from django.utils import timezone
+from django.utils import timezone
+
 from django.views import generic
 from .models import Company
 from django.shortcuts import get_object_or_404, redirect
 from .models import Job
 import random
+from django.views import View
+from django.http import JsonResponse
+from .models import Company
+from datetime import datetime
 
 class ApplicationView(CreateView):
     model = Application
@@ -71,3 +77,49 @@ def add_job_link(request, slug):
         job = Job(link=job_link, company=company)
         job.save()
         return redirect('company_detail', slug=slug)
+    
+
+
+
+import requests
+from django.views import View
+from django.http import JsonResponse
+from .models import Company
+from datetime import datetime, timedelta
+
+class UpdateWebsiteStatusView(View):
+    def get_company(self, company_id):
+        try:
+            return Company.objects.get(pk=company_id)
+        except Company.DoesNotExist:
+            return None
+
+    def update_status(self, company, status):
+        company.website_status = status
+        company.website_status_updated = timezone.now()
+        company.save()
+
+    def get(self, request, *args, **kwargs):
+        company_id = request.GET.get('company_id')
+        company = self.get_company(company_id)
+        if not company:
+            return JsonResponse({'status': 'error', 'message': 'Company not found'}, status=404)
+
+        if (not company.website_status_updated or 
+                (datetime.now() - company.website_status_updated).days >= 7):
+            response = requests.get(company.website)
+            self.update_status(company, response.status_code)
+
+        return JsonResponse({'status': 'success', 'website_status': company.website_status})
+
+    def post(self, request, *args, **kwargs):
+        company_id = request.POST.get('company_id')
+        status = request.POST.get('status')
+
+        company = self.get_company(company_id)
+        if not company:
+            return JsonResponse({'status': 'error', 'message': 'Company not found'}, status=404)
+
+        self.update_status(company, int(status))
+        return JsonResponse({'status': 'success'})
+

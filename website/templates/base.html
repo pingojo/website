@@ -4,7 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block seo_header %}
     <title>Pingojo - Crowd-Powered Hiring</title>
+    <meta name="description" content="Pingojo is a revolutionary virtual recruitment platform that connects job seekers, recruiters, and companies, empowering anyone to become a recruiter. Our advanced contact management system and real-time dashboards help users stay updated and maintain their privacy.">
+    <meta name="keywords" content="Pingojo, recruitment platform, job seekers, recruiters, companies, job matching, virtual recruitment, contact management, real-time dashboard">
+    {% endblock %}
+   
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" 
      crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">

@@ -31,4 +31,6 @@ urlpatterns = [
     path("dashboard/", Dashboard.as_view()),
     path(os.environ.get("ADMIN_URL","admin/"), admin.site.urls),
     path("accounts/", include("allauth.urls")),
+    path('update_website_status/', views.UpdateWebsiteStatusView.as_view(), name='update_website_status'),
+
 ]
