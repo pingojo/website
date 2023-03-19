@@ -40,9 +40,11 @@ class Index(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        companies = list(Company.objects.all())
+        all_companies = Company.objects.all()
+        companies = list(all_companies)
         random.shuffle(companies)
         context['companies'] = companies[:50]
+        context['company_count'] = all_companies.count()
         return context
     
 class CompanyDetailView(generic.DetailView):
