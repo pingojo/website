@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block content %}
 <script>
@@ -27,7 +28,7 @@
                 <strong>10,000+</strong> Jobs
             </div>
             <div class="stat">
-                <strong>{{company_count|floatformat:2}}+</strong> Companies
+                <strong>{{company_count|intcomma}}+</strong> Companies
             </div>
             <div class="stat">
                 <strong>50,000+</strong> Applications
