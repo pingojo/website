@@ -16,18 +16,7 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class Application(BaseModel):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
-    input = models.CharField(max_length=255)
 
-    def get_hashid(self):
-        return h_encode(self.id)
-
-    def get_absolute_url(self):
-        return reverse("application-detail", args=[self.id])
 
 
 class Skill(BaseModel):
@@ -66,6 +55,9 @@ class Company(BaseModel):
     country = models.CharField(max_length=255)
     ceo = models.CharField(max_length=255)
     ceo_twitter = models.URLField(blank=True, null=True)
+    greenhouse_url = models.URLField(blank=True, null=True)
+    wellfound_url = models.URLField(blank=True, null=True)
+    lever_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -99,3 +91,42 @@ class Job(models.Model):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+
+class Status(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name  
+
+
+class Application(BaseModel):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    date_applied = models.DateField(auto_now_add=True)
+    status = models.ForeignKey(Status, on_delete=models.CASCADE,blank=True, null=True)
+    recruiter = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="recruiter",
+        blank=True, null=True
+    )
+    def __str__(self):
+        return f"{self.job} ({self.date_applied})"
+    
+    def get_hashid(self):
+        return h_encode(self.id)
+
+    def get_absolute_url(self):
+        return reverse("application-detail", args=[self.id])
+    
+
+class Email(models.Model):
+    email_id = models.CharField(max_length=255)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.email_id
