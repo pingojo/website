@@ -1,4 +1,3 @@
-# import_companies.py
 import csv
 from django.core.management.base import BaseCommand
 from website.models import Company
@@ -19,17 +18,19 @@ class Command(BaseCommand):
                 company, created = Company.objects.update_or_create(
                     slug=base_slug,
                     defaults={
-                        'name': row['name'],
-                        'twitter_url': row['twitter_url'],
-                        'number_of_employees_min': int(row['number_of_employees_min']) if row['number_of_employees_min'] else None,
-                        'number_of_employees_max': int(row['number_of_employees_max']) if row['number_of_employees_max'] else None,
-                        'description': row['description'],
-                        'website': row['website'],
-                        'city': row['city'],
-                        'state': row['state'],
-                        'country': row['country'],
-                        'ceo': row['ceo'],
-                        'ceo_twitter': row['ceo_twitter'],
+                        'name': row.get('name', ''),
+                        'twitter_url': row.get('twitter_url', ''),
+                        'greenhouse_url': row.get('greenhouse_url', ''),
+                        'lever_url': row.get('greenhouse_url', ''),
+                        'number_of_employees_min': int(row['number_of_employees_min']) if row.get('number_of_employees_min') else None,
+                        'number_of_employees_max': int(row['number_of_employees_max']) if row.get('number_of_employees_max') else None,
+                        'description': row.get('description', ''),
+                        'website': row.get('website', ''),
+                        'city': row.get('city', ''),
+                        'state': row.get('state', ''),
+                        'country': row.get('country', ''),
+                        'ceo': row.get('ceo', ''),
+                        'ceo_twitter': row.get('ceo_twitter', ''),
                     }
                 )
 
