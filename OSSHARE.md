@@ -1,4 +1,4 @@
-This is the OSSHARE file that is used to determine the distribution of profit share.
+This is the OSSHARE file that is used to determine the distribution of profit share
 
 Currently it is setup to use Bitcoin Cash (BCH) 
 
