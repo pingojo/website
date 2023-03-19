@@ -4,13 +4,16 @@ on:
     branches:
       - main
 jobs:
-  main:
-    name: Deploy to Render
+  deploy:
+    name: Wait for Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger deployment
-        uses: sws2apps/render-deployment@main
+      - name: Wait for Render Deployment
+        uses: bounceapp/render-action@0.6.0
         with:
-          serviceId: ${{ secrets.RENDER_SERVICE_ID }}
-          apiKey: ${{ secrets.RENDER_TOKEN }}
-          multipleDeployment: false #optional, default true
+          render-token: ${{ secrets.RENDER_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          retries: 20
+          wait: 16000
+          sleep: 30000
