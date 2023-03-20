@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main-content">
+  <h2>Job Search</h2>
+  <form id="search-form" method="get">
+    <div>
+      <label for="search">Search:</label>
+      <input type="text" name="search" id="search" value="{{ search_query }}">
+    </div>
+    <button type="submit">Search</button>
+  </form>
+
+  <div class="search-results">
+    <div class="job-results">
+      <h3>Featured Jobs</h3>
+      {% if jobs %}
+        <ul>
+          {% for job in jobs %}
+            <li>
+              <a href="{{ job.url }}">{{ job.job_title }} - {{ job.company.name }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No jobs found.</p>
+      {% endif %}
+    </div>
+
+    <div class="company-results">
+      <h3>Companies</h3>
+      {% if companies %}
+        <ul>
+          {% for company in companies %}
+            <li>
+              <a href="{{ company.url }}">{{ company.name }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No companies found.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

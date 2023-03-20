@@ -97,8 +97,9 @@ class Job(models.Model):
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
 
-class Status(models.Model):
+class Stage(models.Model):
     name = models.CharField(max_length=255)
+    order = models.IntegerField()
 
     def __str__(self):
         return self.name  
@@ -112,7 +113,8 @@ class Application(BaseModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     date_applied = models.DateField(auto_now_add=True)
-    status = models.ForeignKey(Status, on_delete=models.CASCADE,blank=True, null=True)
+    stage = models.ForeignKey(Stage, on_delete=models.CASCADE,blank=True, null=True)
+    date_of_last_email = models.DateField(blank=True, null=True)
     recruiter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -120,7 +122,7 @@ class Application(BaseModel):
         blank=True, null=True
     )
     def __str__(self):
-        return f"{self.job} ({self.date_applied})"
+        return f"{self.company_name} - {self.job_title}"
     
     def get_hashid(self):
         return h_encode(self.id)

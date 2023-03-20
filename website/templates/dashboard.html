@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="main-content">
+
+    <div class="main-content">
+        <h1>Dashboard</h1>
+        <!-- Add your drag and drop form here -->
+        <form id="job-url-form">
+            <input type="url" id="job-url" placeholder="Drag and drop a job link here or paste the URL" />
+            <button type="submit">Add Job</button>
+        </form>
+        <!-- Display the list of applications here -->
+    </div>
+
+
+
+    <div class="job-stages">
+        <div class="stage" data-stage="Applied">Applied ({{ applications|filter_stage:"Applied"|length }})</div>
+        <div class="stage" data-stage="Scheduled">Scheduled ({{ applications|filter_stage:"Scheduled"|length }})</div>
+        <div class="stage" data-stage="Next">Next ({{ applications|filter_stage:"Next"|length }})</div>
+        <div class="stage" data-stage="Passed">Passed ({{ applications|filter_stage:"Passed"|length }})</div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Company Name</th>
+                <th>Job Title</th>
+                <th>Date Applied</th>
+                <th>Date of Last Email</th>
+                <th>Stage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for application in applications %}
+            <tr>
+                <td>{{ application.company.name }}</td>
+                <td>{{ application.job.title }}</td>
+                <td>{{ application.date_applied }}</td>
+                <td>{{ application.date_of_last_email }}</td>
+                <td>
+                    <select>
+                        {% for stage in stages %}
+                        <option value="{{ stage.id }}" {% if stage.id == application.stage.id %}selected{% endif %}>
+                            {{ stage.display }}
+                        </option>
+                    {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        const form = $('#job-url-form');
+        const urlInput = $('#job-url');
+
+        // Drag and drop functionality
+        urlInput.on('dragover', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).addClass('dragging');
+        });
+
+        urlInput.on('dragleave', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass('dragging');
+        });
+
+        urlInput.on('drop', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass('dragging');
+            const url = e.originalEvent.dataTransfer.getData('text/plain');
+            $(this).val(url);
+            submitForm();
+        });
+
+        form.on('submit', function (e) {
+            e.preventDefault();
+            submitForm();
+        });
+
+        function submitForm() {
+            const url = urlInput.val();
+            if (url) {
+                // Call the Django view to scrape the job details
+                axios.get('{% url "scrape-job" %}', {
+                        params: {
+                            url: url
+                        }
+                    })
+                    .then(response => {
+                        const {
+                            job_title,
+                            company_name
+                        } = response.data;
+                        // Populate the fields with the scraped data
+                        // ...
+                        // Submit the form data with the application details
+                        // ...
+                    })
+                    .catch(error => {
+                        console.error('Error scraping job:', error);
+                    });
+            }
+        }
+    });
+</script>
+{% endblock %}

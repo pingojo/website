@@ -10,7 +10,11 @@
     <meta name="keywords" content="Pingojo, recruitment platform, job seekers, recruiters, companies, job matching, virtual recruitment, contact management, real-time dashboard">
     {% endblock %}
    
-    
+    <!-- Add these to the head section of your base.html -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" 
      crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -20,7 +24,10 @@
     <header>
         <h1><a href="/" style="color: white; text-decoration: none;">pingojo</a> - Crowd-Powered Hiring</h1>
         <div class="search-bar">
-            <input type="search" placeholder="Search jobs...">
+            <form method="get" action="{% url 'search' %}">
+                <input type="search" name="q" placeholder="Search jobs...">
+                <button type="submit" style="display: none;"></button>
+            </form>
         </div>
     </header>
     {% block content %}

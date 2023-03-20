@@ -40,8 +40,12 @@
                 <strong>2,000+</strong> Hires
             </div>
         </div>
-    
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="signup">Dashboard</a>
+
+        {% else %}
         <a href="/accounts/signup/" class="signup">Sign up now!</a>
+        {% endif %}
     
         <div class="upload-resume">
             <input type="file" id="resume" accept=".pdf,.doc,.docx" />

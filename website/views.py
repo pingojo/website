@@ -7,14 +7,73 @@ from django.utils import timezone
 from django.utils import timezone
 
 from django.views import generic
-from .models import Company
+
 from django.shortcuts import get_object_or_404, redirect
 from .models import Job
 import random
 from django.views import View
 from django.http import JsonResponse
-from .models import Company
+from .models import Company, Stage
 from datetime import datetime
+
+from django.shortcuts import render
+from .models import Job
+
+# views.py
+from bs4 import BeautifulSoup
+import requests
+from django.http import JsonResponse
+
+from django.shortcuts import render
+from .models import Job, Company
+from django.db.models import Q
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.list import ListView
+from .models import Application
+
+def search(request):
+    search_query = request.GET.get('search', '')
+
+    if search_query:
+        jobs = Job.objects.filter(
+            Q(title__icontains=search_query) |
+            Q(company__name__icontains=search_query)
+        )
+        companies = Company.objects.filter(
+            name__icontains=search_query
+        )
+    else:
+        jobs = Job.objects.all()
+        companies = Company.objects.all()
+
+    return render(request, 'search.html', {
+        'jobs': jobs,
+        'companies': companies,
+        'search_query': search_query,
+    })
+
+
+def scrape_job(request):
+    url = request.GET.get('url', '')
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    # Parse the job details here
+    # job_title = ...
+    # company_name = ...
+    return JsonResponse({'job_title': job_title, 'company_name': company_name})
+
+
+class DashboardView(LoginRequiredMixin, ListView):
+    template_name = 'dashboard.html'
+    context_object_name = 'applications'
+
+    def get_queryset(self):
+        return Application.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['stages'] = Stage.objects.all()
+        return context
 
 class ApplicationView(CreateView):
     model = Application
@@ -36,9 +95,6 @@ class ApplicationDetailView(DetailView):
         context["title"] = get_website_title(self.get_object().input)
         return context
 
-
-class Dashboard(ListView):
-    pass
 
 
 class Index(TemplateView):

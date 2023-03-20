@@ -1,7 +1,7 @@
 from django.conf.urls import include
 from django.urls import path, register_converter
 from django.contrib import admin
-from website.views import ApplicationDetailView, Dashboard, Index, ApplicationView
+from website.views import ApplicationDetailView, DashboardView, Index, ApplicationView
 from django.contrib.auth.decorators import login_required
 from website.utils import HashIdConverter
 
@@ -32,10 +32,11 @@ urlpatterns = [
     ),
     path('company/<slug:slug>/', views.CompanyDetailView.as_view(), name='company_detail'),
     path('company/<slug:slug>/add_job_link/', views.add_job_link, name='add_job_link'),
-    path("dashboard/", Dashboard.as_view()),
+    path("dashboard/", DashboardView.as_view(), name='dashboard'),
     path(os.environ.get("ADMIN_URL","admin/"), admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path('update_website_status/', views.UpdateWebsiteStatusView.as_view(), name='update_website_status'),
     path('sentry-debug/', trigger_error),
-
+    path('scrape-job/', views.scrape_job, name='scrape-job'),
+    path('search/', views.search, name='search'),
 ]
