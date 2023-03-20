@@ -34,7 +34,12 @@
     {% endblock %}
     
     <footer>
-        &copy; Pingojo - All Rights Reserved | Privacy Policy | Terms of Service | <a href="https://github.com/pingojo/website">Github</a>
+        &copy; Pingojo - All Rights Reserved |
+        <a href="{% url 'privacy_policy' %}">Privacy Policy</a> |
+        <a href="{% url 'terms_of_service' %}">Terms of Service</a> |
+        <a href="https://github.com/pingojo/website">Github</a>
     </footer>
+    
+
 </body>
 </html>
