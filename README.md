@@ -6,7 +6,9 @@ In today's job market, finding the right candidate for a job opening can be a ch
 The recruitment market is worth over $200 billion globally, and the demand for recruitment services continues to grow. There are several players in this market, but very few offer the unique value proposition that Pingojo provides. Our platform is designed to empower anyone to become a recruiter, giving companies access to a wider pool of candidates and job seekers access to more opportunities.
 # Revenue Model
 Our revenue model is based on the following fees:
-* Companies pay 1/5 of the first paycheck or $500, whichever is less, when they hire a candidate.* Job seekers pay 1/5 of the first paycheck or $500, whichever is less, when they are hired.* Recruiters receive a $0.30 commission for each job applied for.
+* Companies pay 1/5 of the first paycheck or $500, whichever is less, when they hire a candidate.
+* Job seekers pay 1/5 of the first paycheck or $500, whichever is less, when they are hired.
+* Recruiters receive a $0.30 commission for each job applied for.
 
 | Revenue Source | Fee |
 | --- | --- |
