@@ -137,3 +137,178 @@ class Email(models.Model):
 
     def __str__(self):
         return self.email_id
+    
+
+
+
+# User:
+
+# first_name
+# last_name
+# email
+# password
+# user_type (job seeker, company, recruiter)
+
+# UserProfile:
+
+# Resume
+# Skills at position
+# Job SeekerProfile:
+
+# user (OneToOneField with User)
+# skills (ManyToManyField with Skill)
+# experience (TextField)
+# education (TextField)
+# Company:
+
+# user (OneToOneField with User)
+# name
+# description
+# industry
+# location
+# website
+# RecruiterProfile:
+
+# user (OneToOneField with User)
+# rating
+# total_matches
+# earnings
+# Job:
+
+# company (ForeignKey to Company)
+# title
+# description
+# requirements
+# location
+# salary_range
+# job_type (full-time, part-time, contract, etc.)
+# posted_date
+# Skill:
+
+# name
+# description
+# Application:
+
+# job (ForeignKey to Job)
+# job_seeker (ForeignKey to User with job seeker user_type)
+# recruiter (ForeignKey to User with recruiter user_type)
+# status (applied, scheduled, passed, etc.)
+# applied_date
+# last_email_date
+# commission_fee
+# processing_fee
+# Payment:
+
+# payer (ForeignKey to User)
+# payee (ForeignKey to User)
+# amount
+# payment_type (commission_fee, processing_fee, hiring_fee)
+# date
+
+
+# from django.db import models
+# from django.contrib.auth.models import User
+
+# class JobSeeker(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     skills = models.ManyToManyField('Skill')
+
+# class Company(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     name = models.CharField(max_length=255)
+#     contact_info = models.TextField()
+
+# class Job(models.Model):
+#     title = models.CharField(max_length=255)
+#     description = models.TextField()
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+
+# class Application(models.Model):
+#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+#     job = models.ForeignKey(Job, on_delete=models.CASCADE)
+#     recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
+#     status = models.CharField(max_length=255)
+#     adjusted_commission = models.DecimalField(max_digits=6, decimal_places=2)
+
+# class Recruiter(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     total_earnings = models.DecimalField(max_digits=10, decimal_places=2)
+
+# class Skill(models.Model):
+#     name = models.CharField(max_length=255)
+
+# class Match(models.Model):
+#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+#     job = models.ForeignKey(Job, on_delete=models.CASCADE)
+#     recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
+#     score = models.FloatField()
+#     commission_adjustment = models.DecimalField(max_digits=6, decimal_places=2)
+
+# class DailyEmail(models.Model):
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+#     content = models.TextField()
+#     date_sent = models.DateField()
+
+# class Agreement(models.Model):
+#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+#     terms = models.TextField()
+#     contact_info_exchanged = models.BooleanField(default=False)
+
+
+# from django.db import models
+# from django.contrib.auth.models import User
+
+# class JobSeeker(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+# class Experience(models.Model):
+#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+#     company_name = models.CharField(max_length=255)
+#     position = models.CharField(max_length=255)
+#     start_date = models.DateField()
+#     end_date = models.DateField()
+#     skills = models.ManyToManyField('Skill')
+
+# class Company(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     name = models.CharField(max_length=255)
+#     contact_info = models.TextField()
+
+# class Job(models.Model):
+#     title = models.CharField(max_length=255)
+#     description = models.TextField()
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+#     skills = models.ManyToManyField('Skill')
+
+# class Application(models.Model):
+#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+#     job = models.ForeignKey(Job, on_delete=models.CASCADE)
+#     recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
+#     status = models.CharField(max_length=255)
+#     adjusted_commission = models.DecimalField(max_digits=6, decimal_places=2)
+
+# class Recruiter(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     total_earnings = models.DecimalField(max_digits=10, decimal_places=2)
+
+# class Skill(models.Model):
+#     name = models.CharField(max_length=255)
+
+# class Match(models.Model):
+#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+#     job = models.ForeignKey(Job, on_delete=models.CASCADE)
+#     recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
+#     score = models.FloatField()
+#     commission_adjustment = models.DecimalField(max_digits=6, decimal_places=2)
+
+# class DailyEmail(models.Model):
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+#     content = models.TextField()
+#     date_sent = models.DateField()
+
+# class Agreement(models.Model):
+#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+#     terms = models.TextField()
+#     contact_info_exchanged = models.BooleanField(default=False)
