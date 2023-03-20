@@ -40,5 +40,7 @@ urlpatterns = [
     path('scrape-job/', views.scrape_job, name='scrape-job'),
     path('search/', views.search, name='search'),
     path('job/<slug:slug>/', views.JobDetailView.as_view(), name='job_detail'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
 
 ]

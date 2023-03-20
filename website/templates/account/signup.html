@@ -18,7 +18,12 @@
 
                 <label for="{{ form.password1.auto_id }}">{{ form.password1.label }}</label>
                 {{ form.password1 }}
-                
+
+                <div class="checkbox-container">
+                    <input type="checkbox" name="terms_agree" id="terms_agree" required>
+                    <label for="terms_agree">I agree to the <a href="{% url 'terms_of_service' %}">Terms of Service</a> and <a href="{% url 'privacy_policy' %}">Privacy Policy</a>.</label>
+                </div>
+
                 <button type="submit">Sign Up</button>
                 <div>
                     <p>Already have an account? <a href="{% url 'account_login' %}">Log in</a></p>

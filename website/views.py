@@ -40,6 +40,12 @@ class JobDetailView(DetailView):
     template_name = 'job_detail.html'
     context_object_name = 'job'
 
+def privacy_policy(request):
+    return render(request, 'privacy_policy.html')
+
+def terms_of_service(request):
+    return render(request, 'terms_of_service.html')
+
 
 def search(request):
     search_query = request.GET.get('search', '')
