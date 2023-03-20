@@ -60,3 +60,38 @@ def extract_job_post_info(text):
             equal_opportunity_statement = para.strip()
         elif re.search(r'\b(responsibilities|duties|tasks)\b', para, re.IGNORECASE):
             responsibilities = para
+            strip()
+        elif re.search(r'\b(skills|qualifications|requirements)\b', para, re.IGNORECASE):
+            if job_requirements is None:
+                job_requirements = para.strip()
+            elif preferred_qualifications is None:
+                preferred_qualifications = para.strip()
+        elif re.search(r'\b(benefits|perks)\b', para, re.IGNORECASE):
+            benefits = para.strip()
+        elif re.search(r'\b(work schedule|working hours)\b', para, re.IGNORECASE):
+            work_schedule = para.strip()
+        elif re.search(r'\b(culture|values|mission)\b', para, re.IGNORECASE):
+            company_culture = para.strip()
+        elif re.search(r'\b(career growth|advancement opportunities)\b', para, re.IGNORECASE):
+            career_growth_opportunities = para.strip()
+        elif re.search(r'\b(instructions|how to apply)\b', para, re.IGNORECASE):
+            application_instructions = para.strip()
+        elif job_description is None:
+            job_description = para.strip()
+
+    email = extract_email(text)
+    phone = extract_phone(text)
+    contact_information = {'email': email, 'phone': phone}
+
+    return JobPost(job_title, company_name, job_location, job_type, job_description,
+                   job_requirements, preferred_qualifications, skills, responsibilities,
+                   salary_range, benefits, application_deadline, application_instructions,
+                   contact_information, company_culture, equal_opportunity_statement,
+                   career_growth_opportunities, work_schedule, remote_work_options)
+
+if __name__ == "__main__":
+    job_post_text = """
+    # Add your plain text job post here.
+    """
+    job_post = extract_job_post_info(job_post_text)
+    print(job_post)
