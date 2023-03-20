@@ -31,6 +31,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.list import ListView
 from .models import Application
 
+from django.core.paginator import Paginator
+from django.views.generic import DetailView
+from .models import Job
+
+class JobDetailView(DetailView):
+    model = Job
+    template_name = 'job_detail.html'
+    context_object_name = 'job'
+
+
 def search(request):
     search_query = request.GET.get('search', '')
 
@@ -46,9 +56,19 @@ def search(request):
         jobs = Job.objects.all()
         companies = Company.objects.all()
 
+    # Paginate jobs
+    jobs_paginator = Paginator(jobs, 10)  # Show 10 jobs per page
+    jobs_page = request.GET.get('jobs_page', 1)
+    paginated_jobs = jobs_paginator.get_page(jobs_page)
+
+    # Paginate companies
+    companies_paginator = Paginator(companies, 10)  # Show 10 companies per page
+    companies_page = request.GET.get('companies_page', 1)
+    paginated_companies = companies_paginator.get_page(companies_page)
+
     return render(request, 'search.html', {
-        'jobs': jobs,
-        'companies': companies,
+        'paginated_jobs': paginated_jobs,
+        'paginated_companies': paginated_companies,
         'search_query': search_query,
     })
 

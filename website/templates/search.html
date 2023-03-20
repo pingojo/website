@@ -2,45 +2,63 @@
 
 {% block content %}
 <div class="main-content">
-  <h2>Job Search</h2>
-  <form id="search-form" method="get">
-    <div>
-      <label for="search">Search:</label>
-      <input type="text" name="search" id="search" value="{{ search_query }}">
-    </div>
-    <button type="submit">Search</button>
-  </form>
+    <h2>Search Results</h2>
+    <p>Search query: "{{ search_query }}"</p>
 
-  <div class="search-results">
-    <div class="job-results">
-      <h3>Featured Jobs</h3>
-      {% if jobs %}
-        <ul>
-          {% for job in jobs %}
-            <li>
-              <a href="{{ job.url }}">{{ job.job_title }} - {{ job.company.name }}</a>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>No jobs found.</p>
-      {% endif %}
+    <div class="jobs-section">
+        <h3>Jobs</h3>
+        {% for job in paginated_jobs %}
+        <div class="job">
+          <h4><a href="{% url 'job_detail' slug=job.slug %}">{{ job.title }}</a></h4>
+          <p>Company: <a href="{% url 'company_detail' slug=job.company.slug %}">{{ job.company.name }}</a></p>
+
+        </div>
+        {% endfor %}
+        
+        <div class="pagination">
+            <span class="step-links">
+                {% if paginated_jobs.has_previous %}
+                    <a href="?search={{ search_query }}&jobs_page=1&companies_page={{ paginated_companies.number }}">&laquo; first</a>
+                    <a href="?search={{ search_query }}&jobs_page={{ paginated_jobs.previous_page_number }}&companies_page={{ paginated_companies.number }}">previous</a>
+                {% endif %}
+
+                <span class="current-page">
+                    Page {{ paginated_jobs.number }} of {{ paginated_jobs.paginator.num_pages }}.
+                </span>
+
+                {% if paginated_jobs.has_next %}
+                    <a href="?search={{ search_query }}&jobs_page={{ paginated_jobs.next_page_number }}&companies_page={{ paginated_companies.number }}">next</a>
+                    <a href="?search={{ search_query }}&jobs_page={{ paginated_jobs.paginator.num_pages }}&companies_page={{ paginated_companies.number }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
     </div>
 
-    <div class="company-results">
-      <h3>Companies</h3>
-      {% if companies %}
-        <ul>
-          {% for company in companies %}
-            <li>
-              <a href="{{ company.url }}">{{ company.name }}</a>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>No companies found.</p>
-      {% endif %}
+    <div class="companies-section">
+        <h3>Companies</h3>
+        {% for company in paginated_companies %}
+        <div class="company">
+            <h4><a href="{% url 'company_detail' slug=company.slug %}">{{ company.name }}</a></h4>
+        </div>
+        {% endfor %}
+
+        <div class="pagination">
+            <span class="step-links">
+                {% if paginated_companies.has_previous %}
+                    <a href="?search={{ search_query }}&companies_page=1&jobs_page={{ paginated_jobs.number }}">&laquo; first</a>
+                    <a href="?search={{ search_query }}&companies_page={{ paginated_companies.previous_page_number }}&jobs_page={{ paginated_jobs.number }}">previous</a>
+                {% endif %}
+
+                <span class="current-page">
+                    Page {{ paginated_companies.number }} of {{ paginated_companies.paginator.num_pages }}.
+                </span>
+
+                {% if paginated_companies.has_next %}
+                    <a href="?search={{ search_query }}&companies_page={{ paginated_companies.next_page_number }}&jobs_page={{ paginated_jobs.number }}">next</a>
+                    <a href="?search={{ search_query }}&companies_page={{ paginated_companies.paginator.num_pages }}&jobs_page={{ paginated_jobs.number }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}

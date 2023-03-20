@@ -39,4 +39,6 @@ urlpatterns = [
     path('sentry-debug/', trigger_error),
     path('scrape-job/', views.scrape_job, name='scrape-job'),
     path('search/', views.search, name='search'),
+    path('job/<slug:slug>/', views.JobDetailView.as_view(), name='job_detail'),
+
 ]
