@@ -14,12 +14,13 @@ Our revenue model is based on a small commission fee that job seekers pay when t
 
 1. Companies will pay 1/5 of the first paycheck or 500, whichever is less, when they hire a candidate.
 2. Job seekers will pay 1/5 of the first paycheck or 500, whichever is less, when they are hired (deducted from their second payckeck).
-3. Recruiters will get 30 cents for each job added to a seeker.
+3. Recruiters will get 30 cents for each job added to a seeker + $250 per hire.
+
 | Revenue Source | Fee |
 | --- | --- |
 | Company hiring fee | 1/5 of first paycheck or $500, whichever is less |
 | Job seeker matching fee | 1/5 of first paycheck or $500, whichever is less |
-| Recruiter commission | $0.30 per job applied |Company and job seeker must agree on terms before allowing contact information to be exchanged.
+| Recruiter commission | $0.30 per job applied + $250 per hire|Company and job seeker must agree on terms before allowing contact information to be exchanged.
 # Marketing Strategy
 Our marketing strategy will focus on building awareness of our platform through targeted advertising and partnerships with universities, training programs, and professional organizations. We will also leverage social media to reach a wider audience and build our brand.
 # Financial Plan
