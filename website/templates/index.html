@@ -2,17 +2,7 @@
 {% load humanize %}
 
 {% block content %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const marqueeList = document.querySelector(".marquee ul");
-      marqueeList.style.setProperty("--startPosition", "0");
-      marqueeList.style.setProperty("--endPosition", `calc(-1 * ${marqueeList.scrollWidth}px)`);
-  
-      // Optional: Adjust animation duration based on content width
-      const animationDuration = Math.max(10, marqueeList.scrollWidth / 50); // 50 pixels per second
-      marqueeList.style.animationDuration = `${animationDuration}s`;
-    });
-  </script>
+
 <div class="marquee">
     <ul>
       {% for company in companies %}
@@ -40,6 +30,8 @@
                 <strong>2,000+</strong> Hires
             </div>
         </div>
+
+        
         {% if user.is_authenticated %}
         <a href="{% url 'dashboard' %}" class="signup">Dashboard</a>
 

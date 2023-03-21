@@ -4,7 +4,7 @@
 <div class="main-content centered-form">
     <div class="container">
         <div class="form-container">
-            <form method="post">
+            <form method="post" class="allauth">
                 <h2>Sign Up</h2>
                 {% csrf_token %}
                 <label for="{{ form.first_name.auto_id }}">{{ form.first_name.label }}</label>

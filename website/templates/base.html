@@ -22,24 +22,38 @@
 </head>
 <body>
     <header>
-        <h1><a href="/" style="color: white; text-decoration: none;">pingojo</a> - Crowd-Powered Hiring</h1>
-        <div class="search-bar">
-            <form method="get" action="{% url 'search' %}">
-                <input type="search" name="search" placeholder="Search jobs...">
-                <button type="submit" style="display: none;"></button>
-            </form>
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
         </div>
+    {% endif %}
+        <h1><a href="/" class="header-title">pingojo - Crowd-Powered Hiring</a></h1>
+        <form class="search-form" method="get" action="{% url 'search' %}">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search...">
+                <button class="search-btn">Search</button>
+            </div>
+        </form>
+        {% if user.is_authenticated %}
+            <a href="/accounts/logout/" class="login-btn">Logout</a>
+        {% else %}
+            <a href="/accounts/login/" class="login-btn">Login</a>
+        {% endif %}
     </header>
+    
+
+    
+    
     {% block content %}
     {% endblock %}
     
     <footer>
-        &copy; Pingojo - All Rights Reserved |
-        <a href="{% url 'privacy_policy' %}">Privacy Policy</a> |
-        <a href="{% url 'terms_of_service' %}">Terms of Service</a> |
-        <a href="https://github.com/pingojo/website">Github</a>
+        &copy; Pingojo - All Rights Reserved | <a href="{% url 'privacy_policy' %}" style="color: white;">Privacy Policy</a> | <a href="{% url 'terms_of_service' %}" style="color: white;">Terms of Service</a> | <a href="https://github.com/pingojo/website" style="color: white;">Github</a>
     </footer>
     
-
 </body>
 </html>
