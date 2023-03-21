@@ -39,7 +39,7 @@
     </div>
     <form class="search-form" method="get" action="{% url 'search' %}">
       <div class="search-container">
-        <input type="text" class="search-input" placeholder="Search...">
+        <input type="text" class="search-input" placeholder="Search..." name="search" required>
         <button class="search-btn">Search</button>
       </div>
     </form>
@@ -69,6 +69,6 @@
         document.getElementsByTagName("head")[0].appendChild(mf);
       })();
     </script>
-    
+
 </body>
 </html>
