@@ -4,6 +4,7 @@ from django.contrib import admin
 from website.views import ApplicationDetailView, DashboardView, Index, ApplicationView
 from django.contrib.auth.decorators import login_required
 from website.utils import HashIdConverter
+from django.views.generic.base import RedirectView
 
 import os
 from website import views
@@ -17,6 +18,7 @@ app_name = 'pingojo'
 def trigger_error(request):
     division_by_zero = 1 / 0
 
+favicon_view = RedirectView.as_view(url='/static/img/favicon.ico', permanent=True)
 
 urlpatterns = [
     path("", Index.as_view(), name="index"),
@@ -42,5 +44,6 @@ urlpatterns = [
     path('job/<slug:slug>/', views.JobDetailView.as_view(), name='job_detail'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
+    path('favicon.ico', favicon_view),
 
 ]
