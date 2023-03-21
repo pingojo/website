@@ -23,11 +23,7 @@ header {
     flex-wrap: wrap;
 }
 
-.header-title {
-    color: white;
-    text-decoration: none;
-}
-/* ... */
+
 .search-container {
     display: inline-flex;
     align-items: baseline;
@@ -75,6 +71,20 @@ header {
     background-color: #2980b9;
 }
 
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .logo {
+    max-width: 70%;
+    height: auto;
+  }
+  .slogan {
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    text-align: center;
+  }
 
 
 .main-content {

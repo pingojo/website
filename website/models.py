@@ -140,6 +140,17 @@ class Email(models.Model):
     
 
 
+class Search(BaseModel):
+    query = models.CharField(max_length=255)
+    matched_job_count = models.IntegerField(blank=True, null=True)
+    matched_company_count = models.IntegerField(blank=True, null=True)
+    matched_skill_count = models.IntegerField(blank=True, null=True)
+    matched_role_count = models.IntegerField(blank=True, null=True)
+
+
+    def __str__(self):
+        return self.query
+
 
 # User:
 

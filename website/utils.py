@@ -69,3 +69,24 @@ def calculate_match_percentage(resume_text, job_description_text):
     match_percentage = (len(common_words) / len(set(filtered_job_description_words))) * 100
 
     return round(match_percentage, 2)
+
+
+import requests
+from django.conf import settings
+
+def send_slack_notification(search):
+    slack_webhook_url = settings.SLACK_WEBHOOK_URL
+    message = f"New search added: {search.query}\n" \
+              f"Matched Jobs: {search.matched_job_count}\n" \
+              f"Matched Companies: {search.matched_company_count}\n" \
+              f"Matched Skills: {search.matched_skill_count}\n" \
+              f"Matched Roles: {search.matched_role_count}"
+
+    payload = {
+        "text": message,
+        "username": "Search Bot",
+        "icon_emoji": ":mag:"
+    }
+
+    response = requests.post(slack_webhook_url, json=payload)
+    return response.status_code
