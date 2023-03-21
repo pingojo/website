@@ -21,30 +21,35 @@
 
 </head>
 <body>
-    <header>
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
+  <header>
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="alert-{{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
-        <h1><a href="/" class="header-title">pingojo - Crowd-Powered Hiring</a></h1>
-        <form class="search-form" method="get" action="{% url 'search' %}">
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Search...">
-                <button class="search-btn">Search</button>
-            </div>
-        </form>
-        {% if user.is_authenticated %}
-            <a href="/accounts/logout/" class="login-btn">Logout</a>
-        {% else %}
-            <a href="/accounts/login/" class="login-btn">Login</a>
-        {% endif %}
-    </header>
-    
+    <div class="logo-container">
+      <a href="/" >
+        <img src="{% static 'svg/logo-white.svg' %}" alt="Pingojo Logo" class="logo">
+      </a>
+      <p class="slogan">People-Powered Hiring</p>
+    </div>
+    <form class="search-form" method="get" action="{% url 'search' %}">
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Search...">
+        <button class="search-btn">Search</button>
+      </div>
+    </form>
+    {% if user.is_authenticated %}
+      <a href="/accounts/logout/" class="login-btn">Logout</a>
+    {% else %}
+      <a href="/accounts/login/" class="login-btn">Login</a>
+    {% endif %}
+  </header>
+
 
     
     

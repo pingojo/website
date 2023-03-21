@@ -1,4 +1,4 @@
-from website.utils import get_website_title
+from website.utils import get_website_title, send_slack_notification
 from django.views.generic.detail import DetailView
 from website.models import Application
 from django.views.generic.base import TemplateView
@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views import generic
 
 from django.shortcuts import get_object_or_404, redirect
-from .models import Job
+from .models import Job, Search
 import random
 from django.views import View
 from django.http import JsonResponse
@@ -61,6 +61,18 @@ def search(request):
     else:
         jobs = Job.objects.all()
         companies = Company.objects.all()
+
+
+    search = Search(
+        query=search_query,
+        matched_job_count=jobs.count(),
+        matched_company_count=companies.count(),
+        # matched_skill_count=matched_skill_count,
+        # matched_role_count=matched_role_count
+    )
+    search.save()
+
+    send_slack_notification(search)
 
     # Paginate jobs
     jobs_paginator = Paginator(jobs, 10)  # Show 10 jobs per page
