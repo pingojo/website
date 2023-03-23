@@ -33,7 +33,7 @@ class ApplicationAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Company.objects.count(), 1)
         self.assertEqual(Role.objects.count(), 1)
-        self.assertEqual(response['total_applications'], 1)
+        self.assertEqual(response.json()['total_applications'], 1)
 
         company = Company.objects.first()
         role = Role.objects.first()
