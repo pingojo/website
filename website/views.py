@@ -122,7 +122,11 @@ class ApplicationView(APIView):
         company, created = Company.objects.get_or_create(
             name=company_name,
         )
-        max_stage = Stage.objects.all().order_by('order').last().order or 0
+        max_stage = Stage.objects.all().order_by('order').last()
+        if max_stage:
+            max_stage = max_stage.order
+        else:
+            max_stage = 0
 
         
         job, created = Job.objects.get_or_create(
