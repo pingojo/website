@@ -16,3 +16,8 @@ class CustomSignupForm(SignupForm):
         user.last_name = self.cleaned_data['last_name']
         user.save()
         return user
+
+
+
+class ResumeUploadForm(forms.Form):
+    resume = forms.FileField()

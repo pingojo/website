@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views import generic
 
 from django.shortcuts import get_object_or_404, redirect
-from .models import Job, Search
+from .models import Email, Job, Search
 import random
 from django.views import View
 from django.http import JsonResponse
@@ -34,7 +34,132 @@ from .models import Application
 from django.core.paginator import Paginator
 from django.views.generic import DetailView
 from .models import Job
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Company, Role
+from rest_framework.permissions import IsAuthenticated
 
+# views.py
+import io
+from django.http import JsonResponse
+from django.views import View
+from .forms import ResumeUploadForm
+#from pyresparser import ResumeParser
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from .parse_resume import parse_resume
+import tempfile
+import os
+from django.utils.text import slugify
+
+
+class ResumeUploadView(View):
+    def post(self, request, *args, **kwargs):
+        form = ResumeUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            resume = request.FILES['resume']
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                for chunk in resume.chunks():
+                    temp_file.write(chunk)
+            try:
+                resume_data = parse_resume(temp_file.name)
+            finally:
+                os.unlink(temp_file.name)
+
+            request.session['resume_data'] = resume_data
+            return HttpResponseRedirect(reverse('display_resume'))
+        else:
+            return JsonResponse({'error': 'Invalid file.'})
+        
+class DisplayResumeView(View):
+    def get(self, request, *args, **kwargs):
+        resume_data = request.session.get('resume_data', None)
+        if resume_data:
+            del request.session['resume_data']
+            return render(request, 'display_resume.html', {'resume_data': resume_data})
+        else:
+            return HttpResponseRedirect(reverse('upload_resume'))
+
+
+class ApplicationView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        print('posted here'+str(request.data))
+        company_name = request.data.get('company_name')
+        role_title = request.data.get('role_title')
+        applied_date = request.data.get('applied_date')
+        stage = request.data.get('stage')
+        email_id = request.data.get('email_id')
+        source_domain = request.data.get('source_domain')
+        print("Company Name: ", company_name)
+        print("Role Title: ", role_title)
+        print("Applied Date: ", applied_date)
+        print("Stage: ", stage)
+        print("Email ID: ", email_id)
+        print("Source Domain: ", source_domain)
+
+
+        if email_id:
+            email_id = email_id.strip()
+            email, created = Email.objects.get_or_create(
+                email=email_id
+            )
+        else:
+            email = None
+
+        if role_title:
+            role_title = role_title.strip()
+            role, created = Role.objects.get_or_create(
+                title=role_title,
+            )
+        else:
+            role = None
+
+        company, created = Company.objects.get_or_create(
+            name=company_name,
+        )
+        max_stage = Stage.objects.all().order_by('order').last() or 0
+
+        
+        job, created = Job.objects.get_or_create(
+            
+            company=company,
+            defaults={
+                'role': role,
+                'slug': slugify(company),
+            }
+        )
+        
+        stage, created = Stage.objects.get_or_create(
+            name=stage,
+            defaults={
+                'order': max_stage.order + 1
+            }
+        )
+
+        Application.objects.create(
+            user = request.user,
+            job = job,
+            company=company,
+            stage = stage,
+            email=email,
+            date_applied=applied_date,
+        )
+
+
+        total_applications = Application.objects.count()
+
+        response_data = {
+            'total_applications': total_applications
+        }
+        print("Response Data: ", response_data)
+        print(JsonResponse(response_data))
+        return JsonResponse(response_data, status=status.HTTP_201_CREATED)
+    
 class JobDetailView(DetailView):
     model = Job
     template_name = 'job_detail.html'
@@ -96,8 +221,8 @@ def scrape_job(request):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
     # Parse the job details here
-    # job_title = ...
-    # company_name = ...
+    job_title = ""
+    company_name = ""
     return JsonResponse({'job_title': job_title, 'company_name': company_name})
 
 
@@ -112,27 +237,6 @@ class DashboardView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['stages'] = Stage.objects.all()
         return context
-
-class ApplicationView(CreateView):
-    model = Application
-    fields = ["input"]
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        print(form.instance.id)
-        form.instance.reference_id = form.instance.id
-        return super(ApplicationView, self).form_valid(form)
-
-
-class ApplicationDetailView(DetailView):
-    model = Application
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["now"] = timezone.now()
-        context["title"] = get_website_title(self.get_object().input)
-        return context
-
 
 
 class Index(TemplateView):

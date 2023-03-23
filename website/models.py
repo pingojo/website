@@ -72,8 +72,29 @@ class Company(BaseModel):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+
+class Role(BaseModel):
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True)
+    job_count = models.PositiveIntegerField(default=0)
+    resume_count = models.PositiveIntegerField(default=0)
+    web_views = models.PositiveIntegerField(default=0)
+ 
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("role-detail", args=[self.slug])
+    
 class Job(models.Model):
     title = models.CharField(max_length=255)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True)
     slug = models.SlugField(unique=True, max_length=255)
     description_markdown = models.TextField(blank=True, null=True)
     job_type = models.CharField(max_length=100)
@@ -84,6 +105,9 @@ class Job(models.Model):
     is_active = models.BooleanField(default=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     link = models.URLField()
+    equity_min = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    equity_max = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
 
     def __str__(self):
         return self.title
@@ -104,6 +128,12 @@ class Stage(models.Model):
     def __str__(self):
         return self.name  
 
+class Email(models.Model):
+    email_id = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.email_id
+    
 
 class Application(BaseModel):
     user = models.ForeignKey(
@@ -121,6 +151,7 @@ class Application(BaseModel):
         related_name="recruiter",
         blank=True, null=True
     )
+    email = models.ForeignKey(Email, on_delete=models.CASCADE, blank=True, null=True)
     def __str__(self):
         return f"{self.company_name} - {self.job_title}"
     
@@ -131,13 +162,6 @@ class Application(BaseModel):
         return reverse("application-detail", args=[self.id])
     
 
-class Email(models.Model):
-    email_id = models.CharField(max_length=255)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.email_id
-    
 
 
 class Search(BaseModel):
@@ -152,6 +176,15 @@ class Search(BaseModel):
         return self.query
 
 
+class Source(models.Model):
+    name = models.CharField(max_length=255)
+    website = models.URLField()
+    url_structure = models.TextField()
+    job_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+    
 # User:
 
 # first_name
@@ -229,10 +262,7 @@ class Search(BaseModel):
 #     name = models.CharField(max_length=255)
 #     contact_info = models.TextField()
 
-# class Job(models.Model):
-#     title = models.CharField(max_length=255)
-#     description = models.TextField()
-#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+
 
 # class Application(models.Model):
 #     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
@@ -286,11 +316,6 @@ class Search(BaseModel):
 #     name = models.CharField(max_length=255)
 #     contact_info = models.TextField()
 
-# class Job(models.Model):
-#     title = models.CharField(max_length=255)
-#     description = models.TextField()
-#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-#     skills = models.ManyToManyField('Skill')
 
 # class Application(models.Model):
 #     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)

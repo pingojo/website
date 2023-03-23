@@ -1,8 +1,7 @@
 from django.conf.urls import include
 from django.urls import path, register_converter
 from django.contrib import admin
-from website.views import ApplicationDetailView, DashboardView, Index, ApplicationView
-from django.contrib.auth.decorators import login_required
+from website.views import DashboardView, DisplayResumeView, Index, ApplicationView, ResumeUploadView
 from website.utils import HashIdConverter
 from django.views.generic.base import RedirectView
 
@@ -22,16 +21,6 @@ favicon_view = RedirectView.as_view(url='/static/img/favicon.ico', permanent=Tru
 
 urlpatterns = [
     path("", Index.as_view(), name="index"),
-    path(
-        "application/",
-        login_required(ApplicationView.as_view()),
-        name="application",
-    ),
-    path(
-        "application/<hashid:pk>",
-        login_required(ApplicationDetailView.as_view()),
-        name="application-detail",
-    ),
     path('company/<slug:slug>/', views.CompanyDetailView.as_view(), name='company_detail'),
     path('company/<slug:slug>/add_job_link/', views.add_job_link, name='add_job_link'),
     path("dashboard/", DashboardView.as_view(), name='dashboard'),
@@ -45,5 +34,8 @@ urlpatterns = [
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
     path('favicon.ico', favicon_view),
+    path('api/application/', ApplicationView.as_view(), name='application_view'),
+    path('display_resume/', DisplayResumeView.as_view(), name='display_resume'),
+    path('upload_resume/', ResumeUploadView.as_view(), name='upload_resume'),
 
 ]

@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "rest_framework",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -58,6 +60,32 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware", 
+    "corsheaders.middleware.CorsMiddleware",
+]
+CORS_ALLOWED_ORIGINS = [
+    "https://mail.google.com",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    # Add any other allowed origins
+]
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
+
+CORS_ALLOW_CREDENTIALS = True
+
+#SESSION_COOKIE_SAMESITE = None
+#CSRF_COOKIE_SAMESITE = None
+
+#CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ORIGIN_ALLOW_ALL = False
+CSRF_TRUSTED_ORIGINS = ["mail.google.com"]
+
+CORS_ORIGIN_WHITELIST = [
+    'https://mail.google.com',
 ]
 
 ROOT_URLCONF = "pingojo.urls"
@@ -165,3 +193,17 @@ SLACK_WEBHOOK_URL =  os.environ.get("SLACK_WEBHOOK_URL","your_slack_webhook_url"
 ACCOUNT_LOGOUT_CONFIRMATION = False
 ACCOUNT_LOGOUT_ON_GET = True
 
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}

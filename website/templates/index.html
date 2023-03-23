@@ -39,10 +39,15 @@
         <a href="/accounts/signup/" class="signup">Sign up now!</a>
         {% endif %}
     
-        <div class="upload-resume">
-            <input type="file" id="resume" accept=".pdf,.doc,.docx" />
-            <label for="resume">Upload your resume to see matched jobs</label>
-        </div>
+
+        <form action="{% url 'upload_resume' %}" id="upload-resume-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="upload-resume">
+                <input type="file" name="resume" id="resume" accept=".pdf,.doc,.docx" />
+                <label for="resume">Upload your resume to see matched jobs</label>
+            </div>
+        </form>
+
     
         <div class="benefits">
             <div class="benefit">
@@ -77,5 +82,15 @@
             </div>
         </div>
     </section>
+<!-- templates/upload_resume.html -->
+{% block extra_js %}
+<script>
+    document.getElementById('resume').addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            document.getElementById('upload-resume-form').submit();
+        }
+    });
+</script>
+{% endblock %}
 
 {% endblock %}

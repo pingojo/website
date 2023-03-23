@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Parsed Resume</h1>
+{% if resume_data %}
+    <h2>{{ resume_data.name }}</h2>
+    <h3>Email: {{ resume_data.contact_info.email }}</h3>
+    <h3>Phone: {{ resume_data.contact_info.phone }}</h3>
+    <h3>Skills:</h3>
+    <ul>
+    {% for skill in resume_data.skills %}
+        <li>{{ skill }}</li>
+    {% endfor %}
+    </ul>
+    <h3>Education:</h3>
+    <ul>
+    {% for edu in resume_data.education %}
+        <li>{{ edu }}</li>
+    {% endfor %}
+    </ul>
+    <h3>Experience:</h3>
+    <ul>
+    {% for exp in resume_data.experience %}
+        <li>{{ exp }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No data found.</p>
+{% endif %}
+
+{% endblock %}
