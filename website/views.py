@@ -145,6 +145,8 @@ class ApplicationView(APIView):
            # original_date_string = "Thu, Mar 23, 2023, 12:57 PM"
             original_date = datetime.strptime(email_date, '%a, %b %d, %Y, %I:%M %p')
             date_applied = original_date.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            date_applied = None
 
 
 
