@@ -93,7 +93,7 @@ class ApplicationView(APIView):
         role_title = request.data.get('role_title')
         #applied_date = request.data.get('applied_date')
         email_date = request.data.get('email_date')
-        stage_name = request.data.get('stage')
+        stage_name = request.data.get('stage_name')
         from_email = request.data.get('from_email')
         gmail_id = request.data.get('gmail_id')
         source_email = request.data.get('source_email')
