@@ -91,25 +91,22 @@ class ApplicationView(APIView):
         print('posted here'+str(request.data))
         company_name = request.data.get('company_name')
         role_title = request.data.get('role_title')
-        applied_date = request.data.get('applied_date')
-        stage = request.data.get('stage')
-        email_id = request.data.get('email_id')
+        #applied_date = request.data.get('applied_date')
+        email_date = request.data.get('email_date')
+        stage_name = request.data.get('stage')
+        from_email = request.data.get('from_email')
+        gmail_id = request.data.get('gmail_id')
+        source_email = request.data.get('source_email')
         source_domain = request.data.get('source_domain')
         print("Company Name: ", company_name)
         print("Role Title: ", role_title)
-        print("Applied Date: ", applied_date)
-        print("Stage: ", stage)
-        print("Email ID: ", email_id)
+        #print("Applied Date: ", applied_date)
+        print("Email Date: ", email_date)
+        
+        print("Stage: ", stage_name)
+        print("Email ID: ", gmail_id)
         print("Source Domain: ", source_domain)
 
-
-        if email_id:
-            email_id = email_id.strip()
-            email, created = Email.objects.get_or_create(
-                email=email_id
-            )
-        else:
-            email = None
 
         if role_title:
             role_title = role_title.strip()
@@ -139,29 +136,57 @@ class ApplicationView(APIView):
         )
         
         stage, created = Stage.objects.get_or_create(
-            name=stage,
+            name=stage_name,
             defaults={
                 'order': max_stage + 1
             }
         )
+        if stage_name == "Applied":
+           # original_date_string = "Thu, Mar 23, 2023, 12:57 PM"
+            original_date = datetime.strptime(email_date, '%a, %b %d, %Y, %I:%M %p')
+            date_applied = original_date.strftime('%Y-%m-%d %H:%M:%S')
 
-        Application.objects.create(
+
+
+        application, created =  Application.objects.get_or_create(
             user = request.user,
             job = job,
             company=company,
-            stage = stage,
-            email=email,
-            date_applied=applied_date,
+            defaults={
+                'stage': stage,
+                'date_applied': date_applied,
+            }
         )
+        original_date = datetime.strptime(email_date, '%a, %b %d, %Y, %I:%M %p')
+        email_date = original_date.strftime('%Y-%m-%d %H:%M:%S')
+        
+        if application.date_of_last_email:
+
+            if email_date > application.date_of_last_email:
+                application.date_of_last_email = email_date
+
+        if stage.order > application.stage.order:
+            application.stage = stage
+        application.save()
 
 
-        total_applications = Application.objects.count()
+        if from_email:
+            from_email = from_email.strip()
+            Email.objects.get_or_create(
+                gmail_id = gmail_id,
+                defaults={
+                    'date': email_date,
+                    'from_email': from_email,
+                    'application': application,
+                }
+            )
+
+        total_applications = Application.objects.filter(user=request.user).count()
 
         response_data = {
             'total_applications': total_applications
         }
-        print("Response Data: ", response_data)
-        print(JsonResponse(response_data))
+
         return JsonResponse(response_data, status=status.HTTP_201_CREATED)
     
 class JobDetailView(DetailView):

@@ -129,10 +129,13 @@ class Stage(models.Model):
         return self.name  
 
 class Email(models.Model):
-    email_id = models.CharField(max_length=255)
+    from_email = models.CharField(max_length=255)
+    gmail_id = models.CharField(max_length=255)
+    application = models.ForeignKey('Application', on_delete=models.CASCADE, blank=True, null=True)
+    date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return self.email_id
+        return self.gmail_id
     
 
 class Application(BaseModel):
@@ -142,16 +145,16 @@ class Application(BaseModel):
     )
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
-    date_applied = models.DateField(auto_now_add=True)
+    date_applied = models.DateTimeField(auto_now_add=True)
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE,blank=True, null=True)
-    date_of_last_email = models.DateField(blank=True, null=True)
+    date_of_last_email = models.DateTimeField(blank=True, null=True)
     recruiter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="recruiter",
         blank=True, null=True
     )
-    email = models.ForeignKey(Email, on_delete=models.CASCADE, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
     def __str__(self):
         return f"{self.company_name} - {self.job_title}"
     
@@ -161,8 +164,6 @@ class Application(BaseModel):
     def get_absolute_url(self):
         return reverse("application-detail", args=[self.id])
     
-
-
 
 class Search(BaseModel):
     query = models.CharField(max_length=255)
@@ -179,6 +180,7 @@ class Search(BaseModel):
 class Source(models.Model):
     name = models.CharField(max_length=255)
     website = models.URLField()
+    from_email = models.EmailField()
     url_structure = models.TextField()
     job_count = models.PositiveIntegerField(default=0)
 
@@ -249,10 +251,6 @@ class Source(models.Model):
 # payment_type (commission_fee, processing_fee, hiring_fee)
 # date
 
-
-# from django.db import models
-# from django.contrib.auth.models import User
-
 # class JobSeeker(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     skills = models.ManyToManyField('Skill')
@@ -261,7 +259,6 @@ class Source(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     name = models.CharField(max_length=255)
 #     contact_info = models.TextField()
-
 
 
 # class Application(models.Model):
@@ -296,9 +293,6 @@ class Source(models.Model):
 #     terms = models.TextField()
 #     contact_info_exchanged = models.BooleanField(default=False)
 
-
-# from django.db import models
-# from django.contrib.auth.models import User
 
 # class JobSeeker(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)

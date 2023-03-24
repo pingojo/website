@@ -23,7 +23,7 @@ class StageAdmin(admin.ModelAdmin):
     list_display = ('name', 'order')
 
 class EmailAdmin(admin.ModelAdmin):
-    list_display = ('email_id',)
+    list_display = ('from_email', 'gmail_id', 'application', 'date')
 
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('user', 'company', 'job', 'date_applied', 'stage', 'date_of_last_email', 'recruiter', 'email')
