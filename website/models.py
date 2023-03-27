@@ -156,7 +156,7 @@ class Application(BaseModel):
     )
     notes = models.TextField(blank=True, null=True)
     def __str__(self):
-        return f"{self.company_name} - {self.job_title}"
+        return f"{self.company.name} - {self.job.slug}"
     
     def get_hashid(self):
         return h_encode(self.id)

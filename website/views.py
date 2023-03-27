@@ -53,6 +53,33 @@ from .parse_resume import parse_resume
 import tempfile
 import os
 from django.utils.text import slugify
+from django.shortcuts import render, redirect
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+from .models import Application, Stage
+
+@require_POST
+def update_application_stage(request):
+    application_id = request.POST.get('application_id')
+    stage_id = request.POST.get('stage_id')
+
+    try:
+        application = Application.objects.get(pk=application_id)
+        stage = Stage.objects.get(pk=stage_id)
+
+        application.stage = stage
+        application.save()
+
+        messages.success(request, 'Application stage updated successfully.')
+
+    except Application.DoesNotExist:
+        messages.error(request, 'Application not found.')
+    except Stage.DoesNotExist:
+        messages.error(request, 'Stage not found.')
+    except Exception as e:
+        messages.error(request, f'Error updating application stage: {e}')
+
+    return redirect('dashboard')
 
 
 class ResumeUploadView(View):
@@ -83,6 +110,9 @@ class DisplayResumeView(View):
             return HttpResponseRedirect(reverse('upload_resume'))
 
 
+from django.utils import timezone
+
+
 class ApplicationView(APIView):
     
     permission_classes = [IsAuthenticated]
@@ -91,8 +121,7 @@ class ApplicationView(APIView):
         print('posted here'+str(request.data))
         company_name = request.data.get('company_name')
         role_title = request.data.get('role_title')
-        #applied_date = request.data.get('applied_date')
-        email_date = request.data.get('email_date')
+        email_date_str = request.data.get('email_date')
         stage_name = request.data.get('stage_name')
         from_email = request.data.get('from_email')
         gmail_id = request.data.get('gmail_id')
@@ -100,13 +129,10 @@ class ApplicationView(APIView):
         source_domain = request.data.get('source_domain')
         print("Company Name: ", company_name)
         print("Role Title: ", role_title)
-        #print("Applied Date: ", applied_date)
-        print("Email Date: ", email_date)
-        
+        print("Email Date: ", email_date_str)
         print("Stage: ", stage_name)
         print("Email ID: ", gmail_id)
         print("Source Domain: ", source_domain)
-
 
         if role_title:
             role_title = role_title.strip()
@@ -125,9 +151,7 @@ class ApplicationView(APIView):
         else:
             max_stage = 0
 
-        
-        job, created = Job.objects.get_or_create(
-            
+        job, created = Job.objects.update_or_create(
             company=company,
             defaults={
                 'role': role,
@@ -141,13 +165,17 @@ class ApplicationView(APIView):
                 'order': max_stage + 1
             }
         )
+
         if stage_name == "Applied":
-           # original_date_string = "Thu, Mar 23, 2023, 12:57 PM"
-            original_date = datetime.strptime(email_date, '%a, %b %d, %Y, %I:%M %p')
+            try:
+                original_date = datetime.strptime(email_date_str, '%a, %b %d, %Y, %I:%M %p')
+            except:
+                original_date = datetime.strptime(email_date_str, '%b %d, %Y, %I:%M %p')
+
+            original_date = original_date.astimezone().replace(tzinfo=None)
             date_applied = original_date.strftime('%Y-%m-%d %H:%M:%S')
         else:
             date_applied = None
-
 
 
         application, created =  Application.objects.get_or_create(
@@ -159,23 +187,41 @@ class ApplicationView(APIView):
                 'date_applied': date_applied,
             }
         )
-        original_date = datetime.strptime(email_date, '%a, %b %d, %Y, %I:%M %p')
-        email_date = original_date.strftime('%Y-%m-%d %H:%M:%S')
-        
-        if application.date_of_last_email:
 
-            if email_date > application.date_of_last_email:
-                application.date_of_last_email = email_date
+        if stage_name == "Passed" or stage_name == "Next" or stage_name == "Scheduled":
+            try:
+                original_date = datetime.strptime(email_date_str, '%a, %b %d, %Y, %I:%M %p')
+            except:
+                original_date = datetime.strptime(email_date_str, '%b %d, %Y, %I:%M %p')
+            original_date = original_date.astimezone().replace(tzinfo=None)
+            application.stage = stage
+
+        if not created:
+            if application.date_applied and original_date:
+                original_date = timezone.make_aware(original_date, timezone.get_current_timezone())
+                if application.date_applied > original_date:
+                    application.date_applied = original_date
+        try:
+            email_date = timezone.datetime.strptime(email_date_str, '%a, %b %d, %Y, %I:%M %p')
+        except:
+            email_date = timezone.datetime.strptime(email_date_str, '%b %d, %Y, %I:%M %p')
+            
+        email_date_aware = timezone.make_aware(email_date, timezone.get_current_timezone())
+
+        if application.date_of_last_email:
+            if email_date_aware > application.date_of_last_email:
+                application.date_of_last_email = email_date_aware
+        else:
+            application.date_of_last_email = email_date
 
         if stage.order > application.stage.order:
             application.stage = stage
         application.save()
 
-
         if from_email:
             from_email = from_email.strip()
             Email.objects.get_or_create(
-                gmail_id = gmail_id,
+                gmail_id=gmail_id,
                 defaults={
                     'date': email_date,
                     'from_email': from_email,
@@ -190,6 +236,7 @@ class ApplicationView(APIView):
         }
 
         return JsonResponse(response_data, status=status.HTTP_201_CREATED)
+
     
 class JobDetailView(DetailView):
     model = Job
@@ -262,11 +309,11 @@ class DashboardView(LoginRequiredMixin, ListView):
     context_object_name = 'applications'
 
     def get_queryset(self):
-        return Application.objects.filter(user=self.request.user)
+        return Application.objects.filter(user=self.request.user).order_by('-stage__order', '-date_applied')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['stages'] = Stage.objects.all()
+        context['stages'] = Stage.objects.all().order_by('-order')
         return context
 
 

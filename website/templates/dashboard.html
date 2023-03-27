@@ -2,60 +2,158 @@
 {% load custom_filters %}
 
 {% block content %}
+<style>
+    .marquee {
+        overflow-x: scroll;
+        overflow-y: hidden;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .marquee li {
+        display: inline-block;
+        margin-right: 10px;
+        background-color: transparent;
+        border-radius: 5px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        height: 50px;
+        line-height: 50px;
+        padding: 0 20px;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
+    .marquee li a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .marquee li[data-stage="Applied"] {
+        background-color: green;
+    }
+    .marquee li[data-stage="Passed"] {
+        background-color: red;
+    }
+    .marquee li[data-stage="Next"] {
+        background-color: orange;
+    }
+    .marquee li[data-stage="Scheduled"] {
+        background-color: #03a9f4;
+    }
+
+    .grouper[data-stage="Applied"] {
+        background-color: green;
+    }
+    .grouper[data-stage="Passed"] {
+        background-color: red;
+    }
+    .grouper[data-stage="Next"] {
+        background-color: orange;
+    }
+    .grouper[data-stage="Scheduled"] {
+        background-color: #03a9f4;
+    }
+
+
+</style>
+
+<div class="marquee">
+    <ul>
+        {% for stage in stages %}
+        <li data-stage="{{ stage.name }}">
+            <a href="#">{{ stage.name }} ({{ applications|filter_stage:stage.name|length }})</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+
+
 <div class="main-content">
 
-    <div class="main-content">
-        <h1>Dashboard</h1>
-        <!-- Add your drag and drop form here -->
-        <form id="job-url-form">
-            <input type="url" id="job-url" placeholder="Drag and drop a job link here or paste the URL" />
-            <button type="submit">Add Job</button>
-        </form>
-        <!-- Display the list of applications here -->
-    </div>
-
-
-
-    <div class="job-stages">
-        <div class="stage" data-stage="Applied">Applied ({{ applications|filter_stage:"Applied"|length }})</div>
-        <div class="stage" data-stage="Scheduled">Scheduled ({{ applications|filter_stage:"Scheduled"|length }})</div>
-        <div class="stage" data-stage="Next">Next ({{ applications|filter_stage:"Next"|length }})</div>
-        <div class="stage" data-stage="Passed">Passed ({{ applications|filter_stage:"Passed"|length }})</div>
-    </div>
     <table>
         <thead>
             <tr>
                 <th>Company Name</th>
-                <th>Job Title</th>
+                <th>Job Role</th>
                 <th>Date Applied</th>
                 <th>Date of Last Email</th>
                 <th>Stage</th>
+                <th>buttons</th>
             </tr>
         </thead>
         <tbody>
-            {% for application in applications %}
-            <tr>
-                <td>{{ application.company.name }}</td>
-                <td>{{ application.job.title }}</td>
-                <td>{{ application.date_applied }}</td>
-                <td>{{ application.date_of_last_email }}</td>
-                <td>
-                    <select>
-                        {% for stage in stages %}
-                        <option value="{{ stage.id }}" {% if stage.id == application.stage.id %}selected{% endif %}>
-                            {{ stage.display }}
-                        </option>
-                    {% endfor %}
-                    </select>
-                </td>
-            </tr>
+            {% regroup applications by stage.name as stage_list %}
+            {% for stage in stage_list %}
+                <tr>
+                    <td colspan="5" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
+                </tr>
+                {% for application in stage.list %}
+                    <tr>
+                        <td>{{ application.company.name }}</td>
+                        <td>{{ application.job.role }}</td>
+                        <td>{{ application.date_applied }}</td>
+                        <td>{{ application.date_of_last_email }}</td>
+                        <td>
+
+                            <form method="POST" action="{% url 'update-application-stage' %}" class="stage-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="application_id" value="{{ application.id }}">
+
+
+                            <select name="stage_id" class="stage-dropdown" style="background-color:
+                                {% if application.stage.name == 'Applied' %}
+                                    green;
+                                {% elif application.stage.name == 'Passed' %}
+                                    red;
+                                {% elif application.stage.name == 'Next' %}
+                                    orange;
+                                {% elif application.stage.name == 'Scheduled' %}
+                                #03a9f4;
+                                {% endif %}"
+                            >
+                                {% for stage in stages %}
+                                    <option value="{{ stage.id }}" {% if stage.id == application.stage.id %}selected{% endif %}>
+                                        {{ stage.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            </form>
+                        </td>
+                        <td>
+                            <a href="https://boards.greenhouse.io/{{application.job.company.slug}}">greenhouse</a> |
+                            <a href="https://jobs.lever.co/{{application.job.company.slug}}/">lever</a> |
+                            <a href="https://jobs.lever.co/{{application.job.company.slug}}/">delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
             {% endfor %}
         </tbody>
     </table>
+    
+    
 </div>
+</div>
+<hr>
+<div class="main-content">
+    <!-- Add your drag and drop form here -->
+    Drag and drop a job link here or paste the URL to add it and mark it as applied.
+    <form id="job-url-form">
+        <input type="url" id="job-url" placeholder="job link" />
+        <button type="submit">Add Job</button>
+    </form>
+    <!-- Display the list of applications here -->
 </div>
 
 <script>
+
+$('.stage-dropdown').on('change', function () {
+    $(this).closest('.stage-form').submit();
+});
+
     $(document).ready(function () {
         const form = $('#job-url-form');
         const urlInput = $('#job-url');

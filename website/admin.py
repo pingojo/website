@@ -16,7 +16,7 @@ class RoleAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
 
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('title', 'role', 'company', 'job_type', 'posted_date', 'closing_date', 'is_active')
+    list_display = ('slug', 'title', 'role', 'company', 'job_type', 'posted_date', 'closing_date', 'is_active')
     prepopulated_fields = {'slug': ('title',)}
 
 class StageAdmin(admin.ModelAdmin):
@@ -26,7 +26,7 @@ class EmailAdmin(admin.ModelAdmin):
     list_display = ('from_email', 'gmail_id', 'application', 'date')
 
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ('user', 'company', 'job', 'date_applied', 'stage', 'date_of_last_email', 'recruiter', 'email')
+    list_display = ('user', 'company', 'job', 'date_applied', 'stage', 'date_of_last_email', 'recruiter')
 
 class SearchAdmin(admin.ModelAdmin):
     list_display = ('query', 'matched_job_count', 'matched_company_count', 'matched_skill_count', 'matched_role_count')
