@@ -130,6 +130,9 @@ class Stage(models.Model):
 
 class Email(models.Model):
     from_email = models.CharField(max_length=255)
+    to_email = models.CharField(max_length=255, blank=True, null=True)
+    reply_to = models.CharField(max_length=255, blank=True, null=True)
+    subject = models.CharField(max_length=255, blank=True, null=True)
     gmail_id = models.CharField(max_length=255)
     application = models.ForeignKey('Application', on_delete=models.CASCADE, blank=True, null=True)
     date = models.DateTimeField(blank=True, null=True)
@@ -180,9 +183,10 @@ class Search(BaseModel):
 class Source(models.Model):
     name = models.CharField(max_length=255)
     website = models.URLField()
-    from_email = models.EmailField()
-    url_structure = models.TextField()
-    job_count = models.PositiveIntegerField(default=0)
+    focus = models.CharField(max_length=255,blank=True, null=True)
+    from_email = models.EmailField(blank=True, null=True)
+    url_structure = models.TextField(blank=True, null=True)
+    job_count = models.PositiveIntegerField(default=0,blank=True, null=True)
 
     def __str__(self):
         return self.name

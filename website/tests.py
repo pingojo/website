@@ -4,6 +4,11 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from .models import Company, Email, Role
 
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+from .models import User, Company, Role, Application, Email, Job, Stage
+
 class ApplicationAPITestCase(APITestCase):
 
     def setUp(self):
@@ -45,6 +50,32 @@ class ApplicationAPITestCase(APITestCase):
 
         email = Email.objects.first()
         self.assertEqual(email.gmail_id, data['gmail_id'])
+
+    def test_get_applications(self):
+        # Create test data
+        company = Company.objects.create(name='Test Company')
+        role = Role.objects.create(title='Software Engineer')
+        job = Job.objects.create(company=company, role=role)
+        stage = Stage.objects.create(name='Applied', order=1)
+        application = Application.objects.create(user=self.user, job=job, company=company, stage=stage)
+        email = Email.objects.create(
+            gmail_id='GEbqgzGslkjhsxkbQKcfvWBQztRFpUIW',
+            from_email='email@test-user-test-email-test.com',
+            application=application
+        )
+
+        url = reverse('application_view')
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()), 1)
+
+        email_data = response.json()[0]
+        self.assertEqual(email_data['email_id'], email.gmail_id)
+        self.assertEqual(email_data['subject'], role.title)
+        self.assertEqual(email_data['company_name'], company.name)
+        self.assertEqual(email_data['company_slug'], company.slug)
+
 
 
 

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load custom_filters %}
+{% load static %}
 
 {% block content %}
 <style>
@@ -81,6 +82,7 @@
                 <th>Job Role</th>
                 <th>Date Applied</th>
                 <th>Date of Last Email</th>
+                <th>Email Count</th>
                 <th>Stage</th>
                 <th>buttons</th>
             </tr>
@@ -89,14 +91,24 @@
             {% regroup applications by stage.name as stage_list %}
             {% for stage in stage_list %}
                 <tr>
-                    <td colspan="5" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
+                    <td colspan="7" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
                 </tr>
                 {% for application in stage.list %}
                     <tr>
                         <td>{{ application.company.name }}</td>
                         <td>{{ application.job.role }}</td>
                         <td>{{ application.date_applied }}</td>
-                        <td>{{ application.date_of_last_email }}</td>
+                        <td>{{ application.date_of_last_email }}
+
+                        </td>
+                        <td>
+                            {{ application.email_set.count }} 
+                            <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank">
+
+                           
+                            <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+                        </a>
+                        </td>
                         <td>
 
                             <form method="POST" action="{% url 'update-application-stage' %}" class="stage-form">
