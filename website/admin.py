@@ -1,14 +1,29 @@
 from django.contrib import admin
 from .models import Skill, Company, Role, Job, Stage, Email, Application, Search, Source
+from django.urls import path
+from .admin_actions import merge_companies_action
+
+class CompanyAdmin(admin.ModelAdmin):
+    actions = [merge_companies_action]
+    list_display = ('name', 'slug', 'twitter_url', 'greenhouse_url', 'lever_url', 'number_of_employees_min', 'number_of_employees_max', 'description', 'website', 'city', 'state', 'country', 'ceo', 'ceo_twitter')
+    search_fields = ('name', 'city', 'state', 'country', 'ceo')
+    prepopulated_fields = {'slug': ('name',)}
+
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('merge_companies/', self.admin_site.admin_view(merge_companies_action), name='merge_companies'),
+        ]
+        return custom_urls + urls
+
+
+
 
 class SkillAdmin(admin.ModelAdmin):
     list_display = ('name', 'job_count', 'resume_count', 'web_views')
     prepopulated_fields = {'slug': ('name',)}
 
-class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'twitter_url', 'greenhouse_url', 'lever_url', 'number_of_employees_min', 'number_of_employees_max', 'description', 'website', 'city', 'state', 'country', 'ceo', 'ceo_twitter')
-    search_fields = ('name', 'city', 'state', 'country', 'ceo')
-    prepopulated_fields = {'slug': ('name',)}
 
 
 class RoleAdmin(admin.ModelAdmin):
@@ -23,10 +38,11 @@ class StageAdmin(admin.ModelAdmin):
     list_display = ('name', 'order')
 
 class EmailAdmin(admin.ModelAdmin):
-    list_display = ('from_email', 'gmail_id', 'application', 'date')
+    list_display = ('from_email','to_email','reply_to','subject', 'gmail_id', 'application', 'date')
 
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('user', 'company', 'job', 'date_applied', 'stage', 'date_of_last_email', 'recruiter')
+    search_fields = ('user__first_name', 'user__last_name', 'user__email', 'company__name', 'job__title')
 
 class SearchAdmin(admin.ModelAdmin):
     list_display = ('query', 'matched_job_count', 'matched_company_count', 'matched_skill_count', 'matched_role_count')

@@ -66,6 +66,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://mail.google.com",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://boards.greenhouse.io",
     # Add any other allowed origins
 ]
 
@@ -82,10 +83,11 @@ CORS_ALLOW_CREDENTIALS = True
 #CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ORIGIN_ALLOW_ALL = False
-CSRF_TRUSTED_ORIGINS = ["mail.google.com"]
+CSRF_TRUSTED_ORIGINS = ["mail.google.com","boards.greenhouse.io"]
 
 CORS_ORIGIN_WHITELIST = [
     'https://mail.google.com',
+    'https://boards.greenhouse.io',
 ]
 
 ROOT_URLCONF = "pingojo.urls"

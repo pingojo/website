@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <h1>Company List</h1>
+  <style>
+    .center-table {
+      margin-left: auto;
+      margin-right: auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .job-site-button {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: none;
+    }
+    .greenhouse {
+      background-color: #38b2a7;
+    }
+  </style>
+  <div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+  </div>
+  <table class="center-table">
+    <thead>
+      <tr>
+        <th>Favicon</th>
+        <th><a href="?order={{ 'name'|urlencode }}" onclick="this.href='?order=' + invertSorting('name')">Company Name</a></th>
+        <th>Greenhouse</th>
+        <th>Wellfound</th>
+        <th>Lever</th>
+        <th>Careers</th>
+        <th>Application Stage</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for company in companies %}
+        <tr>
+          <td>
+            {% if company.website %}
+              <img src="https://www.google.com/s2/favicons?domain={{ company.website }}" alt="{{ company.name }} favicon" />
+            {% endif %}
+          </td>
+          <td>
+            {% if company.website %}
+            <a href="{{ company.website }}" target="_blank">{{ company.name }}</a></td>
+            {% else %}
+            <!-- search google for company name -->
+            <a href="https://www.google.com/search?q={{ company.name }}" target="_blank">google it: {{ company.name }}</a></td>
+            {% endif %}
+          <td>
+            {% if company.greenhouse_url %}
+              <a href="{{ company.greenhouse_url }}" target="_blank">
+                <button class="job-site-button greenhouse"></button>
+              </a>
+            {% endif %}
+          </td>
+          <td>
+            {% if company.wellfound_url %}
+              <!-- Add a Wellfound color and update the class name -->
+              <a href="{{ company.wellfound_url }}" target="_blank">
+                <button class="job-site-button wellfound"></button>
+              </a>
+            {% endif %}
+          </td>
+          <td>
+            {% if company.lever_url %}
+              <!-- Add a Lever color and update the class name -->
+              <a href="{{ company.lever_url }}" target="_blank">
+                <button class="job-site-button lever">
+              </a>
+            {% endif %}
+          </td>
+          <td>
+            {% if company.careers_url %}
+              <!-- Add a Careers color and update the class name -->
+              <a href="{{ company.careers_url }}" target="_blank">
+                <button class="job-site-button careers"></button>
+              </a>
+            {% endif %}
+          </td>
+
+          <td>
+            {% with company.application_set.first as application %}
+              {% if application %}
+                {{ application.stage.name }}
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td>{{ company.created|date:"F j, Y" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+  </div>
+{% endblock %}

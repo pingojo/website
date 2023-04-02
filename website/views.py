@@ -1,66 +1,125 @@
-from website.utils import get_website_title, send_slack_notification
-from django.views.generic.detail import DetailView
-from website.models import Application
-from django.views.generic.base import TemplateView
-from django.views.generic import ListView, CreateView
-from django.utils import timezone
-from django.utils import timezone
-
-from django.views import generic
-
-from django.shortcuts import get_object_or_404, redirect
-from .models import Email, Job, Search
+import os
 import random
-from django.views import View
-from django.http import JsonResponse
-from .models import Company, Stage
+import tempfile
+from collections import Counter, defaultdict
 from datetime import datetime
 
-from django.shortcuts import render
-from .models import Job
-
-from bs4 import BeautifulSoup
 import requests
-from django.http import JsonResponse
-
-from django.shortcuts import render
-from .models import Job, Company
-from django.db.models import Q
+from bs4 import BeautifulSoup
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.list import ListView
-from .models import Application
-
 from django.core.paginator import Paginator
-from django.views.generic import DetailView
-from .models import Job
+from django.db.models import Count, F, Q, Sum
+from django.http import HttpResponseRedirect, JsonResponse
+# from pyresparser import ResumeParser
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.text import slugify
+from django.views import View, generic
+from django.views.decorators.http import require_POST
+from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic.base import TemplateView
+from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Company, Role
-from rest_framework.permissions import IsAuthenticated
-from django.http import JsonResponse
-from django.views import View
-from .forms import ResumeUploadForm
 
-# from pyresparser import ResumeParser
-from django.shortcuts import render
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+from website.models import Application, Company, Email, Job, Role, Stage
+from website.utils import get_website_title, send_slack_notification
+
+from .forms import JobForm, ResumeUploadForm
+from .models import (Application, Company, Email, Job, Role, Search, Skill,
+                     Source, Stage)
 from .parse_resume import parse_resume
-import tempfile
-import os
-from django.utils.text import slugify
-from django.shortcuts import render, redirect
-from django.views.decorators.http import require_POST
-from django.contrib import messages
-from .models import Application, Stage
-from django.utils import timezone
 
-import requests
-from django.views import View
-from django.http import JsonResponse
+from django.views.generic import ListView
+from django.core.paginator import Paginator
 from .models import Company
-from datetime import datetime
+
+from django.db.models import Case, When, Value, IntegerField
+
+
+
+from django.db.models import Prefetch
+
+
+from django.db.models import Prefetch
+from .models import Company, Application
+
+from django.db.models import Case, When, Value, IntegerField, F
+from django.db.models.functions import Concat
+
+from django.db.models import Case, When, Value, IntegerField, F
+
+from django.db.models import Case, When, Value, IntegerField, F, CharField
+from django.db.models.functions import Concat, Cast
+
+from django.db.models import Q
+
+class CompanyListView(ListView):
+    model = Company
+    template_name = 'company_list.html'
+    context_object_name = 'companies'
+    paginate_by = 100
+
+    def get_queryset(self):
+        order = self.request.GET.get('order', 'name')
+
+        if self.request.user.is_authenticated:
+            applications = Application.objects.select_related('stage').filter(user=self.request.user)
+        else:
+            applications = Application.objects.none()
+
+        queryset = Company.objects.prefetch_related(Prefetch('application_set', queryset=applications)).annotate(
+            job_site_order=Case(
+                When(~Q(greenhouse_url='') & ~Q(greenhouse_url__isnull=True), then=Value(1)),
+                When(~Q(wellfound_url='') & ~Q(wellfound_url__isnull=True), then=Value(2)),
+                When(~Q(lever_url='') & ~Q(lever_url__isnull=True), then=Value(3)),
+                When(~Q(careers_url='') & ~Q(careers_url__isnull=True), then=Value(4)),
+                default=Value(5),
+                output_field=IntegerField(),
+            )
+        ).order_by('job_site_order', order)
+
+        return queryset
+
+
+
+    
+
+
+def autocomplete(request, model):
+    term = request.GET.get("term")
+    if model == "role":
+        queryset = Role.objects.filter(title__icontains=term)
+        results = [{"label": role.title, "value": role.id} for role in queryset]
+    elif model == "company":
+        queryset = Company.objects.filter(name__icontains=term)
+        results = [{"label": company.name, "value": company.id} for company in queryset]
+    else:
+        results = []
+    return JsonResponse(results, safe=False)
+
+
+def create_job(request):
+    if request.method == "POST":
+        form = JobForm(request.POST)
+        if form.is_valid():
+            job = form.save()
+            messages.success(request, "Job created successfully.")
+            return redirect("job_detail", slug=job.slug)
+    else:
+        form = JobForm()
+    return render(request, "create_job.html", {"form": form})
+
+
+def job_sites(request):
+    sources = Source.objects.all()
+    return render(request, "job_sites.html", {"sources": sources})
+
 
 @require_POST
 def update_application_stage(request):
@@ -115,27 +174,111 @@ class DisplayResumeView(View):
             return HttpResponseRedirect(reverse("upload_resume"))
 
 
-from django.utils import timezone
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from datetime import datetime
-from django.utils.text import slugify
+import re
+
+
+class AddJobLink(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        company_name = data.get("company")
+        role_title = data.get("title", "").strip()
+
+        posted_date = data.get("datePosted")
+        salaryRange = data.get("salaryRange")
+
+        link = data.get("link")
+
+        # Parse salary range
+        salary_min, salary_max = None, None
+        if salaryRange:
+            salary_values = re.findall(r"\$[\d,]+", salaryRange)
+            if len(salary_values) == 2:
+                salary_min = int(salary_values[0].replace("$", "").replace(",", ""))
+                salary_max = int(salary_values[1].replace("$", "").replace(",", ""))
+
+        if role_title:
+            role_slug = slugify(role_title[:50])
+            role, _ = Role.objects.get_or_create(
+                slug=role_slug, defaults={"title": role_title}
+            )
+
+        company, _ = Company.objects.get_or_create(
+            slug=slugify(company_name), defaults={"name": company_name}
+        )
+
+        job, _ = Job.objects.update_or_create(
+            company=company,
+            defaults={
+                "role": role,
+                "slug": slugify(company),
+                "posted_date": posted_date,
+                "salary_min": salary_min,
+                "salary_max": salary_max,
+                "link": link,
+            },
+        )
+        user_applications = Application.objects.filter(
+            user=request.user, company=company
+        )
+
+        application_data = []
+        for application in user_applications:
+            application_data.append(
+                {
+                    "id": application.id,
+                    "role": application.job.role.title,
+                    "company": application.company.name,
+                    "stage": application.stage.name,
+                    "date_applied": application.date_applied,
+                }
+            )
+
+        return JsonResponse(
+            {"applications": application_data}, status=status.HTTP_200_OK
+        )
+
 
 class ApplicationView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        emails = Email.objects.filter(application__user=request.user).select_related('application__job__role', 'application__company')
+        emails = (
+            Email.objects.filter(application__user=request.user)
+            .select_related("application__job__role", "application__company")
+            .annotate(
+                company_name=F("application__company__name"),
+                company_slug=F("application__company__slug"),
+                job_link=F("application__job__link"),
+                job_role=F("application__job__role__title"),
+                stage_name=F("application__stage__name"),
+            )
+            .values(
+                "gmail_id",
+                "subject",
+                "company_name",
+                "company_slug",
+                "job_link",
+                "job_role",
+                "stage_name",
+            )
+        )
 
-        data = [{
-            'email_id': email.gmail_id,
-            'subject': email.application.job.role.title,
-            'company_name': email.application.company.name,
-            'company_slug': email.application.company.slug,
-            'job_link': email.application.job.link,
-        } for email in emails]
+        email_data = list(emails)
+
+        stage_counts = (
+            Application.objects.filter(user=request.user)
+            .values("stage__name")
+            .annotate(total=Count("stage"))
+        )
+
+        stage_counts_dict = {
+            f'total_{stage["stage__name"].lower()}': stage["total"]
+            for stage in stage_counts
+        }
+
+        data = {"emails": email_data, "counts": stage_counts_dict}
 
         return Response(data)
 
@@ -151,20 +294,31 @@ class ApplicationView(APIView):
         role, company, max_stage, job, stage, date_applied, original_date = (None,) * 7
 
         if role_title:
-            role, _ = Role.objects.get_or_create(title=role_title)
+            role_slug = slugify(role_title[:50])
+            role, _ = Role.objects.get_or_create(
+                slug=role_slug, defaults={"title": role_title}
+            )
 
-        company, _ = Company.objects.get_or_create(slug=slugify(company_name), defaults={"name": company_name})
+        company, _ = Company.objects.get_or_create(
+            slug=slugify(company_name), defaults={"name": company_name}
+        )
 
         max_stage = Stage.objects.all().order_by("order").last()
         max_stage = max_stage.order if max_stage else 0
 
-        job, _ = Job.objects.update_or_create(company=company, defaults={"role": role, "slug": slugify(company)})
+        job, _ = Job.objects.update_or_create(
+            company=company, defaults={"role": role, "slug": slugify(company)}
+        )
 
-        stage, _ = Stage.objects.get_or_create(name=stage_name, defaults={"order": max_stage + 1})
+        stage, _ = Stage.objects.get_or_create(
+            name=stage_name, defaults={"order": max_stage + 1}
+        )
 
         if stage_name == "Applied":
             try:
-                original_date = datetime.strptime(email_date_str, "%a, %b %d, %Y, %I:%M %p")
+                original_date = datetime.strptime(
+                    email_date_str, "%a, %b %d, %Y, %I:%M %p"
+                )
             except:
                 original_date = datetime.strptime(email_date_str, "%b %d, %Y, %I:%M %p")
 
@@ -172,25 +326,49 @@ class ApplicationView(APIView):
             date_applied = original_date.strftime("%Y-%m-%d %H:%M:%S")
 
         application, created = Application.objects.get_or_create(
-            user=request.user, job=job, company=company, defaults={"stage": stage, "date_applied": date_applied}
+            user=request.user,
+            job=job,
+            company=company,
+            defaults={"stage": stage, "date_applied": date_applied},
         )
 
         if stage_name in ["Passed", "Next", "Scheduled"]:
-            original_date = datetime.strptime(email_date_str, "%a, %b %d, %Y, %I:%M %p")
+            try:
+                original_date = datetime.strptime(
+                    email_date_str, "%a, %b %d, %Y, %I:%M %p"
+                )
+            except:
+                original_date = datetime.strptime(email_date_str, "%b %d, %Y, %I:%M %p")
             original_date = original_date.astimezone().replace(tzinfo=None)
             application.stage = stage
 
         if not created and application.date_applied and original_date:
-            original_date = timezone.make_aware(original_date, timezone.get_current_timezone())
+            original_date = timezone.make_aware(
+                original_date, timezone.get_current_timezone()
+            )
+
+            if application.date_applied > original_date:
+                application.date_applied = original_date
+        if created:
+            original_date = timezone.make_aware(
+                original_date, timezone.get_current_timezone()
+            )
+
             if application.date_applied > original_date:
                 application.date_applied = original_date
 
         try:
-            email_date = timezone.datetime.strptime(email_date_str, "%a, %b %d, %Y, %I:%M %p")
+            email_date = timezone.datetime.strptime(
+                email_date_str, "%a, %b %d, %Y, %I:%M %p"
+            )
         except:
-            email_date = timezone.datetime.strptime(email_date_str, "%b %d, %Y, %I:%M %p")
+            email_date = timezone.datetime.strptime(
+                email_date_str, "%b %d, %Y, %I:%M %p"
+            )
 
-        email_date_aware = timezone.make_aware(email_date, timezone.get_current_timezone())
+        email_date_aware = timezone.make_aware(
+            email_date, timezone.get_current_timezone()
+        )
 
         if application.date_of_last_email:
             if email_date_aware > application.date_of_last_email:
@@ -213,11 +391,25 @@ class ApplicationView(APIView):
                 },
             )
 
-        total_applications = Application.objects.filter(user=request.user).count()
+        stage_counts = {}
+        for stage in Stage.objects.all():
+            stage_counts["total_" + stage.name.lower()] = Application.objects.filter(
+                user=request.user, stage=stage
+            ).count()
 
-        response_data = {"total_applications": total_applications}
+        email_data = {
+            "email_id": gmail_id,
+            "subject": data.get("subject"),
+            "company_name": company_name,
+            "company_slug": company.slug,
+            "job_link": job.link,
+            "job_role": role.title if role else None,
+            "stage": stage.name,
+        }
 
-        return JsonResponse(response_data, status=status.HTTP_201_CREATED)
+        data = {"email": email_data, "counts": stage_counts}
+
+        return JsonResponse(data, status=status.HTTP_201_CREATED)
 
 
 class JobDetailView(DetailView):
@@ -285,13 +477,18 @@ def scrape_job(request):
     return JsonResponse({"job_title": job_title, "company_name": company_name})
 
 
+from django.db.models import Prefetch
+
+
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = "dashboard.html"
     context_object_name = "applications"
 
     def get_queryset(self):
-        return Application.objects.filter(user=self.request.user).order_by(
-            "-stage__order", "-date_applied"
+        return (
+            Application.objects.filter(user=self.request.user)
+            .prefetch_related(Prefetch("company"), Prefetch("job"))
+            .order_by("-stage__order", "-date_applied")
         )
 
     def get_context_data(self, **kwargs):
@@ -345,9 +542,6 @@ def add_job_link(request, slug):
         job = Job(link=job_link, company=company)
         job.save()
         return redirect("company_detail", slug=slug)
-
-
-
 
 
 class UpdateWebsiteStatusView(View):

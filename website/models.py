@@ -7,6 +7,8 @@ from django.db import models
 from django.utils.text import slugify
 from bs4 import BeautifulSoup
 import requests
+from functools import lru_cache
+
 
 class BaseModel(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -52,10 +54,10 @@ class Company(BaseModel):
     website = models.URLField(blank=True, null=True)
     website_status = models.IntegerField(null=True, blank=True)
     website_status_updated = models.DateTimeField(null=True, blank=True)
-    city = models.CharField(max_length=255)
-    state = models.CharField(max_length=255)
-    country = models.CharField(max_length=255)
-    ceo = models.CharField(max_length=255)
+    city = models.CharField(max_length=255,blank=True, null=True)
+    state = models.CharField(max_length=255,blank=True, null=True)
+    country = models.CharField(max_length=255,blank=True, null=True)
+    ceo = models.CharField(max_length=255,blank=True, null=True)
     ceo_twitter = models.URLField(blank=True, null=True)
     greenhouse_url = models.URLField(blank=True, null=True)
     wellfound_url = models.URLField(blank=True, null=True)
@@ -63,6 +65,15 @@ class Company(BaseModel):
     careers_url = models.URLField(blank=True, null=True)
     careers_url_status = models.IntegerField(null=True, blank=True)
     careers_url_status_updated = models.DateTimeField(null=True, blank=True)
+
+    greenhouse_icon = '<svg height="2500" viewBox="-8.30925739 -.2362298 217.94925739 445.3362298" width="1269" xmlns="http://www.w3.org/2000/svg"><path d="m104.42 444.2c-58.12.85-105.51-49-104.42-106.6a105.12 105.12 0 0 1 105.87-103.37c55.36.15 101.71 47.66 102.71 103.07 1.06 58.7-47.33 107.8-104.16 106.9zm85.45-104.32c.35-47.58-37.69-86.42-85-86.78s-85.87 37.9-86.27 85.47a86.24 86.24 0 0 0 85.26 87.16c46.79.59 85.66-38.21 86.01-85.85zm-189.66-213.65a86.13 86.13 0 0 1 86-86.83c47.2-.09 86.08 38.89 86.15 86.36.08 48.15-38.19 87.13-85.67 87.27-48.18.13-86.34-38.19-86.48-86.8zm18.91-.54a67 67 0 1 0 134.09 1.31c.24-37.53-29.46-68.13-66.4-68.43-37.13-.26-67.4 29.74-67.69 67.12zm117.97-108.37a17.61 17.61 0 0 1 35.22.24 17.53 17.53 0 0 1 -17.74 17.72c-9.9-.07-17.48-7.87-17.48-17.96z" fill="#38b2a7"/></svg>' # Replace with your actual SVG code
+    wellfound_icon = "<svg>...</svg>"  # Replace with your actual SVG code
+    lever_icon = "<svg>...</svg>"  # Replace with your actual SVG code
+
+
+    class Meta:
+        verbose_name_plural = "companies"
+
 
     def __str__(self):
         return self.name
@@ -86,7 +97,7 @@ class Role(BaseModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = slugify(self.title[:50])
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -109,8 +120,19 @@ class Job(models.Model):
     equity_max = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 
 
+    @property
+    @lru_cache(maxsize=None)
+    def job_display(self):
+        if self.role:
+            return self.role.title + " at " + self.company.name
+        else:
+            if self.title:
+                return self.title + " at " + self.company.name
+            else:
+                return self.slug + " at " + self.company.name
+
     def __str__(self):
-        return self.title
+        return self.job_display
 
     def save(self, *args, **kwargs):
         if not self.title and self.link:
@@ -175,6 +197,9 @@ class Search(BaseModel):
     matched_skill_count = models.IntegerField(blank=True, null=True)
     matched_role_count = models.IntegerField(blank=True, null=True)
 
+    class Meta:
+        verbose_name_plural = "Searches"
+    
 
     def __str__(self):
         return self.query
@@ -259,25 +284,13 @@ class Source(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     skills = models.ManyToManyField('Skill')
 
-# class Company(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     name = models.CharField(max_length=255)
-#     contact_info = models.TextField()
 
 
-# class Application(models.Model):
-#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
-#     job = models.ForeignKey(Job, on_delete=models.CASCADE)
-#     recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
-#     status = models.CharField(max_length=255)
-#     adjusted_commission = models.DecimalField(max_digits=6, decimal_places=2)
 
 # class Recruiter(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     total_earnings = models.DecimalField(max_digits=10, decimal_places=2)
 
-# class Skill(models.Model):
-#     name = models.CharField(max_length=255)
 
 # class Match(models.Model):
 #     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
@@ -309,18 +322,7 @@ class Source(models.Model):
 #     end_date = models.DateField()
 #     skills = models.ManyToManyField('Skill')
 
-# class Company(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     name = models.CharField(max_length=255)
-#     contact_info = models.TextField()
 
-
-# class Application(models.Model):
-#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
-#     job = models.ForeignKey(Job, on_delete=models.CASCADE)
-#     recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
-#     status = models.CharField(max_length=255)
-#     adjusted_commission = models.DecimalField(max_digits=6, decimal_places=2)
 
 # class Recruiter(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)

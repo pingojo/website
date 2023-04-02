@@ -1,6 +1,9 @@
 from django import forms
 from allauth.account.forms import SignupForm
 
+from .models import Skill, Company, Role, Job, Stage, Email, Application, Search, Source
+
+
 class CustomSignupForm(SignupForm):
     first_name = forms.CharField(max_length=30, label='First Name')
     last_name = forms.CharField(max_length=30, label='Last Name')
@@ -21,3 +24,33 @@ class CustomSignupForm(SignupForm):
 
 class ResumeUploadForm(forms.Form):
     resume = forms.FileField()
+
+from django import forms
+from .models import Skill, Company, Role, Job, Stage, Email, Application, Search, Source
+
+from django import forms
+from .models import Skill, Company, Role, Job, Stage, Email, Application, Search, Source
+
+class AutocompleteTextInput(forms.TextInput):
+    class Media:
+        css = {
+            'all': ('https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',)
+        }
+        js = (
+            'https://code.jquery.com/jquery-3.6.0.min.js',
+            'https://code.jquery.com/ui/1.12.1/jquery-ui.js',
+        )
+
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        attrs = super().build_attrs(base_attrs, extra_attrs)
+        attrs.setdefault('class', '')
+        attrs['class'] += ' autocomplete'
+        return attrs
+
+class JobForm(forms.ModelForm):
+    role = forms.ModelChoiceField(queryset=Role.objects.all(), widget=AutocompleteTextInput(attrs={'id': 'role-autocomplete'}))
+    company = forms.ModelChoiceField(queryset=Company.objects.all(), widget=AutocompleteTextInput(attrs={'id': 'company-autocomplete'}))
+
+    class Meta:
+        model = Job
+        fields = [ 'link', 'company', 'role', 'salary_min', 'salary_max', 'posted_date', 'closing_date',  'equity_min', 'equity_max']
