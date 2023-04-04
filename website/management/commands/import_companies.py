@@ -1,8 +1,7 @@
 import csv
 from django.core.management.base import BaseCommand
-from website.models import Company
+from website.models import Company, Skill
 from django.utils.text import slugify
-
 
 class Command(BaseCommand):
     help = "Import companies from a CSV file"
@@ -11,6 +10,9 @@ class Command(BaseCommand):
         parser.add_argument("csv_file", type=str, help="Path to the CSV file")
 
     def handle(self, *args, **options):
+        django_skill, _ = Skill.objects.get_or_create(name="Django", slug="django")
+        python_skill, _ = Skill.objects.get_or_create(name="Python", slug="python")
+
         with open(options["csv_file"], "r", encoding="utf-8") as csv_file:
             reader = csv.DictReader(csv_file)
             for row in reader:
@@ -33,6 +35,8 @@ class Command(BaseCommand):
                         'ceo_twitter': row.get('ceo_twitter', ''),
                     }
                 )
+
+                company.skills.add(django_skill, python_skill)
 
                 if created:
                     self.stdout.write(self.style.SUCCESS(f"Successfully imported company: {row['name']}"))

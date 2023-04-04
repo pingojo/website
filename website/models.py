@@ -21,7 +21,9 @@ class BaseModel(models.Model):
 
 
 
-class Skill(BaseModel):
+class Skill(models.Model):
+    companies = models.ManyToManyField("Company", related_name="skills")
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="skills")
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
     job_count = models.PositiveIntegerField(default=0)
@@ -328,8 +330,6 @@ class Source(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     total_earnings = models.DecimalField(max_digits=10, decimal_places=2)
 
-# class Skill(models.Model):
-#     name = models.CharField(max_length=255)
 
 # class Match(models.Model):
 #     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
