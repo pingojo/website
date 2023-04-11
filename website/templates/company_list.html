@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
   <h1>Company List</h1>
@@ -27,24 +28,76 @@
     .greenhouse {
       background-color: #38b2a7;
     }
-  </style>
-  <div class="pagination">
-    <span class="step-links">
-        {% if page_obj.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-        {% endif %}
 
-        <span class="current">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-        </span>
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    padding: 10px;
+  }
 
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-        {% endif %}
-    </span>
-  </div>
+  .pagination a, .pagination .current, .pagination .disabled {
+    display: inline-block;
+    padding: 4px 3px; /* Updated padding for smaller buttons */
+    margin: 0 2px; /* Updated margin for smaller buttons */
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    border-radius: 4px;
+    font-size: 10px; /* Updated font size for smaller buttons */
+  }
+
+  .pagination a:hover {
+    background-color: #ccc;
+  }
+
+  .pagination .current {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .pagination .disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    pointer-events: none;
+  }
+</style>
+
+<div class="pagination">
+  <span class="step-links">
+      {% if page_obj.has_previous %}
+          <a href="?page=1{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">&laquo; first</a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">previous</a>
+      {% else %}
+          <span class="disabled">&laquo; first</span>
+          <span class="disabled">previous</span>
+      {% endif %}
+
+      {% for i in page_obj.paginator.page_range %}
+          {% if page_obj.number == i %}
+              <span class="current">{{ i }}</span>
+          {% else %}
+              <a href="?page={{ i }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">{{ i }}</a>
+          {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">next</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">last &raquo;</a>
+      {% else %}
+          <span class="disabled">next</span>
+          <span class="disabled">last &raquo;</span>
+      {% endif %}
+  </span>
+</div>
+
+<script>
+  function invertSorting(sortField) {
+  return sortField.startsWith("-") ? sortField.slice(1) : "-" + sortField;
+}
+</script>
+
   <table class="center-table">
     <thead>
       <tr>
@@ -55,12 +108,16 @@
         <th>Lever</th>
         <th>Careers</th>
         <th>Application Stage</th>
-        <th>Created</th>
+        <th>Search Email</th>
+        <th><a href="?order={{ 'created'|urlencode }}" onclick="this.href='?order=' + invertSorting('created')">Created</a></th>
+        {% if user.is_superuser %}
+          <th>Actions</th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
       {% for company in companies %}
-        <tr>
+        <tr id="company-{{ company.id }}">
           <td>
             {% if company.website %}
               <img src="https://www.google.com/s2/favicons?domain={{ company.website }}" alt="{{ company.name }} favicon" />
@@ -70,39 +127,50 @@
             {% if company.website %}
             <a href="{{ company.website }}" target="_blank">{{ company.name }}</a></td>
             {% else %}
-            <!-- search google for company name -->
-            <a href="https://www.google.com/search?q={{ company.name }}" target="_blank">google it: {{ company.name }}</a></td>
+
+            <a href="https://www.google.com/search?q={{ company.name|urlencode }}" target="_blank">google it: {{ company.name }}</a>
+            {% with forms|get_item:company.id as company_form %}
+            <form method="post" class="company-update-form" action="">
+              {% csrf_token %}
+              {{ company_form.as_p }}
+              <input type="hidden" name="company_id" value="{{ company.id }}">
+              <input type="hidden" name="order" value="{{ request.GET.order }}">
+              <input type="hidden" name="page" value="{{ request.GET.page }}">
+              <button type="submit">Update</button>
+            </form>
+          {% endwith %}
             {% endif %}
+          </td>
           <td>
             {% if company.greenhouse_url %}
               <a href="{{ company.greenhouse_url }}" target="_blank">
-                <button class="job-site-button greenhouse"></button>
+                &#x2617;
               </a>
             {% endif %}
           </td>
           <td>
             {% if company.wellfound_url %}
-              <!-- Add a Wellfound color and update the class name -->
+
               <a href="{{ company.wellfound_url }}" target="_blank">
-                <button class="job-site-button wellfound"></button>
+                &#x2617;
               </a>
             {% endif %}
           </td>
           <td>
             {% if company.lever_url %}
-              <!-- Add a Lever color and update the class name -->
+
               <a href="{{ company.lever_url }}" target="_blank">
-                <button class="job-site-button lever">
+                &#x2617;
               </a>
             {% endif %}
           </td>
           <td>
-            {% if company.careers_url %}
-              <!-- Add a Careers color and update the class name -->
-              <a href="{{ company.careers_url }}" target="_blank">
-                <button class="job-site-button careers"></button>
+            {% if company.website %}
+              <a href="{{ company.website }}/careers" target="_blank">
+                &#x2617;
               </a>
             {% endif %}
+           
           </td>
 
           <td>
@@ -112,7 +180,18 @@
               {% endif %}
             {% endwith %}
           </td>
+          <td>
+
+            <a href="https://mail.google.com/mail/u/0/#search/{{ company.name }}" target="_blank">
+
+           
+            <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+        </a>
+        </td>
           <td>{{ company.created|date:"F j, Y" }}</td>
+          {% if user.is_superuser %}
+          <td><a href="{% url 'admin:website_company_change' company.id %}">Update</a></td>
+        {% endif %}
         </tr>
       {% endfor %}
     </tbody>
@@ -120,18 +199,71 @@
   <div class="pagination">
     <span class="step-links">
         {% if page_obj.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            <a href="?page=1{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">previous</a>
+        {% else %}
+            <span class="disabled">&laquo; first</span>
+            <span class="disabled">previous</span>
         {% endif %}
 
-        <span class="current">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-        </span>
+        {% for i in page_obj.paginator.page_range %}
+            {% if page_obj.number == i %}
+                <span class="current">{{ i }}</span>
+            {% else %}
+                <a href="?page={{ i }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
 
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">last &raquo;</a>
+        {% else %}
+            <span class="disabled">next</span>
+            <span class="disabled">last &raquo;</span>
         {% endif %}
     </span>
-  </div>
+</div>
+
+<script>
+  function isValidURL(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const urlInputs = document.querySelectorAll('.company-update-form input[type="url"]');
+
+
+  urlInputs.forEach(input => {
+    input.addEventListener('paste', function() {
+      setTimeout(() => {
+        if (isValidURL(this.value)) {
+          const currentRow = this.closest('tr');
+          const nextRow = currentRow.nextElementSibling;
+          if (nextRow) {
+            if (nextRow.textContent.includes('google it')) {
+              const nextLink = nextRow.querySelector('a[href*="google"]');
+              if (nextLink) {
+                this.form.action = window.location.pathname + window.location.search + '#' + nextRow.id;
+                window.open(nextLink.href, '_blank');
+
+              }
+            }
+          }
+          this.form.submit();
+        } else {
+          alert('Invalid URL. Please paste a valid URL.');
+        }
+      }, 100);
+    });
+  });
+});
+
+</script>
+
+
 {% endblock %}

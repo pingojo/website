@@ -1,7 +1,8 @@
-from django import forms
 from allauth.account.forms import SignupForm
+from django import forms
 
-from .models import Skill, Company, Role, Job, Stage, Email, Application, Search, Source
+from .models import (Application, Company, Email, Job, Role, Search, Skill,
+                     Source, Stage)
 
 
 class CustomSignupForm(SignupForm):
@@ -25,11 +26,7 @@ class CustomSignupForm(SignupForm):
 class ResumeUploadForm(forms.Form):
     resume = forms.FileField()
 
-from django import forms
-from .models import Skill, Company, Role, Job, Stage, Email, Application, Search, Source
 
-from django import forms
-from .models import Skill, Company, Role, Job, Stage, Email, Application, Search, Source
 
 class AutocompleteTextInput(forms.TextInput):
     class Media:
@@ -54,3 +51,9 @@ class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = [ 'link', 'company', 'role', 'salary_min', 'salary_max', 'posted_date', 'closing_date',  'equity_min', 'equity_max']
+
+
+class CompanyUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = ['website']

@@ -12,3 +12,13 @@ def filter_stage(application, stage):
 def dict_key(d, k):
     """Returns the given key from a dictionary."""
     return d.get(k)
+
+@register.filter
+def keyvalue(dict, key):
+    new_dict = dict.copy()
+    new_dict[key] = key
+    return new_dict
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

@@ -9,7 +9,9 @@ from bs4 import BeautifulSoup
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.db.models import Count, F, Q, Sum
+from django.db.models import (Case, CharField, Count, F, IntegerField,
+                              Prefetch, Q, Sum, Value, When)
+from django.db.models.functions import Cast, Concat
 from django.http import HttpResponseRedirect, JsonResponse
 # from pyresparser import ResumeParser
 from django.shortcuts import get_object_or_404, redirect, render
@@ -30,34 +32,17 @@ from rest_framework.views import APIView
 from website.models import Application, Company, Email, Job, Role, Stage
 from website.utils import get_website_title, send_slack_notification
 
-from .forms import JobForm, ResumeUploadForm
+from .forms import CompanyUpdateForm, JobForm, ResumeUploadForm
 from .models import (Application, Company, Email, Job, Role, Search, Skill,
                      Source, Stage)
 from .parse_resume import parse_resume
 
-from django.views.generic import ListView
-from django.core.paginator import Paginator
-from .models import Company
-
-from django.db.models import Case, When, Value, IntegerField
 
 
 
-from django.db.models import Prefetch
-
-
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Case, When, Value, IntegerField, Q
+from .forms import CompanyUpdateForm
 from .models import Company, Application
-
-from django.db.models import Case, When, Value, IntegerField, F
-from django.db.models.functions import Concat
-
-from django.db.models import Case, When, Value, IntegerField, F
-
-from django.db.models import Case, When, Value, IntegerField, F, CharField
-from django.db.models.functions import Concat, Cast
-
-from django.db.models import Q
 
 class CompanyListView(ListView):
     model = Company
@@ -66,7 +51,7 @@ class CompanyListView(ListView):
     paginate_by = 100
 
     def get_queryset(self):
-        order = self.request.GET.get('order', 'name')
+        order = self.request.GET.get('order')
 
         if self.request.user.is_authenticated:
             applications = Application.objects.select_related('stage').filter(user=self.request.user)
@@ -82,10 +67,41 @@ class CompanyListView(ListView):
                 default=Value(5),
                 output_field=IntegerField(),
             )
-        ).order_by('job_site_order', order)
+        ).order_by('job_site_order')
+
+        if order:
+            queryset = queryset.order_by(order)
 
         return queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        forms = {}
+        for company in context['companies']:
+            forms[company.id] = CompanyUpdateForm(instance=company)
+        context['forms'] = forms
+        return context
+
+    def post(self, request, *args, **kwargs):
+        company_id = request.POST.get('company_id')
+        company = get_object_or_404(Company, id=company_id)
+        form = CompanyUpdateForm(request.POST, instance=company)
+
+        if form.is_valid():
+            form.save()
+
+        # Get the current URL parameters
+        order = request.POST.get('order')
+        page = request.POST.get('page')
+
+        # Construct the redirect URL with the preserved parameters
+        redirect_url = reverse('company_list') + '?'
+        if order:
+            redirect_url += f'order={order}&'
+        if page:
+            redirect_url += f'page={page}'
+
+        return HttpResponseRedirect(redirect_url)
 
 
     
@@ -477,7 +493,8 @@ def scrape_job(request):
     return JsonResponse({"job_title": job_title, "company_name": company_name})
 
 
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
+from django.shortcuts import get_object_or_404
 
 
 class DashboardView(LoginRequiredMixin, ListView):
@@ -485,16 +502,19 @@ class DashboardView(LoginRequiredMixin, ListView):
     context_object_name = "applications"
 
     def get_queryset(self):
+        stage = self.request.GET.get('stage', 'Scheduled')
+        stage_obj = get_object_or_404(Stage, name=stage)
         return (
-            Application.objects.filter(user=self.request.user)
+            Application.objects.filter(user=self.request.user, stage=stage_obj)
             .prefetch_related(Prefetch("company"), Prefetch("job"))
             .order_by("-stage__order", "-date_applied")
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["stages"] = Stage.objects.all().order_by("-order")
+        context["stages"] = Stage.objects.annotate(count=Count('application')).order_by("-order")
         return context
+
 
 
 class Index(TemplateView):

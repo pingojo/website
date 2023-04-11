@@ -14,9 +14,10 @@
     <ul>
         {% for stage in stages %}
         <li data-stage="{{ stage.name }}">
-            <a href="#">{{ stage.name }} ({{ applications|filter_stage:stage.name|length }})</a>
+            <a href="{% url 'dashboard' %}?stage={{ stage.name }}">{{ stage.name }} ({{ stage.count }})</a>
         </li>
-        {% endfor %}
+    {% endfor %}
+    
     </ul>
 </div>
 
