@@ -61,6 +61,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware", 
     "corsheaders.middleware.CorsMiddleware",
+    "website.middleware.CustomMiddleware",    
 ]
 CORS_ALLOWED_ORIGINS = [
     "https://mail.google.com",
