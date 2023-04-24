@@ -38,12 +38,6 @@ from .models import (Application, Company, Email, Job, Role, Search, Skill,
 from .parse_resume import parse_resume
 
 
-
-
-from django.db.models import Prefetch, Case, When, Value, IntegerField, Q
-from .forms import CompanyUpdateForm
-from .models import Company, Application
-
 class CompanyListView(ListView):
     model = Company
     template_name = 'company_list.html'
@@ -109,6 +103,10 @@ class CompanyListView(ListView):
 
 def autocomplete(request, model):
     term = request.GET.get("term")
+
+    term = "".join(e for e in term if e.isalnum())
+
+    
     if model == "role":
         queryset = Role.objects.filter(title__icontains=term)
         results = [{"label": role.title, "value": role.id} for role in queryset]
@@ -443,7 +441,7 @@ def terms_of_service(request):
 
 
 def search(request):
-    search_query = request.GET.get("search", "")
+    search_query = re.sub(r"[^a-zA-Z0-9 ]", "", request.GET.get("search", ""))
 
     if search_query:
         jobs = Job.objects.filter(
@@ -467,10 +465,22 @@ def search(request):
 
     jobs_paginator = Paginator(jobs, 10)  # Show 10 jobs per page
     jobs_page = request.GET.get("jobs_page", 1)
+
+    try:
+        jobs_page = int(jobs_page)
+    except:
+        jobs_page = 1
+
     paginated_jobs = jobs_paginator.get_page(jobs_page)
 
     companies_paginator = Paginator(companies, 10)  # Show 10 companies per page
     companies_page = request.GET.get("companies_page", 1)
+
+    try:
+        companies_page = int(companies_page)
+    except:
+        companies_page = 1
+
     paginated_companies = companies_paginator.get_page(companies_page)
 
     return render(
@@ -486,15 +496,15 @@ def search(request):
 
 def scrape_job(request):
     url = request.GET.get("url", "")
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
+
+    if not "greenhouse" in url and not "lever" in url:
+        return JsonResponse({"job_title": "", "company_name": ""})
+    
     job_title = ""
     company_name = ""
     return JsonResponse({"job_title": job_title, "company_name": company_name})
 
 
-from django.db.models import Count, Prefetch
-from django.shortcuts import get_object_or_404
 
 
 class DashboardView(LoginRequiredMixin, ListView):
@@ -559,6 +569,16 @@ def add_job_link(request, slug):
     company = get_object_or_404(Company, slug=slug)
     if request.method == "POST":
         job_link = request.POST.get("job_link")
+        job_link = job_link.strip()
+        # check that job_link contains greenhouse or lever or return error
+        if "lever" not in job_link and "greenhouse" not in job_link:
+            return render(
+                request,
+                "company_detail.html",
+                {"company": company, "error": "Invalid job link"},
+            )
+
+
         job = Job(link=job_link, company=company)
         job.save()
         return redirect("company_detail", slug=slug)

@@ -29,9 +29,7 @@ if 'CODESPACE_NAME' in os.environ:
     codespace_domain = os.getenv("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN")
     CSRF_TRUSTED_ORIGINS = [f'https://{codespace_name}-8000.{codespace_domain}']
     ALLOWED_HOSTS.append(f'https://{codespace_name}-8000.{codespace_domain}')
-    print(codespace_name,CSRF_TRUSTED_ORIGINS)
-    print(codespace_domain,ALLOWED_HOSTS)
-    
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -61,7 +59,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware", 
     "corsheaders.middleware.CorsMiddleware",
-    "website.middleware.CustomMiddleware",    
+    #"website.middleware.CustomMiddleware",    
 ]
 CORS_ALLOWED_ORIGINS = [
     "https://mail.google.com",
