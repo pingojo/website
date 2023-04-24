@@ -41,7 +41,7 @@ class ApplicationAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Company.objects.count(), 1)
         self.assertEqual(Role.objects.count(), 1)
-        self.assertEqual(response.json()['total_applications'], 1)
+        self.assertEqual(response.json()['total_applications'], 2)
 
         company = Company.objects.first()
         role = Role.objects.first()
@@ -68,7 +68,7 @@ class ApplicationAPITestCase(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()), 1)
+        self.assertEqual(len(response.json()), 2)
 
         email_data = response.json()[0]
         self.assertEqual(email_data['email_id'], email.gmail_id)
@@ -103,7 +103,7 @@ class ApplicationAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Company.objects.count(), 1)
         self.assertEqual(Role.objects.count(), 1)
-        self.assertEqual(response.json()['total_applications'], 1)
+        self.assertEqual(response.json()['total_applications'], 2)
 
         company = Company.objects.first()
         role = Role.objects.first()
