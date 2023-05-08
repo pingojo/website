@@ -523,6 +523,31 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["stages"] = Stage.objects.annotate(count=Count('application')).order_by("-order")
+        # TruncDay
+        # import TruncDay
+        #from django.db.models import Count
+        from django.db.models.functions import TruncDay
+        from django.db import models
+
+        applications_by_day = Application.objects.annotate(date=TruncDay('created')).values('date').annotate(application_count=Count('pk')).order_by('date')
+        labels = [entry["date"].strftime("%m/%d/%Y") for entry in applications_by_day]
+        application_counts = [entry["application_count"] for entry in applications_by_day]
+
+        data_chart1 = {
+            "labels": labels,
+            "datasets": [
+                {
+                    "label": "Applications",
+                    "data": application_counts,
+                    "backgroundColor": "rgba(255, 99, 132, 0.2)",
+                    "borderColor": "rgba(255, 99, 132, 1)",
+                    "borderWidth": 1,
+                }
+            ],
+        }
+        print(data_chart1)
+        context["data_chart1"] = data_chart1
+        
         return context
 
 

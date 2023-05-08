@@ -4,6 +4,7 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 
@@ -24,7 +25,10 @@
 
 
 <div class="main-content">
-
+    <div style="width:400px">
+        <canvas id="chart1" ></canvas>
+    </div>
+    
     <table>
         <thead>
             <tr>
@@ -99,7 +103,14 @@
     </form>
     <!-- Display the list of applications here -->
 </div>
-
+<script>
+        var chart1Data = {{ data_chart1|safe }};
+    var chart1Ctx = document.getElementById('chart1').getContext('2d');
+    var chart1 = new Chart(chart1Ctx, {
+      type: 'bar',
+      data: chart1Data,
+    });
+</script>
 {% block extra_js %}
   <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}
