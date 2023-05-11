@@ -113,6 +113,7 @@
         {% if user.is_superuser %}
           <th>Actions</th>
         {% endif %}
+        <th>Skills</th>
       </tr>
     </thead>
     <tbody>
@@ -192,6 +193,11 @@
           {% if user.is_superuser %}
           <td><a href="{% url 'admin:website_company_change' company.id %}">Update</a></td>
         {% endif %}
+          <td>
+            {% for skill in company.skills.all %}
+              <span class="skill">{{ skill.name }}</span>
+            {% endfor %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>
