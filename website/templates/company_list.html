@@ -102,18 +102,18 @@
     <thead>
       <tr>
         <th>Favicon</th>
-        <th><a href="?order={{ 'name'|urlencode }}" onclick="this.href='?order=' + invertSorting('name')">Company Name</a></th>
+        <th><a href="?order={% if request.GET.order == 'name' %}-{% endif %}name">Company Name</a></th>
         <th>Greenhouse</th>
         <th>Wellfound</th>
         <th>Lever</th>
         <th>Careers</th>
         <th>Application Stage</th>
         <th>Search Email</th>
-        <th><a href="?order={{ 'created'|urlencode }}" onclick="this.href='?order=' + invertSorting('created')">Created</a></th>
+        <th><a href="?order={% if request.GET.order == 'created' %}-{% endif %}created">Created</a></th>
         {% if user.is_superuser %}
           <th>Actions</th>
         {% endif %}
-        <th>Skills</th>
+        <th><a href="?order={% if request.GET.order == 'skills' %}-{% endif %}skills">Skills</a></th>
       </tr>
     </thead>
     <tbody>
