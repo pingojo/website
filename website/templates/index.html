@@ -14,9 +14,9 @@
   </div>
     <section class="main-content">
         <div class="job-stats">
-            <div class="stat">
-                <strong>10,000+</strong> Jobs
-            </div>
+            <a href=""><div class="stat">
+                <strong>{{job_count|intcomma}}+</strong> Jobs
+            </div></a> 
             <a href="{% url 'company_list' %}"><div class="stat">
                 <strong>{{company_count|intcomma}}+</strong> Companies
             </div></a> 
@@ -30,58 +30,98 @@
                 <strong>2,000+</strong> Hires
             </div>
         </div>
+    </section>  
 
-        
-        {% if user.is_authenticated %}
-        <a href="{% url 'dashboard' %}" class="signup">Dashboard</a>
+<style>
+    .features {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
 
-        {% else %}
-        <a href="/accounts/signup/" class="signup">Sign up now!</a>
-        {% endif %}
+.benefits {
+  width: 80%;
+}
+
+.leaderboard {
+    padding: 20px;
+  width: 20%;
+  background-color: #ffffff;
+  box-sizing: border-box;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.table-style {
+    width: 100%; /* Make the table stretch the full width */
+    border-collapse: collapse; /* Remove space between borders */
+}
+
+.table-style th,
+.table-style td {
+    border: 1px solid #000; /* Add a thin border */
+    padding: 10px; /* Add some padding */
+    text-align: center; /* Center the text */
+}
+
+</style>
     
-
-        <form action="{% url 'upload_resume' %}" id="upload-resume-form" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="upload-resume">
-                <input type="file" name="resume" id="resume" accept=".pdf,.doc,.docx" />
-                <label for="resume">Upload your resume to see matched jobs</label>
-            </div>
-        </form>
-
-    
-        <div class="benefits">
-            <div class="benefit">
-                <i class="fas fa-users-cog"></i>
-                <h3>Simplified Recruitment</h3>
-                <p>Streamline the recruitment process for job seekers, companies, and recruiters with seamless collaboration.</p>
-            </div>
-            <div class="benefit">
-                <i class="fas fa-brain"></i>
-                <h3>Personalized Job Matching</h3>
-                <p>Find the perfect job or candidate with advanced AI technology that matches users based on skills, experience, and preferences.</p>
-            </div>
-            <div class="benefit">
-                <i class="fas fa-comments"></i>
-                <h3>Efficient Communication</h3>
-                <p>Stay updated with real-time notifications and well-designed dashboards, ensuring a smooth hiring process for all parties.</p>
-            </div>
-            <div class="benefit">
-                <i class="fas fa-lightbulb"></i>
-                <h3>Empowerment Through Flexibility</h3>
-                <p>Become a recruiter with Pingojo, providing flexible income opportunities and expanding the pool of potential candidates.</p>
-            </div>
-            <div class="benefit">
-                <i class="fas fa-shield-alt"></i>
-                <h3>Privacy Protection</h3>
-                <p>Rest assured that your data and contact information are protected throughout the recruitment process.</p>
-            </div>
-            <div class="benefit">
-                <i class="fas fa-globe"></i>
-                <h3>Wide Network</h3>
-                <p>Access a vast network of recruiters and companies, increasing the chances of finding the perfect job or candidate.</p>
-            </div>
+<section class="features">
+    <div class="benefits">
+        <div class="benefit">
+            <i class="fas fa-users-cog"></i>
+            <h3>Simplified Recruitment</h3>
+            <p>Streamline the recruitment process for job seekers, companies, and recruiters with seamless collaboration.</p>
         </div>
-    </section>
+        <div class="benefit">
+            <i class="fas fa-brain"></i>
+            <h3>Personalized Job Matching</h3>
+            <p>Find the perfect job or candidate with advanced AI technology that matches users based on skills, experience, and preferences.</p>
+        </div>
+        <div class="benefit">
+            <i class="fas fa-comments"></i>
+            <h3>Efficient Communication</h3>
+            <p>Stay updated with real-time notifications and well-designed dashboards, ensuring a smooth hiring process for all parties.</p>
+        </div>
+        <div class="benefit">
+            <i class="fas fa-lightbulb"></i>
+            <h3>Empowerment Through Flexibility</h3>
+            <p>Become a recruiter with Pingojo, providing flexible income opportunities and expanding the pool of potential candidates.</p>
+        </div>
+        <div class="benefit">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Privacy Protection</h3>
+            <p>Rest assured that your data and contact information are protected throughout the recruitment process.</p>
+        </div>
+        <div class="benefit">
+            <i class="fas fa-globe"></i>
+            <h3>Wide Network</h3>
+            <p>Access a vast network of recruiters and companies, increasing the chances of finding the perfect job or candidate.</p>
+        </div>
+    </div>
+    <div class="leaderboard">
+        <h3>Application Leaderboard</h3>
+        <table class="table-style">
+            <thead>
+                <tr><th>#</th>
+                    <th>24hr</th>
+                    <th>total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_applications %}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{ user.applications_last_24hr|intcomma }}</td>
+                        <td>{{ user.total_applications|intcomma }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+</section>
 <!-- templates/upload_resume.html -->
 {% block extra_js %}
 <script>

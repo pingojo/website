@@ -551,6 +551,8 @@ class DashboardView(LoginRequiredMixin, ListView):
         return context
 
 
+from datetime import timedelta
+from django.contrib.auth.models import User
 
 class Index(TemplateView):
     template_name = "index.html"
@@ -562,6 +564,25 @@ class Index(TemplateView):
         random.shuffle(companies)
         context["companies"] = companies[:50]
         context["company_count"] = all_companies.count()
+        context["job_count"] = Job.objects.all().count()
+
+        user_applications = []
+        for user in User.objects.all():
+            applications = user.application_set.count()
+            # Get applications in last 24 hours
+            time_threshold = timezone.now() - timedelta(hours=24)
+            applications_last_24hr = user.application_set.filter(created__gte=time_threshold).count()
+            
+            user_applications.append({
+                'total_applications': applications,
+                'applications_last_24hr': applications_last_24hr
+            })
+
+        #sort by total_applications, highest to lowest
+        user_applications.sort(key=lambda x: x['total_applications'], reverse=True)
+
+        context["user_applications"] = user_applications[:3]
+
         return context
 
 

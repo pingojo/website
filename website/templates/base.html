@@ -122,11 +122,20 @@ setInterval(() => {
         <button class="search-btn">Search</button>
       </div>
     </form>
+
+    <div>
     {% if user.is_authenticated %}
+     <a href="{% url 'dashboard' %}" class="login-btn">Dashboard</a>
       <a href="/accounts/logout/" class="login-btn">Logout</a>
     {% else %}
+   
+
+    
+     <a href="/accounts/signup/" class="login-btn">Sign up</a>
       <a href="/accounts/login/" class="login-btn">Login</a>
+   
     {% endif %}
+  </div>
   </header>
 
 
