@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<style>
+
+#job-list-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#job-list-table, th, td {
+    border: 1px solid black;
+    padding: 5px;
+    text-align: left;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+tr:nth-child(even) {background-color: #f2f2f2;}
+
+a {
+    color: blue;
+    text-decoration: none;
+}
+</style>
+
+<h1>Job Listings</h1>
+<table id="job-list-table">
+  <thead>
+    <tr>
+      <th><a href="?ordering=title">Title</a></th>
+      <th><a href="?ordering=salary_min">Min Salary</a></th>
+      <th><a href="?ordering=salary_max">Max Salary</a></th>
+      <th><a href="?ordering=posted_date">Posted Date</a></th>
+      <th>Link</th>
+      <th>Status Code</th>
+      <th>Email</th>
+      <th># of applications</th>
+    </tr>
+  </thead>
+  <tbody>
+      {% for job in jobs %}
+      <tr>
+          <td>{{ job }}</td>
+          <td>${{ job.salary_min|floatformat:0|intcomma }}</td>
+          <td>${{ job.salary_max|floatformat:0|intcomma }}</td>
+          <td>{{ job.posted_date }}</td>
+          <td>{% if job.link %}<a href="{{ job.link }}">Link</a>{% endif %}</td>
+          <td>{% if job.link %}{{ job.link_status_code }}{% endif %}</td>
+          <td>
+            {{ application.email_set.count }} 
+            <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" target="_blank">
+
+           
+            <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+        </a>
+        </td>
+          <td>{{job.application_set.all|length}}</td>
+      </tr>
+      {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -40,6 +40,50 @@ from .parse_resume import parse_resume
 from django.views.generic import ListView
 from .models import Source
 
+from .models import Job
+
+from django.db.models import F
+from django.db.models.functions import Coalesce
+from django.views.generic import ListView
+from .models import Job
+from django.db.models import Value, DateField
+from django.db.models.functions import Coalesce
+
+from django.db.models import Case, When, Value, DateField
+from django.views.generic import ListView
+from .models import Job
+
+from django.db.models import Q
+from django.views.generic import ListView
+from .models import Job
+
+from django.db.models import Q
+from django.views.generic import ListView
+from .models import Job
+
+class JobListView(ListView):
+    model = Job
+    template_name = 'job_list.html'
+    context_object_name = 'jobs'
+
+    def get_ordering(self):
+        self.ordering = self.request.GET.get('ordering', '-posted_date')
+        return self.ordering
+
+    def get_queryset(self):
+        ordering = self.get_ordering()
+
+        direction = '-' if ordering.startswith('-') else ''
+        field = ordering.lstrip('-')
+
+        queryset_with_dates = super().get_queryset().exclude(posted_date__isnull=True).order_by(f'{direction}{field}')
+        queryset_without_dates = super().get_queryset().filter(posted_date__isnull=True)
+
+        return list(queryset_with_dates) + list(queryset_without_dates)
+
+
+
+
 class SourceListView(ListView):
     model = Source
     template_name = 'sources.html'

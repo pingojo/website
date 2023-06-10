@@ -31,8 +31,9 @@
     <table>
         <tr>
             <th><a href="?sort=name{% if current_sort == 'name' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'name' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Name</a></th>
-            <!-- <th><a href="?sort=website{% if current_sort == 'website' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'website' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Website</a></th> -->
             <th><a href="?sort=focus{% if current_sort == 'focus' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'focus' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Focus</a></th>
+            <th><a href="?sort=website{% if current_sort == 'website' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'website' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Website</a></th>
+            
             <!-- <th><a href="?sort=from_email{% if current_sort == 'from_email' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'from_email' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Email</a></th>
             <th><a href="?sort=url_structure{% if current_sort == 'url_structure' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'url_structure' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">URL Structure</a></th>
             <th><a href="?sort=job_count{% if current_sort == 'job_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'job_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Job Count</a></th> -->
@@ -40,8 +41,8 @@
         {% for source in sources %}
         <tr>
             <td><a href="{{ source.website }}" target="_blank">{{ source.name }}</a></td>
-            <!-- <td><a href="{{ source.website }}" target="_blank">{{ source.website }}</a></td> -->
-            <td>{{ source.focus }}</td>
+            <td>({{ source.focus }})</td>
+            <td><a href="{{ source.website }}" target="_blank">{{ source.website }}</a></td>
             <!-- <td>{{ source.from_email }}</td>
             <td>{{ source.url_structure }}</td>
             <td>{{ source.job_count }}</td> -->

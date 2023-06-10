@@ -105,7 +105,7 @@ class Role(BaseModel):
     def get_absolute_url(self):
         return reverse("role-detail", args=[self.slug])
     
-class Job(models.Model):
+class Job(BaseModel):
     title = models.CharField(max_length=255)
     role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True)
     slug = models.SlugField(unique=True, max_length=255)
@@ -118,6 +118,8 @@ class Job(models.Model):
     is_active = models.BooleanField(default=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     link = models.URLField()
+    link_status_code = models.IntegerField(null=True, blank=True, default=200)
+
     equity_min = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     equity_max = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 
@@ -139,6 +141,7 @@ class Job(models.Model):
     def save(self, *args, **kwargs):
         if not self.title and self.link:
             response = requests.get(self.link)
+            self.link_status_code = response.status_code
             soup = BeautifulSoup(response.content, 'html.parser')
             self.title = soup.title.string
         if not self.slug:

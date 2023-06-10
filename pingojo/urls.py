@@ -66,4 +66,5 @@ urlpatterns = [
     path("autocomplete/<str:model>/", views.autocomplete, name="autocomplete"),
     path('company_list/', CompanyListView.as_view(), name='company_list'),
     path('sources/', SourceListView.as_view(), name='source-list'),
+    path('jobs/', views.JobListView.as_view(), name='jobs_list'),
 ]
