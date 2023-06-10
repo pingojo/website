@@ -1,117 +1,47 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% block seo_header %}
-    <title>Pingojo - Crowd-Powered Hiring</title>
-    <meta name="description" content="Pingojo is a revolutionary virtual recruitment platform that connects job seekers, recruiters, and companies, empowering anyone to become a recruiter. Our advanced contact management system and real-time dashboards help users stay updated and maintain their privacy.">
-    <meta name="keywords" content="Pingojo, recruitment platform, job seekers, recruiters, companies, job matching, virtual recruitment, contact management, real-time dashboard">
-    {% endblock %}
-   
-    <!-- Add these to the head section of your base.html -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% block seo_header %}
+  <title>Pingojo - Crowd-Powered Hiring</title>
+  <meta name="description"
+    content="Pingojo is a revolutionary virtual recruitment platform that connects job seekers, recruiters, and companies, empowering anyone to become a recruiter. Our advanced contact management system and real-time dashboards help users stay updated and maintain their privacy.">
+  <meta name="keywords"
+    content="Pingojo, recruitment platform, job seekers, recruiters, companies, job matching, virtual recruitment, contact management, real-time dashboard">
+  {% endblock %}
 
-    <link id="favicon" rel="icon" type="image/png" href="/static/img/logo.png">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-    <script>
-      // get this from the api
-let count = 0;
-let originalFavicon;
+  <link id="favicon" rel="icon" type="image/png" href="/static/img/logo.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <script src="{% static 'js/favicon-updater.js' %}"></script>
+  {% block extra_css %}
 
-function updateFavicon(count) {
-  const favicon = document.querySelector('link[rel=icon]');
-  const faviconSize = 16;
-  const canvas = document.createElement('canvas');
-  canvas.width = faviconSize;
-  canvas.height = faviconSize;
-  const context = canvas.getContext('2d');
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-
-  if (!originalFavicon) {
-    originalFavicon = favicon.href;
-  }
-
-  if (favicon === null) return;
-  img.src = originalFavicon;
-
-  img.onload = () => {
-    if (context === null) return;
-    context.drawImage(img, 0, 0, faviconSize, faviconSize);
-    if (count > 0) {
-      // Draw Notification Rounded Rectangle
-      context.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      context.beginPath();
-      context.roundRect(2, 6, 12, 12, 2).fill();
-
-      // Draw Notification Number
-      context.font = '11px ';
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.fillStyle = '#000000';
-      context.fillText(String(count), faviconSize / 2, faviconSize - 5);
-
-      // Replace favicon
-      favicon.href = canvas.toDataURL('image/png');
-    }
-  };
-}
-
-// Add roundRect function to the canvas
-CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
-  if (typeof radius === 'undefined') {
-    radius = 5;
-  }
-  this.beginPath();
-  this.moveTo(x + radius, y);
-  this.lineTo(x + width - radius, y);
-  this.quadraticCurveTo(x + width, y, x + width, y + radius);
-  this.lineTo(x + width, y + height - radius);
-  this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  this.lineTo(x + radius, y + height);
-  this.quadraticCurveTo(x, y + height, x, y + height - radius);
-  this.lineTo(x, y + radius);
-  this.quadraticCurveTo(x, y, x + radius, y);
-  this.closePath();
-  return this;
-};
-
-// Increment count and update favicon every second
-setInterval(() => {
-  count++;
-  updateFavicon(count);
-}, 50000);
-
-
-
-    </script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" 
-     crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    {% block extra_css %}
-    
   {% endblock %}
   {% block extra_head %}
-{% endblock %}
+  {% endblock %}
 
 </head>
+
 <body>
   <header>
     {% if messages %}
-      <div class="messages">
-        {% for message in messages %}
-          <div class="alert-{{ message.tags }}">
-            {{ message }}
-          </div>
-        {% endfor %}
+    <div class="messages">
+      {% for message in messages %}
+      <div class="alert-{{ message.tags }}">
+        {{ message }}
       </div>
+      {% endfor %}
+    </div>
     {% endif %}
     <div class="logo-container">
-      <a href="/" >
+      <a href="/">
         <img src="{% static 'svg/logo-white.svg' %}" alt="Pingojo Logo" class="logo">
       </a>
       <p class="slogan">People-Powered Hiring</p>
@@ -124,68 +54,41 @@ setInterval(() => {
     </form>
 
     <div>
-    {% if user.is_authenticated %}
-     <a href="{% url 'dashboard' %}" class="login-btn">Dashboard</a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}" class="login-btn">Dashboard</a>
       <a href="/accounts/logout/" class="login-btn">Logout</a>
-    {% else %}
-   
-
-    
-     <a href="/accounts/signup/" class="login-btn">Sign up</a>
+      {% else %}
+      <a href="/accounts/signup/" class="login-btn">Sign up</a>
       <a href="/accounts/login/" class="login-btn">Login</a>
-   
-    {% endif %}
-  </div>
+      {% endif %}
+    </div>
   </header>
 
+  {% block content %}
+  {% endblock %}
 
-    
-    
-    {% block content %}
-    {% endblock %}
-    
-    <footer>
-        &copy; Pingojo - All Rights Reserved | <a href="{% url 'privacy_policy' %}" style="color: white;">Privacy Policy</a> | <a href="{% url 'terms_of_service' %}" style="color: white;">Terms of Service</a> | <a href="https://github.com/pingojo/website" style="color: white;">Github</a>
-    </footer>
-    
-    <script type="text/javascript">
-      window._mfq = window._mfq || [];
-      (function() {
-        var mf = document.createElement("script");
-        mf.type = "text/javascript"; mf.defer = true;
-        mf.src = "//cdn.mouseflow.com/projects/75696671-ed61-4656-9ca3-1a503dc1d0b1.js";
-        document.getElementsByTagName("head")[0].appendChild(mf);
-      })();
-    </script>
-    {% block extra_js %}
-    
-    {% endblock %}
+  <footer>
+    &copy; Pingojo - All Rights Reserved | <a href="{% url 'privacy_policy' %}" style="color: white;">Privacy Policy</a>
+    | <a href="{% url 'terms_of_service' %}" style="color: white;">Terms of Service</a> | <a
+      href="https://github.com/pingojo/website" style="color: white;">Github</a>
+  </footer>
 
-    {% block script %}
-    
-{% endblock %}
+  <script type="text/javascript">
+    window._mfq = window._mfq || [];
+    (function () {
+      var mf = document.createElement("script");
+      mf.type = "text/javascript"; mf.defer = true;
+      mf.src = "//cdn.mouseflow.com/projects/75696671-ed61-4656-9ca3-1a503dc1d0b1.js";
+      document.getElementsByTagName("head")[0].appendChild(mf);
+    })();
+  </script>
+  {% block extra_js %}
+
+  {% endblock %}
+
+  {% block script %}
+
+  {% endblock %}
 </body>
-    <style>
-    @media screen and (max-width: 600px) {
-    /* This media query targets screens with a width of 600px or less (typically mobile devices) */
 
-    .search-form {
-        /* Adjust the size of the search box on smaller screens */
-        width: 100%;
-    }
-
-    .search-container {
-        /* Adjust the search-container on smaller screens */
-        width: 80%;
-        margin: auto;
-    }
-
-    .login-btn {
-        /* Adjust the size and placement of the login/signup buttons on smaller screens */
-        display: block;
-        margin: 10px auto;
-    }
-}
-
-</style>
 </html>

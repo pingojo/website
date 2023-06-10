@@ -38,8 +38,10 @@ header {
     color: #2c3e50;
     border-radius: 5px 0 0 5px;
     font-size: 14px;
-    height: 100%; /* Add this property */
-    box-sizing: border-box; /* Add this property */
+    height: 100%;
+    /* Add this property */
+    box-sizing: border-box;
+    /* Add this property */
 }
 
 .search-btn {
@@ -51,8 +53,10 @@ header {
     cursor: pointer;
     border-radius: 0 5px 5px 0;
     line-height: 20px;
-    height: 100%; /* Add this property */
-    box-sizing: border-box; /* Add this property */
+    height: 100%;
+    /* Add this property */
+    box-sizing: border-box;
+    /* Add this property */
 }
 
 
@@ -74,24 +78,23 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
-  .logo {
+}
+.logo {
     max-width: 70%;
     height: auto;
-  }
-  .slogan {
+}
+.slogan {
     font-size: 1.2rem;
     margin-top: 0.5rem;
     text-align: center;
-  }
+}
 
 
 .main-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
-    flex-grow: 1;
+    padding-top:20px;
 }
 
 .job-stats {
@@ -187,7 +190,6 @@ footer {
     }
 }
 
-/* Add this to your style.css file */
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -234,7 +236,6 @@ footer {
 
 }
 
-/* Add this to your style.css file */
 .pagination {
     display: flex;
     justify-content: space-between;
@@ -281,11 +282,13 @@ footer {
     white-space: nowrap;
     background-color: #4CAF50;
     margin-bottom: 5px;
-    -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS devices */
+    -webkit-overflow-scrolling: touch;
+    /* For smooth scrolling on iOS devices */
 }
 
 .marquee::-webkit-scrollbar {
-    display: none; /* Hide scrollbar for WebKit browsers */
+    display: none;
+    /* Hide scrollbar for WebKit browsers */
 }
 
 .marquee ul {
@@ -440,4 +443,25 @@ footer a:hover {
     color: #721c24;
     padding: 1rem;
     margin: 1rem 0;
+}
+
+@media screen and (max-width: 600px) {
+    /* This media query targets screens with a width of 600px or less (typically mobile devices) */
+
+    .search-form {
+        /* Adjust the size of the search box on smaller screens */
+        width: 100%;
+    }
+
+    .search-container {
+        /* Adjust the search-container on smaller screens */
+        width: 80%;
+        margin: auto;
+    }
+
+    .login-btn {
+        /* Adjust the size and placement of the login/signup buttons on smaller screens */
+        display: block;
+        margin: 10px auto;
+    }
 }

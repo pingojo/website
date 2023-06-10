@@ -1,26 +1,37 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load static %}
 
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+
+{% endblock %}
 {% block content %}
+
 
 <div class="marquee">
     <ul>
-      {% for company in companies %}
+        {% for company in companies %}
         <li style="display: inline;">
-          <a href="{% url 'company_detail' slug=company.slug %}">Jobs at {{ company.name }}</a>
+            <a href="{% url 'company_detail' slug=company.slug %}">Jobs at {{ company.name }}</a>
         </li>
-      {% endfor %}
+        {% endfor %}
     </ul>
-  </div>
-    <section class="main-content">
-        <div class="job-stats">
-            <a href=""><div class="stat">
+</div>
+<section class="main-content">
+    <div class="job-stats">
+        <a href="">
+            <div class="stat">
                 <strong>{{job_count|intcomma}}+</strong> Jobs
-            </div></a> 
-            <a href="{% url 'company_list' %}"><div class="stat">
+            </div>
+        </a>
+        <a href="{% url 'company_list' %}">
+            <div class="stat">
                 <strong>{{company_count|intcomma}}+</strong> Companies
-            </div></a> 
-            <!-- <div class="stat">
+            </div>
+        </a>
+        <!-- <div class="stat">
                 <strong>50,000+</strong> Applications
             </div>
             <div class="stat">
@@ -29,133 +40,40 @@
             <div class="stat">
                 <strong>2,000+</strong> Hires
             </div> -->
-            <a href="{% url 'source-list' %}"><div class="stat">
+        <a href="{% url 'source-list' %}">
+            <div class="stat">
                 <strong>{{sources_count|intcomma}}+</strong> Sources
-            </div></a>
-        </div>
-    </section>  
-
-<style>
-    .features {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.benefits {
-  width: 80%;
-}
-
-.leaderboard {
-    padding: 20px;
-  width: 20%;
-  background-color: #ffffff;
-  box-sizing: border-box;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-.table-style {
-    width: 100%; /* Make the table stretch the full width */
-    border-collapse: collapse; /* Remove space between borders */
-}
-
-.table-style th,
-.table-style td {
-    border: 1px solid #000; /* Add a thin border */
-    padding: 10px; /* Add some padding */
-    text-align: center; /* Center the text */
-}
-
-</style>
-<style>
-/* Default styles for large screens */
-.features {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.benefits {
-    width: 75%;
-    margin-right: 5%; /* added to create space between the benefits and leaderboard */
-    order: 1; /* add this line */
-}
-
-.leaderboard {
-    padding: 20px;
-    width: 20%;
-    background-color: #ffffff;
-    box-sizing: border-box;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-    order: 2; /* add this line */
-}
-
-/* Styles for screens smaller than 768px */
-@media (max-width: 768px) {
-    .features {
-        flex-direction: column;
-    }
-
-    .benefits, .leaderboard {
-        width: 100%;
-    }
-
-    /* Add some margin to the bottom of benefits for spacing */
-    .benefits {
-        margin-bottom: 20px;
-        margin-right: 0;
-        order: 2; /* change the order to 2 */
-    }
-
-    .leaderboard {
-        order: 1; /* change the order to 1 */
-    }
-}
-
-/* CSS */
-header {
-display: flex;
-flex-direction: column;
-align-items: center;
-}
+            </div>
+        </a>
+    </div>
+</section>
 
 
-@media (min-width: 600px) {
-header {
-flex-direction: row;
-justify-content: space-between;
-}
-
-
-}
-
-</style>
-    
 <section class="features">
     <div class="benefits">
         <div class="benefit">
             <i class="fas fa-users-cog"></i>
             <h3>Simplified Recruitment</h3>
-            <p>Streamline the recruitment process for job seekers, companies, and recruiters with seamless collaboration.</p>
+            <p>Streamline the recruitment process for job seekers, companies, and recruiters with seamless
+                collaboration.</p>
         </div>
         <div class="benefit">
             <i class="fas fa-brain"></i>
             <h3>Personalized Job Matching</h3>
-            <p>Find the perfect job or candidate with advanced AI technology that matches users based on skills, experience, and preferences.</p>
+            <p>Find the perfect job or candidate with advanced AI technology that matches users based on skills,
+                experience, and preferences.</p>
         </div>
         <div class="benefit">
             <i class="fas fa-comments"></i>
             <h3>Efficient Communication</h3>
-            <p>Stay updated with real-time notifications and well-designed dashboards, ensuring a smooth hiring process for all parties.</p>
+            <p>Stay updated with real-time notifications and well-designed dashboards, ensuring a smooth hiring process
+                for all parties.</p>
         </div>
         <div class="benefit">
             <i class="fas fa-lightbulb"></i>
             <h3>Empowerment Through Flexibility</h3>
-            <p>Become a recruiter with Pingojo, providing flexible income opportunities and expanding the pool of potential candidates.</p>
+            <p>Become a recruiter with Pingojo, providing flexible income opportunities and expanding the pool of
+                potential candidates.</p>
         </div>
         <div class="benefit">
             <i class="fas fa-shield-alt"></i>
@@ -165,40 +83,31 @@ justify-content: space-between;
         <div class="benefit">
             <i class="fas fa-globe"></i>
             <h3>Wide Network</h3>
-            <p>Access a vast network of recruiters and companies, increasing the chances of finding the perfect job or candidate.</p>
+            <p>Access a vast network of recruiters and companies, increasing the chances of finding the perfect job or
+                candidate.</p>
         </div>
     </div>
     <div class="leaderboard">
         <h3>Application Leaderboard</h3>
         <table class="table-style">
             <thead>
-                <tr><th>#</th>
+                <tr>
+                    <th>#</th>
                     <th>24hr</th>
                     <th>total</th>
                 </tr>
             </thead>
             <tbody>
                 {% for user in user_applications %}
-                    <tr>
-                        <td>{{forloop.counter}}</td>
-                        <td>{{ user.applications_last_24hr|intcomma }}</td>
-                        <td>{{ user.total_applications|intcomma }}</td>
-                    </tr>
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{ user.applications_last_24hr|intcomma }}</td>
+                    <td>{{ user.total_applications|intcomma }}</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    
-</section>
-<!-- templates/upload_resume.html -->
-{% block extra_js %}
-<script>
-    document.getElementById('resume').addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            document.getElementById('upload-resume-form').submit();
-        }
-    });
-</script>
-{% endblock %}
 
+</section>
 {% endblock %}
