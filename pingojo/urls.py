@@ -9,6 +9,8 @@ from website.views import (
     ApplicationView,
     ResumeUploadView,
     CompanyListView,
+    SourceListView,
+
 )
 from website.utils import HashIdConverter
 from django.views.generic.base import RedirectView
@@ -63,5 +65,5 @@ urlpatterns = [
     path("create_job/", views.create_job, name="create_job"),
     path("autocomplete/<str:model>/", views.autocomplete, name="autocomplete"),
     path('company_list/', CompanyListView.as_view(), name='company_list'),
-
+    path('sources/', SourceListView.as_view(), name='source-list'),
 ]

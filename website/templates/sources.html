@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+
+<style>
+    table {
+        width: 500px;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 15px;
+        text-align: left;
+    }
+    .sorted-asc::after {
+        content: '▲';
+    }
+    .sorted-desc::after {
+        content: '▼';
+    }
+    .table-container {
+        padding: 30px;
+    }
+    h1 {
+        padding-left: 30px;
+    }
+</style>
+
+<h1>Job Sources</h1>
+<div class="table-container">
+    <table>
+        <tr>
+            <th><a href="?sort=name{% if current_sort == 'name' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'name' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Name</a></th>
+            <!-- <th><a href="?sort=website{% if current_sort == 'website' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'website' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Website</a></th> -->
+            <th><a href="?sort=focus{% if current_sort == 'focus' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'focus' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Focus</a></th>
+            <!-- <th><a href="?sort=from_email{% if current_sort == 'from_email' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'from_email' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Email</a></th>
+            <th><a href="?sort=url_structure{% if current_sort == 'url_structure' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'url_structure' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">URL Structure</a></th>
+            <th><a href="?sort=job_count{% if current_sort == 'job_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'job_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Job Count</a></th> -->
+        </tr>
+        {% for source in sources %}
+        <tr>
+            <td><a href="{{ source.website }}" target="_blank">{{ source.name }}</a></td>
+            <!-- <td><a href="{{ source.website }}" target="_blank">{{ source.website }}</a></td> -->
+            <td>{{ source.focus }}</td>
+            <!-- <td>{{ source.from_email }}</td>
+            <td>{{ source.url_structure }}</td>
+            <td>{{ source.job_count }}</td> -->
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No sources available.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

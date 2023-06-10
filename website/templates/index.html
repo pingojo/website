@@ -20,7 +20,7 @@
             <a href="{% url 'company_list' %}"><div class="stat">
                 <strong>{{company_count|intcomma}}+</strong> Companies
             </div></a> 
-            <div class="stat">
+            <!-- <div class="stat">
                 <strong>50,000+</strong> Applications
             </div>
             <div class="stat">
@@ -28,7 +28,10 @@
             </div>
             <div class="stat">
                 <strong>2,000+</strong> Hires
-            </div>
+            </div> -->
+            <a href="{% url 'source-list' %}"><div class="stat">
+                <strong>{{sources_count|intcomma}}+</strong> Sources
+            </div></a>
         </div>
     </section>  
 

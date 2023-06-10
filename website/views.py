@@ -37,6 +37,31 @@ from .models import (Application, Company, Email, Job, Role, Search, Skill,
                      Source, Stage)
 from .parse_resume import parse_resume
 
+from django.views.generic import ListView
+from .models import Source
+
+class SourceListView(ListView):
+    model = Source
+    template_name = 'sources.html'
+    context_object_name = 'sources'
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        sort = self.request.GET.get('sort', '') 
+        direction = self.request.GET.get('direction', '')
+        if sort:
+            if direction == 'desc':
+                sort = '-' + sort
+            queryset = queryset.order_by(sort)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', '')
+        context['current_direction'] = self.request.GET.get('direction', '')
+        return context
+
+
 
 class CompanyListView(ListView):
     model = Company
@@ -565,7 +590,8 @@ class Index(TemplateView):
         context["companies"] = companies[:50]
         context["company_count"] = all_companies.count()
         context["job_count"] = Job.objects.all().count()
-
+        context["sources_count"] = Source.objects.all().count()
+        
         user_applications = []
         for user in User.objects.all():
             applications = user.application_set.count()
