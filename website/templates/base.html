@@ -165,4 +165,27 @@ setInterval(() => {
     
 {% endblock %}
 </body>
+    <style>
+    @media screen and (max-width: 600px) {
+    /* This media query targets screens with a width of 600px or less (typically mobile devices) */
+
+    .search-form {
+        /* Adjust the size of the search box on smaller screens */
+        width: 100%;
+    }
+
+    .search-container {
+        /* Adjust the search-container on smaller screens */
+        width: 80%;
+        margin: auto;
+    }
+
+    .login-btn {
+        /* Adjust the size and placement of the login/signup buttons on smaller screens */
+        display: block;
+        margin: 10px auto;
+    }
+}
+
+</style>
 </html>
