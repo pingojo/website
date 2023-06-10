@@ -8,3 +8,6 @@ By sending BCH to this qzc7g7cn69rmn5qv6srt92dq9tthdp589ukx4xtvgv - it will auto
 | -------- | -------- | -------- |
 | W8gReZW | 989,000 | qzc7g7cn69rmn5qv6srt92dq9tthdp589ukx4xtvgv |
 | rh1238771 | 11,000 | BCH address coming soon |
+
+
+Read about OSShare here - https://github.com/pingojo/OSShare
