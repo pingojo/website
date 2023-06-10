@@ -40,7 +40,7 @@ a {
       <th><a href="?ordering=posted_date">Posted Date</a></th>
       <th>Link</th>
       <th>Status Code</th>
-      <th>Email</th>
+      <th>Search</th>
       <th># of applications</th>
     </tr>
   </thead>
@@ -54,12 +54,16 @@ a {
           <td>{% if job.link %}<a href="{{ job.link }}">Link</a>{% endif %}</td>
           <td>{% if job.link %}{{ job.link_status_code }}{% endif %}</td>
           <td>
-            {{ application.email_set.count }} 
-            <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" target="_blank">
+            <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" target="_blank" target="Searh Your Gmail for {{ job.company.name }}">
 
            
             <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
         </a>
+
+            <a href="https://www.google.com/search?q={{ job }}" target="_blank"  target="Searh Google for {{ job }}">
+
+           
+            <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
         </td>
           <td>{{job.application_set.all|length}}</td>
       </tr>
