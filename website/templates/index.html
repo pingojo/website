@@ -21,6 +21,13 @@
 </div>
 <section class="main-content">
     <div class="job-stats">
+
+        <a href="https://github.com/pingojo/extension" target="_blank" id="chrome_extension_button"> 
+            <div class="stat">
+                <strong>Install the Chrome Extension</strong>
+            </div>
+        </a>
+
         <a href="{% url 'jobs_list' %}">
             <div class="stat">
                 <strong>{{job_count|intcomma}}+</strong> Jobs
@@ -40,6 +47,7 @@
             <div class="stat">
                 <strong>2,000+</strong> Hires
             </div> -->
+    
         <a href="{% url 'source-list' %}">
             <div class="stat">
                 <strong>{{sources_count|intcomma}}+</strong> Sources
