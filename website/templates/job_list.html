@@ -41,7 +41,6 @@ a {
       <th>Link</th>
       <th>Status Code</th>
       <th>Search</th>
-      <th># of applications</th>
     </tr>
   </thead>
   <tbody>
@@ -65,7 +64,7 @@ a {
            
             <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
         </td>
-          <td>{{job.application_set.all|length}}</td>
+
       </tr>
       {% endfor %}
   </tbody>
