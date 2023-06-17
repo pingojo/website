@@ -88,7 +88,7 @@ class JobListView(ListView):
     model = Job
     template_name = 'job_list.html'
     context_object_name = 'jobs'
-    paginate_by = 10
+    paginate_by = 100
 
     def get_ordering(self):
         self.ordering = self.request.GET.get('ordering', '-posted_date')
