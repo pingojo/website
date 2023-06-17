@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+{% block seo_header %}
+<title>{{ job.title }} | {{ job.company.name }}</title>
+<meta name="description" content="{{ job.description|striptags|truncatechars:155 }}">
+<meta name="keywords" content="{{ job.job_type }}, {{ job.location }}">
+{% endblock %}
+
+
 
 {% block content %}
 <div class="main-content">
@@ -12,8 +19,8 @@
         <h3>Job Description</h3>
         <p>{{ job.description|linebreaks }}</p>
         <hr>
-        <h3>How to Apply</h3>
-        <p>{{ job.how_to_apply|linebreaks }}</p>
+        <!-- <h3>How to Apply</h3>
+        <p>{{ job.how_to_apply|linebreaks }}</p> -->
     </div>
 </div>
 {% endblock %}

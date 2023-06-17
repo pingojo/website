@@ -61,10 +61,34 @@ from django.db.models import Q
 from django.views.generic import ListView
 from .models import Job
 
+# views.py
+from django.shortcuts import render
+#from .forms import ChallengeForm
+from .utilities import send_challenge_email
+
+
+# def challenge(request):
+#     if request.method == 'POST':
+#         form = ChallengeForm(request.POST)
+#         if form.is_valid():
+#             email = form.cleaned_data['email']
+#             # you would need to get these details from your data
+#             from_name = 'your_name'
+#             applications_count = 'your_applications_count'
+#             send_challenge_email(email, from_name, applications_count)
+#             # return a success message or redirect as per your app design
+#     else:
+#         form = ChallengeForm()
+#     return render(request, 'challenge.html', {'form': form})
+
+from django.core.paginator import Paginator
+from django.views.generic import ListView
+
 class JobListView(ListView):
     model = Job
     template_name = 'job_list.html'
     context_object_name = 'jobs'
+    paginate_by = 10
 
     def get_ordering(self):
         self.ordering = self.request.GET.get('ordering', '-posted_date')
@@ -72,15 +96,26 @@ class JobListView(ListView):
 
     def get_queryset(self):
         ordering = self.get_ordering()
-
         direction = '-' if ordering.startswith('-') else ''
         field = ordering.lstrip('-')
+        
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(null_dates=Case(
+            When(posted_date__isnull=True, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )).order_by('null_dates', f'{direction}{field}')
+        
+        return queryset
 
-        queryset_with_dates = super().get_queryset().exclude(posted_date__isnull=True).order_by(f'{direction}{field}')
-        queryset_without_dates = super().get_queryset().filter(posted_date__isnull=True)
 
-        return list(queryset_with_dates) + list(queryset_without_dates)
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        paginator = Paginator(context['jobs'], self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
+        return context
 
 
 

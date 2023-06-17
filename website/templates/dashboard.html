@@ -38,6 +38,7 @@
                 <th>Date of Last Email</th>
                 <th>Email Count</th>
                 <th>Stage</th>
+                <th>View</th>
                 <th>buttons</th>
             </tr>
         </thead>
@@ -45,7 +46,7 @@
             {% regroup applications by stage.name as stage_list %}
             {% for stage in stage_list %}
                 <tr>
-                    <td colspan="7" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
+                    <td colspan="8" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
                 </tr>
                 {% for application in stage.list %}
                     <tr>
@@ -78,6 +79,9 @@
                                     {% endfor %}
                                 </select>
                             </form>
+                        </td>
+                        <td>
+                            <a href="{% url 'job_detail' application.job.slug %}">view</a>
                         </td>
                         <td>
                             <a href="https://boards.greenhouse.io/{{application.job.company.slug}}">greenhouse</a> |
