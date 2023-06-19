@@ -328,6 +328,8 @@ class AddJobLink(APIView):
         title = ""
         if "wellfound" in link:
             title = data.get("title", "").strip()
+            company.website = data.get("website", "").strip()
+            company.save()
 
         job, _ = Job.objects.update_or_create(
             company=company,
