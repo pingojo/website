@@ -9,10 +9,12 @@ from bs4 import BeautifulSoup
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.db.models import (Case, CharField, Count, F, IntegerField,
-                              Prefetch, Q, Sum, Value, When)
-from django.db.models.functions import Cast, Concat
+from django.db import models
+from django.db.models import (Case, CharField, Count, DateField, F,
+                              IntegerField, Prefetch, Q, Sum, Value, When)
+from django.db.models.functions import Cast, Coalesce, Concat, TruncDay
 from django.http import HttpResponseRedirect, JsonResponse
+# views.py
 # from pyresparser import ResumeParser
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -36,36 +38,8 @@ from .forms import CompanyUpdateForm, JobForm, ResumeUploadForm
 from .models import (Application, Company, Email, Job, Role, Search, Skill,
                      Source, Stage)
 from .parse_resume import parse_resume
-
-from django.views.generic import ListView
-from .models import Source
-
-from .models import Job
-
-from django.db.models import F
-from django.db.models.functions import Coalesce
-from django.views.generic import ListView
-from .models import Job
-from django.db.models import Value, DateField
-from django.db.models.functions import Coalesce
-
-from django.db.models import Case, When, Value, DateField
-from django.views.generic import ListView
-from .models import Job
-
-from django.db.models import Q
-from django.views.generic import ListView
-from .models import Job
-
-from django.db.models import Q
-from django.views.generic import ListView
-from .models import Job
-
-# views.py
-from django.shortcuts import render
 #from .forms import ChallengeForm
 from .utilities import send_challenge_email
-
 
 # def challenge(request):
 #     if request.method == 'POST':
@@ -81,8 +55,6 @@ from .utilities import send_challenge_email
 #         form = ChallengeForm()
 #     return render(request, 'challenge.html', {'form': form})
 
-from django.core.paginator import Paginator
-from django.views.generic import ListView
 
 class JobListView(ListView):
     model = Job
@@ -620,6 +592,7 @@ def scrape_job(request):
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = "dashboard.html"
     context_object_name = "applications"
+    paginate_by = 100  # Change this value as per your requirement
 
     def get_queryset(self):
         stage = self.request.GET.get('stage', 'Scheduled')
@@ -633,11 +606,6 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["stages"] = Stage.objects.annotate(count=Count('application')).order_by("-order")
-        # TruncDay
-        # import TruncDay
-        #from django.db.models import Count
-        from django.db.models.functions import TruncDay
-        from django.db import models
 
         applications_by_day = Application.objects.annotate(date=TruncDay('created')).values('date').annotate(application_count=Count('pk')).order_by('date')
         labels = [entry["date"].strftime("%m/%d/%Y") for entry in applications_by_day]
@@ -655,14 +623,17 @@ class DashboardView(LoginRequiredMixin, ListView):
                 }
             ],
         }
-        print(data_chart1)
         context["data_chart1"] = data_chart1
         
         return context
 
 
+
+
 from datetime import timedelta
+
 from django.contrib.auth.models import User
+
 
 class Index(TemplateView):
     template_name = "index.html"

@@ -23,7 +23,42 @@
 </div>
 
 
+<style>
+      .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    padding: 10px;
+  }
 
+  .pagination a, .pagination .current, .pagination .disabled {
+    display: inline-block;
+    padding: 4px 3px; /* Updated padding for smaller buttons */
+    margin: 0 2px; /* Updated margin for smaller buttons */
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    border-radius: 4px;
+    font-size: 10px; /* Updated font size for smaller buttons */
+  }
+
+  .pagination a:hover {
+    background-color: #ccc;
+  }
+
+  .pagination .current {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .pagination .disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    pointer-events: none;
+  }
+</style>
+</style>
 <div class="main-content">
     <div style="width:400px">
         <canvas id="chart1" ></canvas>
@@ -80,8 +115,9 @@
                                 </select>
                             </form>
                         </td>
-                        <td>
+                        <td>{% if application.job.slug %}
                             <a href="{% url 'job_detail' application.job.slug %}">view</a>
+                            {% endif %}
                         </td>
                         <td>
                             <a href="https://boards.greenhouse.io/{{application.job.company.slug}}">greenhouse</a> |
@@ -93,8 +129,31 @@
             {% endfor %}
         </tbody>
     </table>
-    
-    
+    <center>
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?stage={{ request.GET.stage }}&page=1">&laquo; first</a>
+                <a href="?stage={{ request.GET.stage }}&page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+
+            {% for i in page_obj.paginator.page_range %}
+            {% if page_obj.number == i %}
+                <span class="current">{{ i }}</span>
+            {% else %}
+                <a href="?page={{ i }}stage={{ request.GET.stage }}">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?stage={{ request.GET.stage }}&page={{ page_obj.next_page_number }}">next</a>
+                <a href="?stage={{ request.GET.stage }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</center>
+        
 </div>
 </div>
 <hr>
