@@ -28,10 +28,12 @@ class SkillAdmin(admin.ModelAdmin):
 
 class RoleAdmin(admin.ModelAdmin):
     list_display = ('title', 'job_count', 'resume_count', 'web_views')
+    search_fields = ('title',)
     prepopulated_fields = {'slug': ('title',)}
 
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('slug', 'title', 'role', 'company', 'job_type', 'posted_date', 'closing_date', 'is_active')
+    search_fields = ('title', 'company__name')
+    list_display = [form_field.name for form_field in Job._meta.fields]
     prepopulated_fields = {'slug': ('title',)}
 
 class StageAdmin(admin.ModelAdmin):
