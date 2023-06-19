@@ -139,11 +139,11 @@ class Job(BaseModel):
         return self.job_display
 
     def save(self, *args, **kwargs):
-        if not self.title and self.link:
-            response = requests.get(self.link)
-            self.link_status_code = response.status_code
-            soup = BeautifulSoup(response.content, 'html.parser')
-            self.title = soup.title.string
+        # if not self.title and self.link:
+        #     response = requests.get(self.link)
+        #     self.link_status_code = response.status_code
+        #     soup = BeautifulSoup(response.content, 'html.parser')
+        #     self.title = soup.title.string
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)

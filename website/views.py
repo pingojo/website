@@ -325,6 +325,9 @@ class AddJobLink(APIView):
         company, _ = Company.objects.get_or_create(
             slug=slugify(company_name), defaults={"name": company_name}
         )
+        title = ""
+        if "wellfound" in link:
+            title = data.get("title", "").strip()
 
         job, _ = Job.objects.update_or_create(
             company=company,
@@ -334,7 +337,8 @@ class AddJobLink(APIView):
                 "posted_date": posted_date,
                 "salary_min": salary_min,
                 "salary_max": salary_max,
-                "link": link,
+                "link": link,,
+                "title": title,
             },
         )
         user_applications = Application.objects.filter(

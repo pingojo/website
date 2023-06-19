@@ -32,15 +32,43 @@
         </div>
 
         <h2 class="jobs-heading">Jobs</h2>
-        <ul class="job-list">
-            {% for job in company.job_set.all %}
-                <li class="job-item">
-                    <a href="{{ job.link }}">{{ job.title }}</a>
-                </li>
-            {% empty %}
-                <li class="job-item">No jobs available.</li>
-            {% endfor %}
-        </ul>
+        <table class="job-list">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in company.job_set.all %}
+                <tr>
+                    <td>{{ job }}</td>
+                    <td>${{ job.salary_min|floatformat:0|intcomma }}</td>
+                    <td>${{ job.salary_max|floatformat:0|intcomma }}</td>
+                    <td>{{ job.posted_date }}</td>
+                    <td>{% if job.link %}<a href="{{ job.link }}">Link</a>{% endif %}</td>
+                    <td>{% if job.link %}{{ job.link_status_code }}{% endif %}</td>
+                    <td>
+                      <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" target="_blank" target="Searh Your Gmail for {{ job.company.name }}">
+          
+                     
+                      <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+                  </a>
+          
+                      <a href="https://www.google.com/search?q={{ job }}" target="_blank"  target="Searh Google for {{ job }}">
+          
+                     
+                      <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
+                  </td>
+          
+                </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2">No jobs added, add some to get points.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
         <h3 class="add-job-heading">Add a new job link</h3>
         <form method="post" action="{% url 'add_job_link' company.slug %}" class="add-job-form">
