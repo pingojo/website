@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.db import models
 from django.conf import settings
 from hashid_field import HashidAutoField
@@ -193,6 +194,12 @@ class Application(BaseModel):
 
     def get_absolute_url(self):
         return reverse("application-detail", args=[self.id])
+
+    def days_since_last_email(self):
+        if self.date_of_last_email:
+            return (timezone.now() - self.date_of_last_email).days
+        else:
+            return None
     
 
 class Search(BaseModel):

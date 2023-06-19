@@ -36,6 +36,7 @@
                 <th>Job Role</th>
                 <th>Date Applied</th>
                 <th>Date of Last Email</th>
+                <th>Days Ago</th>
                 <th>Email Count</th>
                 <th>Stage</th>
                 <th>View</th>
@@ -53,9 +54,8 @@
                         <td>{{ application.company.name }}</td>
                         <td>{{ application.job.role }}</td>
                         <td>{{ application.date_applied }}</td>
-                        <td>{{ application.date_of_last_email }}
-
-                        </td>
+                        <td>{{ application.date_of_last_email }}</td>
+                        <td>{{ application.days_since_last_email}}</td>
                         <td>
                             {{ application.email_set.count }} 
                             <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank">
