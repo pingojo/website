@@ -587,8 +587,7 @@ def scrape_job(request):
     return JsonResponse({"job_title": job_title, "company_name": company_name})
 
 
-
-
+from django.utils import timezone
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = "dashboard.html"
     context_object_name = "applications"
@@ -603,13 +602,33 @@ class DashboardView(LoginRequiredMixin, ListView):
             .order_by("-stage__order", "-date_applied")
         )
 
+
+
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["stages"] = Stage.objects.annotate(count=Count('application')).order_by("-order")
 
+        start_date = Application.objects.order_by("created").first().created
+        end_date = Application.objects.order_by("-created").first().created
+
+        # Normalize start and end dates to start of day
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Generate all dates between start and end dates
+        all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+        # Fetch applications count per day
         applications_by_day = Application.objects.annotate(date=TruncDay('created')).values('date').annotate(application_count=Count('pk')).order_by('date')
-        labels = [entry["date"].strftime("%m/%d/%Y") for entry in applications_by_day]
-        application_counts = [entry["application_count"] for entry in applications_by_day]
+
+        # Create a dictionary from applications_by_day with date as the key
+        application_dict = {entry["date"].date(): entry["application_count"] for entry in applications_by_day}
+
+        # Generate labels and application_counts
+        labels = [date.strftime("%m/%d/%Y") for date in all_dates]
+        application_counts = [application_dict.get(date.date(), 0) for date in all_dates]
 
         data_chart1 = {
             "labels": labels,
