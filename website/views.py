@@ -337,7 +337,7 @@ class AddJobLink(APIView):
                 "posted_date": posted_date,
                 "salary_min": salary_min,
                 "salary_max": salary_max,
-                "link": link,,
+                "link": link,
                 "title": title,
             },
         )
