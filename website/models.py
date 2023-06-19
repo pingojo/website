@@ -1,4 +1,4 @@
-from datetime import timezone
+from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from hashid_field import HashidAutoField
