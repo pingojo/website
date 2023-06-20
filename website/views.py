@@ -224,6 +224,20 @@ from .models import Application
 
 from django.contrib.auth.decorators import login_required
 
+
+@login_required
+def job_application_delete(request, application_id):
+    if request.method == "POST":
+        application = get_object_or_404(Application, id=application_id)
+
+        # Check if the application user matches the current user
+        if application.user == request.user:
+            application.delete()
+            return JsonResponse({"status": "success", "application_id": application_id})
+        else:
+            return JsonResponse({"status": "error", "message": "You are not authorized to delete this application."})
+
+
 @login_required
 def update_application_link(request):
     if request.method == "POST":
