@@ -7,7 +7,7 @@
     <input type="hidden" name="application_id" value="{{  application.id }}" />
     <input type="text" name="email" id="email" class="link-input" placeholder="email" style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;" />
 </form>
-{% endif %}
+
 
 {% for email in application.email_set.all %}
 {% if email.from_email == "<team@hi.wellfound.com>" %} 
@@ -26,18 +26,20 @@
 {% else %}
     {% if email.from_email %}                   
     {{ email.from_email|default:"" }} 
-    {% if not application.job.company.email %}
+
     <i class="fas fa-plus-square" onclick="updateForm('{{ email.from_email }}', '{{ application.id }}')"></i>  
-    {% endif %}
+
     {% endif %}
 
 {% endif %}
 
 {% if email.to_email %}  
 {{email.to_email|default:""}}
-{% if not application.job.company.email %}
+
 <i class="fas fa-plus-square" onclick="updateForm('{{ email.to_email }}', '{{ application.id }}')"></i>  
-{% endif %}
+
 {% endif %}
 
 {% endfor %}
+
+{% endif %}
