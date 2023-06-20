@@ -80,7 +80,28 @@
         padding-right: 5px;
     }
 
-</style>
+
+    .email-hover {
+    position: relative; 
+    display: inline-block;
+  }
+
+  .hover-box {
+    display: none;
+    position: absolute;
+    z-index: 1;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 5px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Optional: Add a shadow for a nice hover effect */
+  }
+
+
+
+  .email-hover:hover .hover-box {
+    display: block;
+  }
 </style>
 <div class="main-content">
     <div style="width:600px;">
@@ -121,13 +142,23 @@
                         <td>{{ application.date_applied|date:"m/d/Y" }}</td>
                         <td>{{ application.date_of_last_email|date:"m/d/Y" }}</td>
                         <td>{{ application.days_since_last_email}}</td>
-                        <td valign="top" >
+                        <td valign="top">
                             <span style="padding-bottom: 3px; margin-left: 5px; display: inline-block; vertical-align: middle;">{{ application.email_set.count }}</span>
-                            <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank" style="margin:0px;padding:0px; display: inline-block; vertical-align: middle;">
-                                <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
-                            </a>
-                            
-                        </td>
+                            <div class="email-hover" style="display: inline-block; vertical-align: middle;">
+                                <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank" style="margin:0px;padding:0px;">
+                                    <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+                                </a>
+                                <div class="hover-box">
+                                    {% for email in application.email_set.all %}
+                                        <p>
+                                          <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}" target="_blank">{{ email }}</a> 
+                                          <span>({{ email.date|date:"m/d" }}){{email.subject|default:""}}</span>
+                                        </p>
+                                    {% empty %}
+                                        <p>No emails found.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </td>
                         <td>
                             <form method="POST" hx-post="{% url 'update-application-stage' %}" hx-trigger="change" hx-get="{% url 'update-application-stage' %}?application_id={{ application.id }}" hx-delete="#row-{{ application.id }}" class="stage-form">
