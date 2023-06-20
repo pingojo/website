@@ -591,7 +591,7 @@ from django.utils import timezone
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = "dashboard.html"
     context_object_name = "applications"
-    paginate_by = 100  # Change this value as per your requirement
+    paginate_by = 50 # Change this value as per your requirement
 
     def get_queryset(self):
         stage = self.request.GET.get('stage', 'Scheduled')
