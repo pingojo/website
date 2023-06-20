@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 {% load static %}
+{% load humanize %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -113,6 +114,7 @@
             <tr align="left">
                 <th>Company</th>
                 <th>Role</th>
+                <th>Salary</th>
                 <th>Applied</th>
                 <th>Last Email</th>
                 <th>Days</th>
@@ -120,13 +122,14 @@
                 <th>Stage</th>
                 <th>actions</th>
                 <th>link</th>
+                <th>email</th>
             </tr>
         </thead>
         <tbody>
             {% regroup applications by stage.name as stage_list %}
             {% for stage in stage_list %}
                 <tr>
-                    <td colspan="9" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
+                    <td colspan="11" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
                 </tr>
                 {% for application in stage.list %}
                     <tr id="row-{{ application.id }}">
@@ -139,10 +142,15 @@
                         </td>
 
                         <td>{{ application.job.role }}</td>
+                        <td>
+                            {% if application.job.salary_min %}
+                                ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}
+                            {% endif %}
+                        </td>
                         <td>{{ application.date_applied|date:"m/d/Y" }}</td>
                         <td>{{ application.date_of_last_email|date:"m/d/Y" }}</td>
                         <td>{{ application.days_since_last_email}}</td>
-                        <td valign="top">
+                        <td valign="top" align="right">
                             <span style="padding-bottom: 3px; margin-left: 5px; display: inline-block; vertical-align: middle;">{{ application.email_set.count }}</span>
                             <div class="email-hover" style="display: inline-block; vertical-align: middle;">
                                 <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank" style="margin:0px;padding:0px;">
@@ -191,6 +199,31 @@
                         </td>
                         <td nowrap>
                             {% include 'partials/link.html' %}
+                        </td>
+                        <td>
+                            {% for email in application.email_set.all %}
+                            {% if email.from_email == "<team@hi.wellfound.com>" %} 
+                            {% elif email.from_email == "<noreply@candidates.workablemail.com>" %}  
+                            {% elif email.from_email == "<no-reply@hire.lever.co>" %}  
+                            {% elif email.from_email == "<eino.fa.sender@workflow.mail.us2.cloud.oracle.com>" %}
+                            {% elif email.from_email == "<noreply@applytojob.com>" %}
+                            {% elif email.from_email == "<no-reply@remail.wellfound.com>" %}
+                            {% elif email.from_email == "<calendar-notification@google.com>" %}
+                            {% elif "conversation-" in email.from_email %}
+                            
+                            <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}" target="_blank">wellfound</a> 
+                            {% elif "@applytojob.com>" in email.from_email %}
+                            <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}" target="_blank">applytojob</a> 
+
+                                
+                            {% else %}                         
+                            {{ email.from_email|default:"" }}
+                            {% endif %}
+                            
+                            
+                            {{email.to_email|default:""}}
+                            
+                        {% endfor %}
                         </td>
                     </tr>
                 {% endfor %}
