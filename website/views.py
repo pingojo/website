@@ -7,13 +7,14 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.db import models
 from django.db.models import (Case, CharField, Count, DateField, F,
                               IntegerField, Prefetch, Q, Sum, Value, When)
 from django.db.models.functions import Cast, Coalesce, Concat, TruncDay
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 # views.py
 # from pyresparser import ResumeParser
 from django.shortcuts import get_object_or_404, redirect, render
@@ -54,6 +55,28 @@ from .utilities import send_challenge_email
 #     else:
 #         form = ChallengeForm()
 #     return render(request, 'challenge.html', {'form': form})
+
+from django.http import JsonResponse
+
+
+def update_email(request):
+    if request.method == "POST":
+        application = get_object_or_404(Application, pk=request.POST.get("application_id", None))
+
+        new_email = request.POST.get("email", None)
+        regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+        if not re.match(regex, new_email):
+            return JsonResponse({'error': 'Invalid email address'}, status=400)
+        
+        if application.user == request.user and new_email:
+            application.job.company.email = new_email
+            application.job.company.save()
+            application.job.company.refresh_from_db()
+            return render(request, 'partials/email.html', {
+                'application': application,
+            })
+        
+    return JsonResponse({'error': 'Invalid Method or Missing email field'}, status=400)
 
 
 class JobListView(ListView):
@@ -210,19 +233,6 @@ def job_sites(request):
     sources = Source.objects.all()
     return render(request, "job_sites.html", {"sources": sources})
 
-
-from django.http import JsonResponse
-
-from django.http import JsonResponse, HttpResponse
-
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
-
-from django.shortcuts import get_object_or_404, render
-
-from .models import Application
-
-from django.contrib.auth.decorators import login_required
 
 
 @login_required
@@ -652,6 +662,8 @@ def scrape_job(request):
 
 
 from django.utils import timezone
+
+
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = "dashboard.html"
     context_object_name = "applications"

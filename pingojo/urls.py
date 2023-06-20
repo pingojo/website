@@ -70,5 +70,6 @@ urlpatterns = [
     path('challenge/', views.JobListView.as_view(), name='jobs_list'),
     path('update-application-link/', views.update_application_link, name='update_application_link'),
     path('job_application_delete/<int:application_id>', views.job_application_delete, name='job_application_delete'),
+    path('update_email/', views.update_email, name='update_email'),
 ]
 

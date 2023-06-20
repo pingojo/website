@@ -147,8 +147,8 @@
                                 ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}
                             {% endif %}
                         </td>
-                        <td>{{ application.date_applied|date:"m/d/Y" }}</td>
-                        <td>{{ application.date_of_last_email|date:"m/d/Y" }}</td>
+                        <td>{{ application.date_applied|date:"m/d" }}</td>
+                        <td>{{ application.date_of_last_email|date:"m/d" }}</td>
                         <td>{{ application.days_since_last_email}}</td>
                         <td valign="top" align="right">
                             <span style="padding-bottom: 3px; margin-left: 5px; display: inline-block; vertical-align: middle;">{{ application.email_set.count }}</span>
@@ -247,9 +247,29 @@
 </div>
 
 <script>
-    document.body.addEventListener('htmx:afterSwap', function(event) {
-        console.log(event.detail.xhr.responseText);
-        let response = JSON.parse(event.detail.xhr.responseText);
+
+function updateForm(email, applicationId) {
+    var formId = 'email-form-' + applicationId;
+    var form = document.getElementById(formId);
+    var emailInput = form.querySelector('input[name="email"]');
+    email = email.replace(/<|>/g, '');
+    emailInput.value = email;
+    var event = new Event('change');
+    form.dispatchEvent(event);
+}
+
+
+
+    document.body.addEventListener('htmx:afterSwap', function(event) {        
+        let response;
+
+        try {
+            response = JSON.parse(event.detail.xhr.responseText);
+        } catch (error) {
+            
+            return;
+        }
+        
         if(response.status == "success") {
             let rowId = "row-" + response.application_id;
             let rowElement = document.getElementById(rowId);

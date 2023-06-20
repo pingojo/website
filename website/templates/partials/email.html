@@ -1,0 +1,43 @@
+{% load static %}
+{% if application.job.company.email %}
+<a href="mailto:{{ application.job.company.email }}" target="_blank">{{ application.job.company.email }}</a>
+{% else %}
+<form hx-post="{% url 'update_email' %}" hx-trigger="change" hx-target="this"  id="email-form-{{ application.id }}">
+    {% csrf_token %}
+    <input type="hidden" name="application_id" value="{{  application.id }}" />
+    <input type="text" name="email" id="email" class="link-input" placeholder="email" style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;" />
+</form>
+{% endif %}
+
+{% for email in application.email_set.all %}
+{% if email.from_email == "<team@hi.wellfound.com>" %} 
+{% elif email.from_email == "<noreply@candidates.workablemail.com>" %}  
+{% elif email.from_email == "<no-reply@hire.lever.co>" %}  
+{% elif email.from_email == "<eino.fa.sender@workflow.mail.us2.cloud.oracle.com>" %}
+{% elif email.from_email == "<noreply@applytojob.com>" %}
+{% elif email.from_email == "<no-reply@remail.wellfound.com>" %}
+{% elif email.from_email == "<calendar-notification@google.com>" %}
+{% elif "conversation-" in email.from_email %}
+
+<a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}" target="_blank">wellfound</a> 
+{% elif "@applytojob.com>" in email.from_email %}
+<a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}" target="_blank">applytojob</a> 
+
+{% else %}
+    {% if email.from_email %}                   
+    {{ email.from_email|default:"" }} 
+    {% if not application.job.company.email %}
+    <i class="fas fa-plus-square" onclick="updateForm('{{ email.from_email }}', '{{ application.id }}')"></i>  
+    {% endif %}
+    {% endif %}
+
+{% endif %}
+
+{% if email.to_email %}  
+{{email.to_email|default:""}}
+{% if not application.job.company.email %}
+<i class="fas fa-plus-square" onclick="updateForm('{{ email.to_email }}', '{{ application.id }}')"></i>  
+{% endif %}
+{% endif %}
+
+{% endfor %}
