@@ -119,14 +119,14 @@
                         </td>
                         <td>
                             {% if "greenhouse" in application.job.link %}
-                                <a href="https://boards.greenhouse.io/{{application.job.company.slug}}">greenhouse</a>
+                                <a href="{{ application.job.link }}" target="_blank">greenhouse</a>
                             {% elif "lever" in application.job.link %}
-
-                                <a href="https://jobs.lever.co/{{application.job.company.slug}}/">lever</a>
+                                <a href="{{ application.job.link }}" target="_blank">lever</a>
+                            {% elif "wellfound" in application.job.link %}
+                                <a href="{{ application.job.link }}" target="_blank">wellfound</a>
                             {% elif application.job.link %}
-                                <a href="{{ application.job.link }}">link</a>
+                                <a href="{{ application.job.link }}" target="_blank">link</a>
                             {% endif %}
-                            
                         </td>
                     </tr>
                 {% endfor %}
