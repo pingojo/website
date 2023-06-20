@@ -82,30 +82,25 @@
             {% regroup applications by stage.name as stage_list %}
             {% for stage in stage_list %}
                 <tr>
-                    <td colspan="8" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
+                    <td colspan="9" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
                 </tr>
                 {% for application in stage.list %}
                     <tr>
                         <td>{{ application.company.name }}</td>
                         <td>{{ application.job.role }}</td>
-                        <td>{{ application.date_applied }}</td>
-                        <td>{{ application.date_of_last_email }}</td>
+                        <td>{{ application.date_applied|date:"M/d/Y" }}</td>
+                        <td>{{ application.date_of_last_email|date:"M/d/Y" }}</td>
                         <td>{{ application.days_since_last_email}}</td>
                         <td>
                             {{ application.email_set.count }} 
                             <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank">
-
-                           
-                            <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
-                        </a>
+                                <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+                            </a>
                         </td>
                         <td>
-
                             <form method="POST" action="{% url 'update-application-stage' %}" class="stage-form">
                                 {% csrf_token %}
                                 <input type="hidden" name="application_id" value="{{ application.id }}">
-
-
                                 <select name="stage_id" class="stage-dropdown stage-dropdown-{{ application.stage.name|lower }}" >
                                     {% for stage in stages %}
                                         <option value="{{ stage.id }}" {% if stage.id == application.stage.id %}selected{% endif %}>
@@ -115,14 +110,23 @@
                                 </select>
                             </form>
                         </td>
-                        <td>{% if application.job.slug %}
-                            <a href="{% url 'job_detail' application.job.slug %}">view</a>
+                        <td>
+                            {% if application.job.slug %}
+                                <a href="{% url 'job_detail' application.job.slug %}">
+                                    <i class="fas fa-eye"></i>
+                                </a>
                             {% endif %}
                         </td>
                         <td>
-                            <a href="https://boards.greenhouse.io/{{application.job.company.slug}}">greenhouse</a> |
-                            <a href="https://jobs.lever.co/{{application.job.company.slug}}/">lever</a> |
-                            <a href="https://jobs.lever.co/{{application.job.company.slug}}/">delete</a>
+                            {% if "greenhouse" in application.job.link %}
+                                <a href="https://boards.greenhouse.io/{{application.job.company.slug}}">greenhouse</a>
+                            {% elif "lever" in application.job.link %}
+
+                                <a href="https://jobs.lever.co/{{application.job.company.slug}}/">lever</a>
+                            {% elif application.job.link %}
+                                <a href="{{ application.job.link }}">link</a>
+                            {% endif %}
+                            
                         </td>
                     </tr>
                 {% endfor %}
