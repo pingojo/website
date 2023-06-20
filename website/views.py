@@ -3,6 +3,7 @@ import random
 import tempfile
 from collections import Counter, defaultdict
 from datetime import datetime
+from django.forms import DurationField
 
 import requests
 from bs4 import BeautifulSoup
@@ -42,6 +43,27 @@ from .parse_resume import parse_resume
 #from .forms import ChallengeForm
 from .utilities import send_challenge_email
 
+from django.db.models import F, Value, DateTimeField
+from django.db.models.functions import Coalesce, Cast, ExtractDay
+from django.utils import timezone
+
+from django.db.models import F, ExpressionWrapper, fields
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+
+from django.utils.duration import _get_duration_components
+
+
+from django.db import models
+from django.utils import timezone
+
+class CustomDurationField(models.DurationField):
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return None
+        return timezone.timedelta(seconds=value.total_seconds()).days
+
+    
 # def challenge(request):
 #     if request.method == 'POST':
 #         form = ChallengeForm(request.POST)
@@ -672,10 +694,66 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         stage = self.request.GET.get('stage', 'Scheduled')
         stage_obj = get_object_or_404(Stage, name=stage)
+
+        sort_by = self.request.GET.get("sort_by", "applied")
+        sort_order = self.request.GET.get("sort_order", "desc")
+
+        applications = Application.objects.filter(user=self.request.user, stage=stage_obj).prefetch_related(Prefetch("company"), Prefetch("job")).order_by("-stage__order", "-date_applied")
+
+        if sort_by == "company":
+            print('sorting by company name')
+            if sort_order == "asc":
+                applications = applications.order_by("company__name")
+            else:
+                applications = applications.order_by("-company__name")
+        elif sort_by == "role":
+            if sort_order == "asc":
+                applications = applications.order_by("job__title")
+            else:
+                applications = applications.order_by("-job__title")
+        elif sort_by == "salary":
+            if sort_order == "asc":
+                applications = applications.order_by("job__salary_max")
+            else:
+                applications = applications.order_by("-job__salary_max")
+        elif sort_by == "applied":
+            if sort_order == "asc":
+                applications = applications.order_by("created")
+            else:
+                applications = applications.order_by("-created")
+        elif sort_by == "last_email":
+            if sort_order == "asc":
+                applications = applications.order_by("date_of_last_email")
+            else:
+                applications = applications.order_by("-date_of_last_email")
+        elif sort_by == "days":
+            today = timezone.now().date()
+            if sort_order == "asc":
+                applications = applications.annotate(
+                    days_since_last_email=ExpressionWrapper(
+                        Value(today) - Coalesce(F('date_of_last_email'), Value(today)),
+                        output_field=CustomDurationField()
+                    )
+                ).extra(select={'days_int': 'EXTRACT(DAY FROM "date_of_last_email")'}).order_by("days_int")
+            else:
+                applications = applications.annotate(
+                    days_since_last_email=ExpressionWrapper(
+                        Value(today) - Coalesce(F('date_of_last_email'), Value(today)),
+                        output_field=CustomDurationField()
+                    )
+                ).extra(select={'days_int': 'EXTRACT(DAY FROM "date_of_last_email")'}).order_by("-days_int")
+                
+        elif sort_by == "email":
+            if sort_order == "asc":
+                applications = applications.annotate(email_count=Count('email')).order_by("email_count")
+            else:
+                applications = applications.annotate(email_count=Count('email')).order_by("-email_count")
+
+
+
         return (
-            Application.objects.filter(user=self.request.user, stage=stage_obj)
-            .prefetch_related(Prefetch("company"), Prefetch("job"))
-            .order_by("-stage__order", "-date_applied")
+            applications
+            
         )
 
 
@@ -718,6 +796,10 @@ class DashboardView(LoginRequiredMixin, ListView):
                 }
             ],
         }
+        sort_by = self.request.GET.get("sort_by", "applied")
+        sort_order = self.request.GET.get("sort_order", "desc")
+        context["sort_by"] = sort_by
+        context["sort_order"] = sort_order
         context["data_chart1"] = data_chart1
         
         return context
