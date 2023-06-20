@@ -142,7 +142,7 @@
             {% if page_obj.number == i %}
                 <span class="current">{{ i }}</span>
             {% else %}
-                <a href="?page={{ i }}stage={{ request.GET.stage }}">{{ i }}</a>
+                <a href="?page={{ i }}&stage={{ request.GET.stage }}">{{ i }}</a>
             {% endif %}
         {% endfor %}
 
