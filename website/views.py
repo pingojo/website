@@ -211,11 +211,18 @@ def job_sites(request):
     return render(request, "job_sites.html", {"sources": sources})
 
 
-@require_POST
-def update_application_stage(request):
-    application_id = request.POST.get("application_id")
-    stage_id = request.POST.get("stage_id")
+from django.http import JsonResponse
 
+from django.http import JsonResponse, HttpResponse
+
+
+def update_application_stage(request):
+    if request.method == 'POST':
+        application_id = request.POST.get("application_id")
+        stage_id = request.POST.get("stage_id")
+    elif request.method == 'GET':
+        application_id = request.GET.get("application_id")
+        stage_id = request.GET.get("stage_id")
     try:
         application = Application.objects.get(pk=application_id)
         stage = Stage.objects.get(pk=stage_id)
@@ -225,6 +232,9 @@ def update_application_stage(request):
 
         messages.success(request, "Application stage updated successfully.")
 
+        if request.headers.get("HX-Request"):
+            return JsonResponse({"status": "success", "application_id": application_id})
+
     except Application.DoesNotExist:
         messages.error(request, "Application not found.")
     except Stage.DoesNotExist:
@@ -232,7 +242,10 @@ def update_application_stage(request):
     except Exception as e:
         messages.error(request, f"Error updating application stage: {e}")
 
-    return redirect("dashboard")
+    if request.headers.get("HX-Request"):
+        return JsonResponse({"success": False, "message": list(messages.get_messages(request))}, status=400)
+    else:
+        return redirect("dashboard")
 
 
 class ResumeUploadView(View):

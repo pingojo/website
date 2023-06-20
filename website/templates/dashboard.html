@@ -5,6 +5,8 @@
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+
 {% endblock %}
 
 
@@ -57,6 +59,27 @@
     color: #6c757d;
     pointer-events: none;
   }
+  a {
+    color: #007bff;
+    text-decoration: none;
+    background-color: transparent;
+  }
+  a.visited {
+    color: #ccc;
+  }
+  
+
+    table {
+        border-collapse: collapse;
+        border: 1px solid #ccc;
+    }
+    /* make the border go between td also */
+    table td, table th {
+        border: 1px solid #ccc;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
 </style>
 </style>
 <div class="main-content">
@@ -66,16 +89,16 @@
     
     <table>
         <thead>
-            <tr>
-                <th>Company Name</th>
-                <th>Job Role</th>
-                <th>Date Applied</th>
-                <th>Date of Last Email</th>
-                <th>Days Ago</th>
-                <th>Email Count</th>
+            <tr align="left">
+                <th>Company</th>
+                <th>Role</th>
+                <th>Applied</th>
+                <th>Last Email</th>
+                <th>Days</th>
+                <th>Emails</th>
                 <th>Stage</th>
-                <th>View</th>
-                <th>buttons</th>
+                <th>actions</th>
+                <th>link</th>
             </tr>
         </thead>
         <tbody>
@@ -85,23 +108,32 @@
                     <td colspan="9" class="grouper" data-stage="{{ stage.grouper }}"><strong>{{ stage.grouper }}</strong></td>
                 </tr>
                 {% for application in stage.list %}
-                    <tr>
-                        <td>{{ application.company.name }}</td>
-                        <td>{{ application.job.role }}</td>
-                        <td>{{ application.date_applied|date:"M/d/Y" }}</td>
-                        <td>{{ application.date_of_last_email|date:"M/d/Y" }}</td>
-                        <td>{{ application.days_since_last_email}}</td>
+                    <tr id="row-{{ application.id }}">
                         <td>
-                            {{ application.email_set.count }} 
-                            <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank">
+                            {% if application.company.website %}
+                                <a href="{{ application.company.website }}" target="_blank">{{ application.company.name }}</a>
+                            {% else %}
+                                {{ application.company.name }}
+                            {% endif %}
+                        </td>
+
+                        <td>{{ application.job.role }}</td>
+                        <td>{{ application.date_applied|date:"m/d/Y" }}</td>
+                        <td>{{ application.date_of_last_email|date:"m/d/Y" }}</td>
+                        <td>{{ application.days_since_last_email}}</td>
+                        <td valign="top" >
+                            <span style="padding-bottom: 3px; margin-left: 5px; display: inline-block; vertical-align: middle;">{{ application.email_set.count }}</span>
+                            <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank" style="margin:0px;padding:0px; display: inline-block; vertical-align: middle;">
                                 <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
                             </a>
+                            
+                        </td>
                         </td>
                         <td>
-                            <form method="POST" action="{% url 'update-application-stage' %}" class="stage-form">
+                            <form method="POST" hx-post="{% url 'update-application-stage' %}" hx-trigger="change" hx-get="{% url 'update-application-stage' %}?application_id={{ application.id }}" hx-delete="#row-{{ application.id }}" class="stage-form">
                                 {% csrf_token %}
                                 <input type="hidden" name="application_id" value="{{ application.id }}">
-                                <select name="stage_id" class="stage-dropdown stage-dropdown-{{ application.stage.name|lower }}" >
+                                <select name="stage_id" class="stage-dropdown stage-dropdown-{{ application.stage.name|lower }}">
                                     {% for stage in stages %}
                                         <option value="{{ stage.id }}" {% if stage.id == application.stage.id %}selected{% endif %}>
                                             {{ stage.name }}
@@ -110,6 +142,7 @@
                                 </select>
                             </form>
                         </td>
+                    
                         <td>
                             {% if application.job.slug %}
                                 <a href="{% url 'job_detail' application.job.slug %}">
@@ -117,7 +150,7 @@
                                 </a>
                             {% endif %}
                         </td>
-                        <td>
+                        <td nowrap>
                             {% if "greenhouse" in application.job.link %}
                                 <a href="{{ application.job.link }}" target="_blank">greenhouse</a>
                             {% elif "lever" in application.job.link %}
@@ -126,6 +159,15 @@
                                 <a href="{{ application.job.link }}" target="_blank">wellfound</a>
                             {% elif application.job.link %}
                                 <a href="{{ application.job.link }}" target="_blank">link</a>
+                            {% else %}
+                            <div >
+                                <div class="link-input-container" style="display: flex; align-items: flex-start;">
+                                    <a href="https://www.google.com/search?q={{ application.job }}" target="_blank" target="Searh Google for {{ application.job }}" style="display: inline-block; vertical-align: middle;">
+                                        <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
+                                    </a>
+                                    <input type="text" name="link" class="link-input" placeholder="link" style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;">
+                                </div>
+                            </div>
                             {% endif %}
                         </td>
                     </tr>
@@ -170,7 +212,19 @@
     </form>
     <!-- Display the list of applications here -->
 </div>
+
 <script>
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        let response = JSON.parse(event.detail.xhr.responseText);
+        if(response.status == "success") {
+            let rowId = "row-" + response.application_id;
+            let rowElement = document.getElementById(rowId);
+            if(rowElement) {
+                rowElement.remove();
+            }
+        }
+    });
+
         var chart1Data = {{ data_chart1|safe }};
     var chart1Ctx = document.getElementById('chart1').getContext('2d');
     var chart1 = new Chart(chart1Ctx, {

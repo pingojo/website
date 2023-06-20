@@ -1,7 +1,4 @@
 
-$('.stage-dropdown').on('change', function () {
-    $(this).closest('.stage-form').submit();
-});
 
     $(document).ready(function () {
         const form = $('#job-url-form');
