@@ -113,13 +113,13 @@
         <thead>
             <tr align="left">
 
-                <th><a href="?sort_by=company{% if sort_by == 'company' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Company</a></th>
-                <th><a href="?sort_by=role{% if sort_by == 'role' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Role</a></th>
-                <th><a href="?sort_by=salary{% if sort_by == 'salary' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Salary</a></th>
-                <th><a href="?sort_by=applied{% if sort_by == 'applied' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Applied</a></th>
-                <th><a href="?sort_by=last_email{% if sort_by == 'last_email' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Last Email</a></th>
-                <th><a href="?sort_by=days{% if sort_by == 'days' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Days</a></th>
-                <th><a href="?sort_by=email{% if sort_by == 'email' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Email</a></th>
+                <th><a href="?stage={{ request.GET.stage }}&sort_by=company{% if sort_by == 'company' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Company</a></th>
+                <th><a href="?stage={{ request.GET.stage }}&sort_by=role{% if sort_by == 'role' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Role</a></th>
+                <th><a href="?stage={{ request.GET.stage }}&sort_by=salary{% if sort_by == 'salary' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Salary</a></th>
+                <th><a href="?stage={{ request.GET.stage }}&sort_by=applied{% if sort_by == 'applied' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Applied</a></th>
+                <th><a href="?stage={{ request.GET.stage }}&sort_by=last_email{% if sort_by == 'last_email' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Last Email</a></th>
+                <th><a href="?stage={{ request.GET.stage }}&sort_by=days{% if sort_by == 'days' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Days</a></th>
+                <th><a href="?stage={{ request.GET.stage }}&sort_by=email{% if sort_by == 'email' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Email</a></th>
   
 
                 <th>Stage</th>
