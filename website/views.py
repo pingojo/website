@@ -215,6 +215,43 @@ from django.http import JsonResponse
 
 from django.http import JsonResponse, HttpResponse
 
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+
+from django.shortcuts import get_object_or_404, render
+
+from .models import Application
+
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def update_application_link(request):
+    if request.method == "POST":
+        application_id = request.POST.get("application_id")
+        link = request.POST.get("link")
+        application = get_object_or_404(Application, id=application_id)
+
+        # Check if the application user matches the current user
+        if application.user == request.user:
+            application.job.link = link
+            application.job.save()
+            # reload the application.job
+            application.job.refresh_from_db()
+
+            # Return an HTML snippet of the updated link, styled green
+            return render(request, 'partials/link.html', {
+                'application': application,
+                'status': 'success'
+            })
+        else:
+            # Return an HTML snippet of the error message, styled red
+            return render(request, 'partials/link.html', {
+                'application': application,
+                'status': 'error',
+                'message': 'You are not authorized to update this application.'
+            })
+
+
 
 def update_application_stage(request):
     if request.method == 'POST':

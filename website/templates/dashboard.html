@@ -151,24 +151,7 @@
                             {% endif %}
                         </td>
                         <td nowrap>
-                            {% if "greenhouse" in application.job.link %}
-                                <a href="{{ application.job.link }}" target="_blank">greenhouse</a>
-                            {% elif "lever" in application.job.link %}
-                                <a href="{{ application.job.link }}" target="_blank">lever</a>
-                            {% elif "wellfound" in application.job.link %}
-                                <a href="{{ application.job.link }}" target="_blank">wellfound</a>
-                            {% elif application.job.link %}
-                                <a href="{{ application.job.link }}" target="_blank">link</a>
-                            {% else %}
-                            <div >
-                                <div class="link-input-container" style="display: flex; align-items: flex-start;">
-                                    <a href="https://www.google.com/search?q={{ application.job }}" target="_blank" target="Searh Google for {{ application.job }}" style="display: inline-block; vertical-align: middle;">
-                                        <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
-                                    </a>
-                                    <input type="text" name="link" class="link-input" placeholder="link" style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;">
-                                </div>
-                            </div>
-                            {% endif %}
+                            {% include 'partials/link.html' %}
                         </td>
                     </tr>
                 {% endfor %}

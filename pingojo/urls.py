@@ -68,5 +68,6 @@ urlpatterns = [
     path('sources/', SourceListView.as_view(), name='source-list'),
     path('jobs/', views.JobListView.as_view(), name='jobs_list'),
     path('challenge/', views.JobListView.as_view(), name='jobs_list'),
+    path('update-application-link/', views.update_application_link, name='update_application_link'),
 ]
 
