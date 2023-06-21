@@ -9,14 +9,60 @@
 <a href="{{ application.job.link }}" target="_blank">link</a>
 {% else %}
 <div class="link-input-container" style="display: flex; align-items: flex-start;">
-    <form method="POST" hx-post="{% url 'update_application_link' %}" hx-trigger="change" id="link-form-{{ application.id }}">
+    <form method="POST" hx-post="{% url 'update_application_link' %}" hx-trigger="change"
+        id="link-form-{{ application.id }}">
         {% csrf_token %}
         <input type="hidden" name="application_id" value="{{ application.id }}">
-        <input type="text" name="link" class="link-input" placeholder="link" style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;">
-        <a href="https://www.google.com/search?q={{ application.job }}" target="_blank" target="Search Google for {{ application.job }}" style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+        <input type="text" name="link" class="link-input" placeholder="link"
+            style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;">
+        <a href="https://www.google.com/search?q={{ application.job }}" target="_blank"
+            title="Search Google for {{ application.job }}"
+            style="display: inline-block; vertical-align: middle; margin-left: 10px;">
             <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
         </a>
     </form>
 
 </div>
+{% for email in application.email_set.all %}
+{% if "wellfound" in email.from_email %}
+<a href="https://www.google.com/search?q=site:wellfound.com {{ application.job }}" target="_blank"
+    style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+    w
+</a>
+{% if "angel.co" in email.from_email %}
+<a href="https://www.google.com/search?q=site:wellfound.com {{ application.job }}" target="_blank"
+    style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+    w
+</a>
+{% elif "workable" in email.from_email %}
+<a href="https://www.google.com/search?q=site:apply.workable.com {{ application.job }}" target="_blank"
+    style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+    wo
+</a>
+
+{% elif "lever" in email.from_email %}
+    <a href="https://www.google.com/search?q=site:hire.lever.co {{ application.job }}" target="_blank"
+        style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+        l
+    </a>
+{% elif "greenhouse" in email.from_email %}
+    <a href="https://www.google.com/search?q=site:greenhouse.io {{ application.job }}" target="_blank"
+        style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+        gh
+    </a>
+
+{% elif "applytojob" in email.from_email %}
+    <a href="https://www.google.com/search?q=site:applytojob.com {{ application.job }}" target="_blank"
+        style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+        atj
+    </a>
+{% elif "indeed" in email.from_email %}
+    <a href="https://www.google.com/search?q=site:indeed.com {{ application.job }}" target="_blank"
+        style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+        in
+    </a>
+{% else %}
+{% endif %}
+
+
 {% endif %}
