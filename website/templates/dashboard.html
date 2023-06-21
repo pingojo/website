@@ -144,7 +144,7 @@
                             {% endif %}
                         </td>
 
-                        <td>{{ application.job.role }}</td>
+                        <td>{{ application.job.role|truncatechars:50 }}</td>
                         <td nowrap>
                             {% if application.job.salary_min %}
                                 ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}
@@ -211,7 +211,9 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if page_obj.paginator.page_range|length > 1 %}
     <center>
+        
     <div class="pagination">
         <span class="step-links">
             {% if page_obj.has_previous %}
@@ -235,6 +237,7 @@
         </span>
     </div>
 </center>
+{% endif %}
         
 </div>
 </div>
