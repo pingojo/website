@@ -156,7 +156,7 @@
                         <td valign="top" align="right">
                             <span style="padding-bottom: 3px; margin-left: 5px; display: inline-block; vertical-align: middle;">{{ application.email_set.count }}</span>
                             <div class="email-hover" style="display: inline-block; vertical-align: middle;">
-                                <a href="https://mail.google.com/mail/u/0/#search/{{ application.company.name }}" target="_blank" style="margin:0px;padding:0px;">
+                                <a href='https://mail.google.com/mail/u/0/#search/"{{ application.company.name }}"' target="_blank" style="margin:0px;padding:0px;">
                                     <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
                                 </a>
                                 <div class="hover-box">
