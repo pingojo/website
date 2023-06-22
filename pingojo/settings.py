@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "rest_framework",
     "corsheaders",
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +60,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware", 
     "corsheaders.middleware.CorsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     #"website.middleware.CustomMiddleware",    
 ]
 CORS_ALLOWED_ORIGINS = [
@@ -70,6 +72,15 @@ CORS_ALLOWED_ORIGINS = [
     "https://wellfound.com",
     # Add any other allowed origins
 ]
+
+def show_toolbar(request):
+    return request.user.is_superuser
+
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK" : show_toolbar,
+}
+
+ENABLE_DEBUG_TOOLBAR = os.environ.get('ENABLE_DEBUG_TOOLBAR',True)
 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True

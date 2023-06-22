@@ -23,6 +23,7 @@ djangorestframework = "^3.14.0"
 pypdf2 = "^3.0.1"
 django-cors-headers = "^3.14.0"
 django = "4.2.2"
+django-debug-toolbar = "^4.1.0"
 
 [tool.poetry.dev-dependencies]
 

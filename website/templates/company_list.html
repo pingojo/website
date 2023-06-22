@@ -131,8 +131,9 @@
             <a href="/company/{{company.slug}}" target="_blank">{{ company.name }}</a></td>
 
           </td>
+          <td>
           {% if company.website %}
-          <a href="{{ company.website }}" target="_blank">{{ company.website|truncatechars:30 }}</a></td>
+          <a href="{{ company.website }}" target="_blank">{{ company.website|truncatechars:30 }}</a>
           {% else %}
 
           <a href="https://www.google.com/search?q={{ company.name|urlencode }}" target="_blank">google it: {{ company.name }}</a>
@@ -147,6 +148,7 @@
           </form>
         {% endwith %}
           {% endif %}
+        </td>
           <td>{{ company.job_set.count }}</td>
           <td>
             {% if company.greenhouse_url %}
