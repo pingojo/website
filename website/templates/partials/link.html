@@ -25,39 +25,39 @@
 </div>
 {% for email in application.email_set.all %}
 {% if "wellfound" in email.from_email %}
-<a href="https://www.google.com/search?q=site:wellfound.com {{ application.job.role|default:application.job.title }} at {{ application.job.company }}" target="_blank"
+<a href="https://www.google.com/search?q=site:wellfound.com {{ application.job.role|default:application.job.title }} at '{{ application.job.company.name }}'" target="_blank"
     style="display: inline-block; vertical-align: middle; margin-left: 10px;">
     w
 </a>
 {% if "angel.co" in email.from_email %}
-<a href="https://www.google.com/search?q=site:wellfound.com {{ application.job.role|default:application.job.title }} at {{ application.job.company }}" target="_blank"
+<a href="https://www.google.com/search?q=site:wellfound.com {{ application.job.role|default:application.job.title }} at '{{ application.job.company.name }}'" target="_blank"
     style="display: inline-block; vertical-align: middle; margin-left: 10px;">
     w
 </a>
 {% elif "workable" in email.from_email %}
-<a href="https://www.google.com/search?q=site:apply.workable.com {{ application.job.role|default:application.job.title }} at {{ application.job.company }}" target="_blank"
+<a href="https://www.google.com/search?q=site:apply.workable.com {{ application.job.role|default:application.job.title }} at '{{ application.job.company.name }}'" target="_blank"
     style="display: inline-block; vertical-align: middle; margin-left: 10px;">
     wo
 </a>
 
 {% elif "lever" in email.from_email %}
-    <a href="https://www.google.com/search?q=site:hire.lever.co {{ application.job.role|default:application.job.title }} at {{ application.job.company }}" target="_blank"
+    <a href="https://www.google.com/search?q=site:hire.lever.co {{ application.job.role|default:application.job.title }} at '{{ application.job.company.name }}'" target="_blank"
         style="display: inline-block; vertical-align: middle; margin-left: 10px;">
         l
     </a>
 {% elif "greenhouse" in email.from_email %}
-    <a href="https://www.google.com/search?q=site:greenhouse.io {{ application.job.role|default:application.job.title }} at {{ application.job.company }}" target="_blank"
+    <a href="https://www.google.com/search?q=site:greenhouse.io {{ application.job.role|default:application.job.title }} at '{{ application.job.company.name }}'" target="_blank"
         style="display: inline-block; vertical-align: middle; margin-left: 10px;">
         gh
     </a>
 
 {% elif "applytojob" in email.from_email %}
-    <a href="https://www.google.com/search?q=site:applytojob.com {{ application.job.role|default:application.job.title }} at {{ application.job.company }}" target="_blank"
+    <a href="https://www.google.com/search?q=site:applytojob.com {{ application.job.role|default:application.job.title }} at '{{ application.job.company.name }}'" target="_blank"
         style="display: inline-block; vertical-align: middle; margin-left: 10px;">
         atj
     </a>
 {% elif "indeed" in email.from_email %}
-    <a href="https://www.google.com/search?q=site:indeed.com {{ application.job.role|default:application.job.title }} at {{ application.job.company }}" target="_blank"
+    <a href="https://www.google.com/search?q=site:indeed.com {{ application.job.role|default:application.job.title }} at '{{ application.job.company.name }}'" target="_blank"
         style="display: inline-block; vertical-align: middle; margin-left: 10px;">
         in
     </a>
