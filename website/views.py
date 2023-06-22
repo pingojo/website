@@ -52,6 +52,12 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from django.utils.duration import _get_duration_components
+from django.db.models import Count, Q
+from django.utils import timezone
+from datetime import timedelta
+from datetime import timedelta
+
+from django.contrib.auth.models import User
 
 
 from django.db import models
@@ -807,10 +813,6 @@ class DashboardView(LoginRequiredMixin, ListView):
 
 
 
-from datetime import timedelta
-
-from django.contrib.auth.models import User
-
 
 class Index(TemplateView):
     template_name = "index.html"
@@ -825,19 +827,30 @@ class Index(TemplateView):
         context["job_count"] = Job.objects.all().count()
         context["sources_count"] = Source.objects.all().count()
         
-        user_applications = []
-        for user in User.objects.all():
-            applications = user.application_set.count()
-            # Get applications in last 24 hours
-            time_threshold = timezone.now() - timedelta(hours=24)
-            applications_last_24hr = user.application_set.filter(created__gte=time_threshold).count()
-            
-            user_applications.append({
-                'total_applications': applications,
-                'applications_last_24hr': applications_last_24hr
-            })
 
-        #sort by total_applications, highest to lowest
+
+        # Get time threshold for applications in the last 24 hours
+        time_threshold = timezone.now() - timedelta(hours=24)
+
+        # Annotate each user with the count of their applications and applications in the last 24 hours
+        users_with_counts = User.objects.annotate(
+            total_applications=Count('application'),
+            applications_last_24hr=Count(
+                'application',
+                filter=Q(application__created__gte=time_threshold)
+            )
+        )
+
+        # Build list of dictionaries
+        user_applications = [
+            {
+                'total_applications': user.total_applications,
+                'applications_last_24hr': user.applications_last_24hr,
+            }
+            for user in users_with_counts
+        ]
+
+        # Sort by total_applications, highest to lowest
         user_applications.sort(key=lambda x: x['total_applications'], reverse=True)
 
         context["user_applications"] = user_applications[:3]
