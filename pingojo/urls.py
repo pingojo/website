@@ -73,11 +73,10 @@ urlpatterns = [
     path('update-application-link/', views.update_application_link, name='update_application_link'),
     path('job_application_delete/<int:application_id>', views.job_application_delete, name='job_application_delete'),
     path('update_email/', views.update_email, name='update_email'),
-    path('^__debug__/', include(debug_toolbar.urls)),
 ]
 
 if settings.ENABLE_DEBUG_TOOLBAR:
     
     urlpatterns = [
-        path('^__debug__/', include(debug_toolbar.urls)),
+        path('__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
