@@ -137,19 +137,19 @@
           {% else %}
 
           <a href="https://www.google.com/search?q={{ company.name|urlencode }}" target="_blank">google it: {{ company.name }}</a>
-          {% with forms|get_item:company.id as company_form %}
+          
           <form method="post" class="company-update-form" action="">
             {% csrf_token %}
-            {{ company_form.as_p }}
+            <input type="text" name="website" value="{{ company.website }}">
             <input type="hidden" name="company_id" value="{{ company.id }}">
             <input type="hidden" name="order" value="{{ request.GET.order }}">
             <input type="hidden" name="page" value="{{ request.GET.page }}">
             <button type="submit">Update</button>
           </form>
-        {% endwith %}
+        
           {% endif %}
         </td>
-          <td>{{ company.job_set.count }}</td>
+          <td>{{ company.job_count }}</td>
           <td>
             {% if company.greenhouse_url %}
               <a href="{{ company.greenhouse_url }}" target="_blank">
@@ -183,11 +183,7 @@
           </td>
 
           <td>
-            {% with company.application_set.first as application %}
-              {% if application %}
-                {{ application.stage.name }}
-              {% endif %}
-            {% endwith %}
+            stage-name
           </td>
           <td>
 
@@ -201,10 +197,7 @@
           {% if user.is_superuser %}
           <td><a href="{% url 'admin:website_company_change' company.id %}">Update</a></td>
         {% endif %}
-          <td>
-            {% for skill in company.skills.all %}
-              <span class="skill">{{ skill.name }}</span>
-            {% endfor %}
+          <td>skills
           </td>
         </tr>
       {% endfor %}

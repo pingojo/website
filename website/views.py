@@ -59,6 +59,9 @@ from datetime import timedelta
 
 from django.contrib.auth.models import User
 
+# import min and max
+from django.db.models import Min, Max
+
 
 from django.db import models
 from django.utils import timezone
@@ -107,6 +110,8 @@ def update_email(request):
     return JsonResponse({'error': 'Invalid Method or Missing email field'}, status=400)
 
 
+from django.core.cache import cache
+
 class JobListView(ListView):
     model = Job
     template_name = 'job_list.html'
@@ -122,14 +127,24 @@ class JobListView(ListView):
         direction = '-' if ordering.startswith('-') else ''
         field = ordering.lstrip('-')
         
-        queryset = super().get_queryset()
-        queryset = queryset.annotate(null_dates=Case(
-            When(posted_date__isnull=True, then=Value(1)),
-            default=Value(0),
-            output_field=IntegerField(),
-        )).order_by('null_dates', f'{direction}{field}')
+        # Use Django's caching system
+        queryset = cache.get('jobs_queryset')
+        
+        if not queryset:
+            queryset = super().get_queryset()
+            
+            queryset = queryset.select_related('company','role')  # Replace with your actual foreign key fields
+            
+            queryset = queryset.annotate(null_dates=Case(
+                When(posted_date__isnull=True, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )).order_by('null_dates', f'{direction}{field}')
+            
+            cache.set('jobs_queryset', queryset, 300)
         
         return queryset
+
 
 
     def get_context_data(self, **kwargs):
@@ -165,6 +180,8 @@ class SourceListView(ListView):
 
 
 
+from django.core.cache import cache
+
 class CompanyListView(ListView):
     model = Company
     template_name = 'company_list.html'
@@ -173,35 +190,49 @@ class CompanyListView(ListView):
 
     def get_queryset(self):
         order = self.request.GET.get('order')
+        companies = Company.objects.prefetch_related('application_set')
+        # # Use Django's caching system
+        # applications = cache.get('applications_queryset')
+        
+        # if not applications:
+        #     if self.request.user.is_authenticated:
+        #         applications = Application.objects.select_related('stage').filter(user=self.request.user)
+        #     else:
+        #         applications = Application.objects.none()
+            
+        #     # Store the queryset in cache for 5 minutes
+        #     cache.set('applications_queryset', applications, 300)
 
-        if self.request.user.is_authenticated:
-            applications = Application.objects.select_related('stage').filter(user=self.request.user)
-        else:
-            applications = Application.objects.none()
-
-        queryset = Company.objects.prefetch_related(Prefetch('application_set', queryset=applications)).annotate(
-            job_site_order=Case(
-                When(~Q(greenhouse_url='') & ~Q(greenhouse_url__isnull=True), then=Value(1)),
-                When(~Q(wellfound_url='') & ~Q(wellfound_url__isnull=True), then=Value(2)),
-                When(~Q(lever_url='') & ~Q(lever_url__isnull=True), then=Value(3)),
-                When(~Q(careers_url='') & ~Q(careers_url__isnull=True), then=Value(4)),
-                default=Value(5),
-                output_field=IntegerField(),
-            )
-        ).order_by('job_site_order')
+        # # Use Django's caching system
+        # companies = cache.get('companies_queryset')
+        
+        # if not companies:
+        #     companies = Company.objects.prefetch_related(Prefetch('application_set', queryset=applications)).annotate(
+        #         job_site_order=Case(
+        #             When(~Q(greenhouse_url='') & ~Q(greenhouse_url__isnull=True), then=Value(1)),
+        #             When(~Q(wellfound_url='') & ~Q(wellfound_url__isnull=True), then=Value(2)),
+        #             When(~Q(lever_url='') & ~Q(lever_url__isnull=True), then=Value(3)),
+        #             When(~Q(careers_url='') & ~Q(careers_url__isnull=True), then=Value(4)),
+        #             default=Value(5),
+        #             output_field=IntegerField(),
+        #         )
+        #     ).order_by('job_site_order')
+            
+        #     # Store the queryset in cache for 5 minutes
+        #     cache.set('companies_queryset', companies, 300)
 
         if order:
-            queryset = queryset.order_by(order)
+            companies = companies.order_by(order)
 
-        return queryset
+        return companies
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        forms = {}
-        for company in context['companies']:
-            forms[company.id] = CompanyUpdateForm(instance=company)
-        context['forms'] = forms
-        return context
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     forms = {}
+    #     for company in context['companies']:
+    #         forms[company.id] = CompanyUpdateForm(instance=company)
+    #     context['forms'] = forms
+    #     return context
 
     def post(self, request, *args, **kwargs):
         company_id = request.POST.get('company_id')
@@ -223,6 +254,7 @@ class CompanyListView(ListView):
             redirect_url += f'page={page}'
 
         return HttpResponseRedirect(redirect_url)
+
 
 
     
@@ -704,7 +736,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         sort_by = self.request.GET.get("sort_by", "applied")
         sort_order = self.request.GET.get("sort_order", "desc")
 
-        applications = Application.objects.filter(user=self.request.user, stage=stage_obj).prefetch_related(Prefetch("company"), Prefetch("job")).order_by("-stage__order", "-date_applied")
+        applications = Application.objects.filter(user=self.request.user, stage=stage_obj).prefetch_related("company", "stage", "job", "job__company", "job__role", "email_set").order_by("-stage__order", "-date_applied")
 
         if sort_by == "company":
             print('sorting by company name')
@@ -765,48 +797,52 @@ class DashboardView(LoginRequiredMixin, ListView):
 
 
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["stages"] = Stage.objects.annotate(count=Count('application')).order_by("-order")
 
-        start_date = Application.objects.order_by("created").first().created
-        end_date = Application.objects.order_by("-created").first().created
+        min_max_dates = Application.objects.aggregate(Min('created'), Max('created'))
 
-        # Normalize start and end dates to start of day
-        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        start_date = min_max_dates['created__min']
+        end_date = min_max_dates['created__max']
 
-        # Generate all dates between start and end dates
-        all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+        if start_date and end_date:
+            # Normalize start and end dates to start of day
+            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        # Fetch applications count per day
-        applications_by_day = Application.objects.annotate(date=TruncDay('created')).values('date').annotate(application_count=Count('pk')).order_by('date')
+            # Fetch applications count per day
+            applications_by_day = Application.objects.annotate(date=TruncDay('created')).values('date').annotate(application_count=Count('pk')).order_by('date')
 
-        # Create a dictionary from applications_by_day with date as the key
-        application_dict = {entry["date"].date(): entry["application_count"] for entry in applications_by_day}
+            # Create a dictionary from applications_by_day with date as the key
+            application_dict = {entry["date"].date(): entry["application_count"] for entry in applications_by_day}
 
-        # Generate labels and application_counts
-        labels = [date.strftime("%m/%d/%Y") for date in all_dates]
-        application_counts = [application_dict.get(date.date(), 0) for date in all_dates]
+            # Generate all dates between start and end dates
+            all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
 
-        data_chart1 = {
-            "labels": labels,
-            "datasets": [
-                {
-                    "label": "Applications",
-                    "data": application_counts,
-                    "backgroundColor": "rgba(255, 99, 132, 0.2)",
-                    "borderColor": "rgba(255, 99, 132, 1)",
-                    "borderWidth": 1,
-                }
-            ],
-        }
+            # Generate labels and application_counts
+            labels = [date.strftime("%m/%d/%Y") for date in all_dates]
+            application_counts = [application_dict.get(date.date(), 0) for date in all_dates]
+
+            data_chart1 = {
+                "labels": labels,
+                "datasets": [
+                    {
+                        "label": "Applications",
+                        "data": application_counts,
+                        "backgroundColor": "rgba(255, 99, 132, 0.2)",
+                        "borderColor": "rgba(255, 99, 132, 1)",
+                        "borderWidth": 1,
+                    }
+                ],
+            }
+            context["data_chart1"] = data_chart1
+
         sort_by = self.request.GET.get("sort_by", "applied")
         sort_order = self.request.GET.get("sort_order", "desc")
         context["sort_by"] = sort_by
         context["sort_order"] = sort_order
-        context["data_chart1"] = data_chart1
+        context["stage"] = self.request.GET.get('stage', 'Scheduled')
         
         return context
 
@@ -858,29 +894,21 @@ class Index(TemplateView):
         return context
 
 
+from django.db.models import F, Q
+from django.views import generic
+from django.shortcuts import get_object_or_404
+from .models import Company  # Replace ".models" with your actual path to models if needed
+
 class CompanyDetailView(generic.DetailView):
     model = Company
     template_name = "company_detail.html"
 
     def get_object(self, queryset=None):
-        return get_object_or_404(Company, slug=self.kwargs["slug"])
+        if not hasattr(self, "_object"):
+            self._object = get_object_or_404(Company, slug=self.kwargs["slug"])
+        return self._object
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        current_company = self.get_object()
-        prev_company = (
-            Company.objects.filter(name__lt=current_company.name)
-            .order_by("-name")
-            .first()
-        )
-        next_company = (
-            Company.objects.filter(name__gt=current_company.name)
-            .order_by("name")
-            .first()
-        )
-        context["prev_company"] = prev_company
-        context["next_company"] = next_company
-        return context
+
 
 
 def add_job_link(request, slug):

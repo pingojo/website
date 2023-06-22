@@ -126,19 +126,19 @@ class Job(BaseModel):
     equity_max = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 
 
-    @property
-    @lru_cache(maxsize=None)
-    def job_display(self):
-        if self.role:
-            return self.role.title + " at " + self.company.name
-        else:
-            if self.title:
-                return self.title + " at " + self.company.name
-            else:
-                return self.slug + " at " + self.company.name
+    # @property
+    # @lru_cache(maxsize=None)
+    # def job_display(self):
+    #     if self.role:
+    #         return self.role.title + " at " + self.company.name
+    #     else:
+    #         if self.title:
+    #             return self.title + " at " + self.company.name
+    #         else:
+    #             return self.slug + " at " + self.company.name
 
-    def __str__(self):
-        return self.job_display
+    # def __str__(self):
+    #     return self.job_display
 
     def save(self, *args, **kwargs):
         # if not self.title and self.link:

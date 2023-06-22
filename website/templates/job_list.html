@@ -35,6 +35,8 @@ a {
   <thead>
     <tr>
       <th><a href="?ordering=title">Title</a></th>
+      <th><a href="?ordering=company">Company</a></th>
+      
       <th><a href="?ordering=salary_min">Min Salary</a></th>
       <th><a href="?ordering=salary_max">Max Salary</a></th>
       <th><a href="?ordering=posted_date">Posted Date</a></th>
@@ -46,7 +48,8 @@ a {
   <tbody>
       {% for job in page_obj %}
       <tr>
-          <td>{{ job }}</td>
+          <td>{{ job.role|default:job.title }}</td>
+          <td>{{ job.company }}</td>
           <td>${{ job.salary_min|floatformat:0|intcomma }}</td>
           <td>${{ job.salary_max|floatformat:0|intcomma }}</td>
           <td>{{ job.posted_date }}</td>
