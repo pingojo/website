@@ -63,6 +63,15 @@ MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     #"website.middleware.CustomMiddleware",    
 ]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
+
+
 CORS_ALLOWED_ORIGINS = [
     "https://mail.google.com",
     "http://localhost:8000",

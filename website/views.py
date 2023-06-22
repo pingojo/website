@@ -850,6 +850,10 @@ class DashboardView(LoginRequiredMixin, ListView):
 
 
 
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+
+@method_decorator(cache_page(60 * 15), name='dispatch')  # cache for 15 minutes
 class Index(TemplateView):
     template_name = "index.html"
 
@@ -862,10 +866,7 @@ class Index(TemplateView):
         context["company_count"] = all_companies.count()
         context["job_count"] = Job.objects.all().count()
         context["sources_count"] = Source.objects.all().count()
-        
 
-
-        # Get time threshold for applications in the last 24 hours
         time_threshold = timezone.now() - timedelta(hours=24)
 
         # Annotate each user with the count of their applications and applications in the last 24 hours
@@ -892,6 +893,7 @@ class Index(TemplateView):
         context["user_applications"] = user_applications[:3]
 
         return context
+
 
 
 from django.db.models import F, Q
