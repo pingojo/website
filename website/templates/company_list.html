@@ -103,6 +103,7 @@
       <tr>
         <th>Favicon</th>
         <th><a href="?order={% if request.GET.order == 'name' %}-{% endif %}name">Company Name</a></th>
+        <th># of Jobs</th>
         <th>Greenhouse</th>
         <th>Wellfound</th>
         <th>Lever</th>
@@ -142,6 +143,7 @@
           {% endwith %}
             {% endif %}
           </td>
+          <td>{{ company.job_set.count }}</td>
           <td>
             {% if company.greenhouse_url %}
               <a href="{{ company.greenhouse_url }}" target="_blank">
