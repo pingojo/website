@@ -84,7 +84,8 @@ CORS_ALLOW_CREDENTIALS = True
 #CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ORIGIN_ALLOW_ALL = False
-CSRF_TRUSTED_ORIGINS = ["mail.google.com","boards.greenhouse.io", "wellfound.com", "boards.eu.greenhouse.io"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://mail.google.com","https://boards.greenhouse.io", "https://wellfound.com", "https://boards.eu.greenhouse.io"]
 
 CORS_ORIGIN_WHITELIST = [
     'https://mail.google.com',
