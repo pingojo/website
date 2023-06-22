@@ -102,7 +102,8 @@
     <thead>
       <tr>
         <th>Favicon</th>
-        <th><a href="?order={% if request.GET.order == 'name' %}-{% endif %}name">Company Name</a></th>
+        <th><a href="?order={% if request.GET.order == 'name' %}-{% endif %}name">Name</a></th>
+        <th>website</th>
         <th># of Jobs</th>
         <th>Greenhouse</th>
         <th>Wellfound</th>
@@ -119,30 +120,33 @@
     </thead>
     <tbody>
       {% for company in companies %}
-        <tr id="company-{{ company.id }}">
+        <tr id="company-{{ company.id }}" align="left">
           <td>
             {% if company.website %}
               <img src="https://www.google.com/s2/favicons?domain={{ company.website }}" alt="{{ company.name }} favicon" />
             {% endif %}
           </td>
           <td>
-            {% if company.website %}
-            <a href="{{ company.website }}" target="_blank">{{ company.name }}</a></td>
-            {% else %}
+           
+            <a href="/company/{{company.slug}}" target="_blank">{{ company.name }}</a></td>
 
-            <a href="https://www.google.com/search?q={{ company.name|urlencode }}" target="_blank">google it: {{ company.name }}</a>
-            {% with forms|get_item:company.id as company_form %}
-            <form method="post" class="company-update-form" action="">
-              {% csrf_token %}
-              {{ company_form.as_p }}
-              <input type="hidden" name="company_id" value="{{ company.id }}">
-              <input type="hidden" name="order" value="{{ request.GET.order }}">
-              <input type="hidden" name="page" value="{{ request.GET.page }}">
-              <button type="submit">Update</button>
-            </form>
-          {% endwith %}
-            {% endif %}
           </td>
+          {% if company.website %}
+          <a href="{{ company.website }}" target="_blank">{{ company.website|truncatechars:30 }}</a></td>
+          {% else %}
+
+          <a href="https://www.google.com/search?q={{ company.name|urlencode }}" target="_blank">google it: {{ company.name }}</a>
+          {% with forms|get_item:company.id as company_form %}
+          <form method="post" class="company-update-form" action="">
+            {% csrf_token %}
+            {{ company_form.as_p }}
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            <input type="hidden" name="order" value="{{ request.GET.order }}">
+            <input type="hidden" name="page" value="{{ request.GET.page }}">
+            <button type="submit">Update</button>
+          </form>
+        {% endwith %}
+          {% endif %}
           <td>{{ company.job_set.count }}</td>
           <td>
             {% if company.greenhouse_url %}
