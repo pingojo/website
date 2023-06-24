@@ -1013,8 +1013,9 @@ class CompanyDetailView(generic.DetailView):
             if company.website:
                 from selenium.webdriver.chrome.service import Service
                 
+                service = Service(executable_path=ChromeDriverManager().install())
 
-                service = Service(executable_path="/usr/local/bin/chromedriver")
+                #service = Service(executable_path="/opt/render/project/.render/chrome/opt/google/chrome")
 
                 options = webdriver.ChromeOptions()
                 options.add_argument("--headless")  # Ensure GUI is off

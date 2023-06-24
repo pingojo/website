@@ -35,3 +35,14 @@ We will use AI ChatGPT to help with parsing job descriptions and resumes.
 3. When recruiters add jobs to the platform, they can see the job seekers' positions and skills, and best match them with the jobs. The $0.30 commission can be adjusted based on the match of keywords/skills in the job seeker's profile (pulled from the resume) and the job description pulled from the website.
 # Conclusion
 Pingojo is a virtual recruitment platform that offers a unique service to both job seekers and companies. With our innovative approach, we are poised to disrupt the recruitment industry and create a better way for job seekers and companies to connect. Our advanced technology, revenue model, and marketing strategy make Pingojo a promising investment opportunity.
+
+
+-------
+Render Command Lines:
+
+
+pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput
+
+STORAGE_DIR=/opt/render/project/.render; [[ ! -d $STORAGE_DIR/chrome ]] && { mkdir -p $STORAGE_DIR/chrome; cd $STORAGE_DIR/chrome; wget -P ./ https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; dpkg -x ./google-chrome-stable_current_amd64.deb $STORAGE_DIR/chrome; rm ./google-chrome-stable_current_amd64.deb; cd -; }; pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput
+
+STORAGE_DIR=/opt/render/project/.render; [[ ! -d $STORAGE_DIR/chrome ]] && { mkdir -p $STORAGE_DIR/chrome; cd $STORAGE_DIR/chrome; wget -P ./ https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; dpkg -x ./google-chrome-stable_current_amd64.deb $STORAGE_DIR/chrome; rm ./google-chrome-stable_current_amd64.deb; wget https://chromedriver.storage.googleapis.com/94.0.4606.41/chromedriver_linux64.zip; unzip chromedriver_linux64.zip; rm chromedriver_linux64.zip; mv chromedriver /usr/bin; chmod +x /usr/bin/chromedriver; cd -; }; pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput
