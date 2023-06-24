@@ -1018,6 +1018,7 @@ class CompanyDetailView(generic.DetailView):
                 #service = Service(executable_path="/opt/render/project/.render/chrome/opt/google/chrome")
 
                 options = webdriver.ChromeOptions()
+                options.binary_location = '/opt/render/project/.render/chrome/opt/google/chrome'
                 options.add_argument("--headless")  # Ensure GUI is off
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-dev-shm-usage")
