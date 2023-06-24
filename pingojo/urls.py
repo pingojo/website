@@ -19,6 +19,7 @@ import os
 from website import views
 
 from django.conf import settings
+from django.conf.urls.static import static
 
 register_converter(HashIdConverter, "hashid")
 
@@ -41,11 +42,6 @@ urlpatterns = [
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
     path(os.environ.get("ADMIN_URL", "admin/"), admin.site.urls),
     path("accounts/", include("allauth.urls")),
-    path(
-        "update_website_status/",
-        views.UpdateWebsiteStatusView.as_view(),
-        name="update_website_status",
-    ),
     path("sentry-debug/", trigger_error),
     path("scrape-job/", views.scrape_job, name="scrape-job"),
     path("search/", views.search, name="search"),
@@ -73,7 +69,9 @@ urlpatterns = [
     path('update-application-link/', views.update_application_link, name='update_application_link'),
     path('job_application_delete/<int:application_id>', views.job_application_delete, name='job_application_delete'),
     path('update_email/', views.update_email, name='update_email'),
-]
+    path('add_job/', views.add_job, name='add_job'),
+    path('update_company/<int:company_id>', views.update_company, name='update_company'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.ENABLE_DEBUG_TOOLBAR:
     

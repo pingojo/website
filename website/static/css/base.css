@@ -23,6 +23,12 @@ header {
 }
 
 
+.company-search-container {
+    display: inline-flex;
+    align-items: baseline;
+    height: 36px;
+}
+
 .search-container {
     display: inline-flex;
     align-items: baseline;

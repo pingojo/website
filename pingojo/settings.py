@@ -200,6 +200,10 @@ SOCIALACCOUNT_PROVIDERS = {
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATIC_URL = "/static/"
 
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100000000
+
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 AUTHENTICATION_BACKENDS = (

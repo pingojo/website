@@ -62,6 +62,7 @@ from django.contrib.auth.models import User
 # import min and max
 from django.db.models import Min, Max
 
+from django.conf import settings
 
 from django.db import models
 from django.utils import timezone
@@ -72,6 +73,50 @@ class CustomDurationField(models.DurationField):
             return None
         return timezone.timedelta(seconds=value.total_seconds()).days
 
+from django.shortcuts import get_object_or_404, render
+from django.http import JsonResponse
+from .models import Company
+
+import re
+
+def update_company(request, company_id):
+    company = get_object_or_404(Company, id=company_id)
+
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email and not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            return JsonResponse({'success': False, 'error': 'Invalid email address'})
+
+        company.email = email or company.email
+        company.twitter_url = request.POST.get('twitter_url') or company.twitter_url
+        company.number_of_employees_min = request.POST.get('number_of_employees_min') or company.number_of_employees_min
+        company.number_of_employees_max = request.POST.get('number_of_employees_max') or company.number_of_employees_max
+        company.description = request.POST.get('description') or company.description
+        company.website = request.POST.get('website') or company.website
+        company.city = request.POST.get('city') or company.city
+        company.state = request.POST.get('state') or company.state
+        company.country = request.POST.get('country') or company.country
+        company.ceo = request.POST.get('ceo') or company.ceo
+        company.ceo_twitter = request.POST.get('ceo_twitter') or company.ceo_twitter
+
+
+
+        company.save()
+
+        webhook_url = settings.SLACK_WEBHOOK_URL
+        
+        if webhook_url:
+            message = f"{company.name} updated:" + str(request.POST)
+            payload = {
+                "text": message,
+                "username": "Company Update Notification",
+                "icon_emoji": ":tada:"
+            }
+            requests.post(webhook_url, json=payload)
+
+        return JsonResponse({'success': True})
+
+    return render(request, 'update_company.html', {'company': company})
     
 # def challenge(request):
 #     if request.method == 'POST':
@@ -89,6 +134,19 @@ class CustomDurationField(models.DurationField):
 
 from django.http import JsonResponse
 
+def add_job(request):
+    if request.method == 'POST':
+        form = JobForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.user = request.user
+            job.save()
+            return JsonResponse({'success': True, 'job_id': job.id})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+    else:
+        form = JobForm()
+    return render(request, 'add_job.html', {'form': form})
 
 def update_email(request):
     if request.method == "POST":
@@ -901,14 +959,84 @@ from django.views import generic
 from django.shortcuts import get_object_or_404
 from .models import Company  # Replace ".models" with your actual path to models if needed
 
+from django.shortcuts import get_object_or_404
+
+from requests.exceptions import RequestException
+
+from django.http import HttpResponse
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from django.core.files.base import ContentFile
+from PIL import Image
+import io
+import os
+
 class CompanyDetailView(generic.DetailView):
     model = Company
     template_name = "company_detail.html"
 
-    def get_object(self, queryset=None):
-        if not hasattr(self, "_object"):
-            self._object = get_object_or_404(Company, slug=self.kwargs["slug"])
-        return self._object
+
+
+
+    def get(self, request, *args, **kwargs):
+        company = get_object_or_404(self.get_queryset(), slug=self.kwargs["slug"])
+        self.object = company
+
+        context = self.get_context_data(object=company)
+        context["next_company"] = Company.objects.get(id=company.id + 1)
+                
+        if (
+            not company.website_status_updated
+            or (datetime.now(timezone.utc) - company.website_status_updated).days >= 7
+        ):
+            website = company.website if company.website else f"https://{company.name.lower()}.com"
+
+            try:
+                response = requests.get(website)
+            except RequestException as e:
+                company.website_status = 500
+                company.website_status_updated = timezone.now()
+                company.save()
+
+                # You may want to log the exception here or handle it in some way
+                # For now, let's just ignore it and return the existing context
+
+                return self.render_to_response(context)
+
+            company.website_status_updated = timezone.now()
+
+            if not company.website and company.name.lower() in response.text.lower():
+                company.website = response.url
+            company.website_status = response.status_code
+            company.save()
+        
+            if company.website:
+                from selenium.webdriver.chrome.service import Service
+                
+
+                service = Service(executable_path=ChromeDriverManager().install())
+
+                options = webdriver.ChromeOptions()
+                options.add_argument("--headless")  # Ensure GUI is off
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--window-size=1920,1080")  # Set window size to standard desktop size
+                options.add_argument("--hide-scrollbars")  # Hide scrollbars on screenshot
+
+                browser = webdriver.Chrome(service=service, options=options)
+
+                url = company.website  # The URL you want to take a screenshot of
+                browser.get(url)
+
+                screenshot = browser.get_screenshot_as_png()
+
+                file_name = f"screenshot_company_{company.pk}.png"
+                company.screenshot.save(file_name, ContentFile(screenshot), save=True)
+
+                browser.quit()
+
+        return self.render_to_response(context)
+
 
 
 
@@ -931,47 +1059,3 @@ def add_job_link(request, slug):
         job.save()
         return redirect("company_detail", slug=slug)
 
-
-class UpdateWebsiteStatusView(View):
-    def get_company(self, company_id):
-        try:
-            return Company.objects.get(pk=company_id)
-        except Company.DoesNotExist:
-            return None
-
-    def update_status(self, company, status):
-        company.website_status = status
-        company.website_status_updated = timezone.now()
-        company.save()
-
-    def get(self, request, *args, **kwargs):
-        company_id = request.GET.get("company_id")
-        company = self.get_company(company_id)
-        if not company:
-            return JsonResponse(
-                {"status": "error", "message": "Company not found"}, status=404
-            )
-
-        if (
-            not company.website_status_updated
-            or (datetime.now() - company.website_status_updated).days >= 7
-        ):
-            response = requests.get(company.website)
-            self.update_status(company, response.status_code)
-
-        return JsonResponse(
-            {"status": "success", "website_status": company.website_status}
-        )
-
-    def post(self, request, *args, **kwargs):
-        company_id = request.POST.get("company_id")
-        status = request.POST.get("status")
-
-        company = self.get_company(company_id)
-        if not company:
-            return JsonResponse(
-                {"status": "error", "message": "Company not found"}, status=404
-            )
-
-        self.update_status(company, int(status))
-        return JsonResponse({"status": "success"})

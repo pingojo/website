@@ -1,92 +1,374 @@
-{% extends 'base.html' %}
 {% load static %}
-{% block content %}
 {% load humanize %}
 
-{% block seo_header %}
-<title>{{ company.name }} - Jobs</title>
-<meta name="description" content="{{ company.name }}">
-<meta name="keywords" content="Pingojo, recruitment platform, job seekers, recruiters, companies, job matching, virtual recruitment, contact management, real-time dashboard">
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
 
-<script src="{% static 'js/website_status_checker.js' %}"></script>
-{% csrf_token %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ company.name }} - Jobs</title>
+    <meta name="description" content="{{ company.name }} {{ company.description }}">
+    <meta name="keywords"
+        content="Pingojo, recruitment platform, job seekers, recruiters, companies, job matching, virtual recruitment, contact management, real-time dashboard">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link id="favicon" rel="icon" type="image/png" href="/static/img/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <script src="{% static 'js/favicon-updater.js' %}"></script>
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+</head>
 
-<div class="container">
-    <div class="pagination">
-        {% if prev_company %}
-            <a href="{% url 'company_detail' slug=prev_company.slug %}" class="prev-company btn">&laquo; {{ prev_company.name }}</a>
+
+<body>
+    <style>
+        header {
+            background-color: #f5f5f5;
+
+        }
+
+        body {
+            background-color: #ffffff;
+        }
+
+        .login-btn {
+            line-height: 42px;
+            margin-right: 20px;
+        }
+
+
+        .pulse-border {
+            animation: pulse 5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                border-color: #ddd;
+            }
+
+            50% {
+                border-color: #000;
+            }
+
+            100% {
+                border-color: #ccc;
+            }
+        }
+  
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+
+
+    <header style="padding:0px; margin:0px; padding-top:10px;  padding-bottom:10px;">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
         {% endif %}
-        {% if next_company %}
-            <a href="{% url 'company_detail' slug=next_company.slug %}" class="next-company btn">{{ next_company.name }} &raquo;</a>
-        {% endif %}
+        <span style="font-size: 40px; font-weight: bold; margin-left:20px;">
+            <a href="{% if company.website %}{{ company.website }}{% endif %}" {% if company.website %}target="_blank"
+                {% endif %} rel="noopener noreferrer" style="color: black; text-decoration: none;">
+                {% if company.website %}
+                    <img src="https://www.google.com/s2/favicons?domain={{ company.website }}" alt="{{ company.name }} Logo"
+                        height="30px;">
+                {% endif %}
+                {{ company.name }}
+                {% if company.website %}
+                    <i class="fas fa-external-link-alt" style="font-size:30px;"></i>
+                {% endif %}
+            </a>
+        </span>
+
+
+
+        <div class="auth-buttons">
+            <a href="{% url 'add_job' %}" class="login-btn" style="background-color: green;">Post a Job</a>
+            <a href="{% url 'jobs_list' %}" class="login-btn" style="background-color: #03a9f4;">Find a Job</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="login-btn" style="background-color: orange;">Dashboard</a>
+            <a href="/accounts/logout/" class="login-btn" style="background-color: red;">Logout</a>
+            {% else %}
+            <a href="/accounts/signup/" class="login-btn"  style="background-color: orange;">Sign up</a>
+            <a href="/accounts/login/" class="login-btn" style="background-color: red;">Login</a>
+            {% endif %}
+        </div>
+    </header>
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; background-color: #fcfcfc; padding: 10px; border-bottom:#0000001a 1px solid;">
+        <div style="margin-left: 20px; color: black;">
+            <a href="/" style="color: black; text-decoration: none;">HOME </a> &gt;
+            <a href="/company_list" style="color: black; text-decoration: none;">COMPANIES</a> &gt; {{ company.name }}
+        </div>
+        <div style="margin-right: 20px;">
+            {% if next_company %}
+            <a href="{% url 'company_detail' next_company.slug %}" style="color: black; text-decoration: none;">Next
+                Company: {{next_company.name}}</a>
+            {% endif %}
+        </div>
     </div>
 
-        <h1 class="company-name">{{ company.name }}</h1>
-        <div class="company-details">
-            <p><strong>Twitter:</strong> <a href="{{ company.twitter_url }}">{{ company.twitter_url }}</a></p>
-            <p><strong>Number of employees:</strong> {{ company.number_of_employees_min }} - {{ company.number_of_employees_max }}</p>
-            <p><strong>Description:</strong> {{ company.description }}</p>
-            <p><strong>Website:</strong> <a href="{{ company.website }}">{{ company.website }}</a></p>
-            <p><strong>Location:</strong> {{ company.city }}, {{ company.state }}, {{ company.country }}</p>
-            <p><strong>CEO:</strong> {{ company.ceo }} (<a href="{{ company.ceo_twitter }}">Twitter</a>)</p>
+
+    {% csrf_token %}
+
+
+
+
+    <div class="container"
+        style="gap: 20px; display: flex; align-items: flex-start; justify-content: space-between; width:100%; max-width: none;">
+
+        <div style="width: 30%;">
+
+
+
+            <div class="company-details">
+
+                {% if not company.website %}
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#website" hx-swap="outerHTML">
+
+                    <input type="text" name="website" id="website" placeholder="website"
+                        value="{{ company.website|default:'' }}">
+            </form>
+                {% endif %}
+
+                {% if company.description %}
+                <p> {{ company.description }}</p>
+                {% else %}
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#description" hx-swap="outerHTML">
+
+                    <textarea name="description" id="description" placeholder="add a company description"
+                        style="width:100%; height:100px; border-radius: 4px; border: 1px solid #ccc;">{{ company.description|default:'' }}</textarea>
+                </form>
+                {% endif %}
+                {% if company.screenshot %}
+                <img src="{{ company.screenshot.url }}"
+                    style="width: 100%; height: auto; border: 1px solid #9b9b9b; border-radius: 20px;">
+                    <hr>
+                    {% endif %}
+                
+
+          
+
+                <div style="display: flex; justify-content: center;">
+                    <small style="color:grey;">
+                        status: {{company.status}} 
+                        updated: {{ company.website_status_updated|naturaltime }}</small>
+                </div>
+            </div>
+
+
         </div>
 
-        <h2 class="jobs-heading">Jobs</h2>
-        <table class="job-list">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Link</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for job in company.job_set.all %}
-                <tr>
-                    <td>{{ job }}</td>
-                    <td>${{ job.salary_min|floatformat:0|intcomma }}</td>
-                    <td>${{ job.salary_max|floatformat:0|intcomma }}</td>
-                    <td>{{ job.posted_date }}</td>
-                    <td>{% if job.link %}<a href="{{ job.link }}">Link</a>{% endif %}</td>
-                    <td>{% if job.link %}{{ job.link_status_code }}{% endif %}</td>
-                    <td>
-                      <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" target="_blank" target="Searh Your Gmail for {{ job.company.name }}">
-          
-                     
-                      <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
-                  </a>
-          
-                      <a href="https://www.google.com/search?q={{ job }}" target="_blank"  target="Searh Google for {{ job }}">
-          
-                     
-                      <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
-                  </td>
-          
-                </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="2">No jobs added, add some to get points.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div style="width: 20%;">
+            {% if company.email %}
+            <p><strong>Email:</strong> <a href="mailto:{{ company.email }}">{{ company.email }}</a></p>
+            {% else %}
+            <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#email" hx-swap="outerHTML">
+                <input type="text" name="email" id="email" value="{{ company.email|default:'' }}"
+                    placeholder="add {{company.name}}'s email address">
+            </form>
+            {% endif %}
 
-        <h3 class="add-job-heading">Add a new job link</h3>
-        <form method="post" action="{% url 'add_job_link' company.slug %}" class="add-job-form">
-            {% csrf_token %}
-            <label for="job_link">Job Link:</label>
-            <input type="url" name="job_link" id="job_link" required>
-            <button type="submit">Submit</button>
+
+
+            {% if company.twitter_url %}
+            <p><strong>Twitter:</strong> <a href="https://{{ company.twitter_url }}">{{ company.twitter_url }}</a></p>
+            {% else %}
+            <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#twitter_url" hx-swap="outerHTML">
+                <input type="text" name="twitter_url" id="twitter_url" value="{{ company.twitter_url|default:'' }}"
+                    placeholder="add {{company.name}}'s twitter url">
+            </form>
+            {% endif %}
+
+            {% if company.number_of_employees_min and company.number_of_employees_max %}
+            <p># of employees: {{ company.number_of_employees_min }} - {{ company.number_of_employees_max }}</p>
+            {% else %}
+            
+                <span style="width:100%; text-align:center;"># of employees: </span>
+                <div style="display: flex; width:100%;margin-top:5px; ">
+                    <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#number_of_employees_min" hx-swap="outerHTML">
+                    <input type="number" name="number_of_employees_min" id="number_of_employees_min"
+                        style="width:90%; " placeholder="min"
+                        value="{{ company.number_of_employees_min|default:"" }}">
+                    </form>
+                    <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#number_of_employees_max" hx-swap="outerHTML">
+                    <input type="number" name="number_of_employees_max" id="number_of_employees_max" style="width:100%;"
+                        placeholder="max" value="{{ company.number_of_employees_max|default:"" }}">
+                    </form>
+                </div>
+        
+            {% endif %}
+
+
+
+
+
+            {% if company.city and company.state and company.country %}
+            <p><strong>Location:</strong> {{ company.city }}, {{ company.state }}, {{ company.country }}</p>
+            {% else %}
+            <div >
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#city" hx-swap="outerHTML">
+                <input type="text" name="city" id="city" placeholder="city" value="{{ company.city|default:'' }}">
+                </form>
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#state" hx-swap="outerHTML">
+                <input type="text" name="state" id="state" placeholder="state" value="{{ company.state|default:'' }}">
+                </form>
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#country" hx-swap="outerHTML">
+                <input type="text" name="country" id="country" placeholder="country"
+                    value="{{ company.country|default:'' }}">
+                </form>
+            </div>
+            {% endif %}
+
+            {% if company.ceo %}
+            <p><strong>CEO:</strong> {{ company.ceo }}</p>
+            {% else %}
+            <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#ceo" hx-swap="outerHTML">
+                <input type="text" name="ceo" id="ceo" placeholder="add {{company.name}}'s ceo name"
+                    value="{{ company.ceo|default:'' }}">
+         </form> 
+            {% endif %}
+
+            {% if company.ceo_twitter %}
+            <p><strong>CEO TWITTER:</strong> <a href="{{ company.ceo_twitter }}">{{ company.ceo_twitter }}</a></p>
+            {% else %}
+            <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#ceo_twitter" hx-swap="outerHTML">
+                <input type="text" name="ceo_twitter" id="ceo_twitter" placeholder="add {{company.name}}'s ceo twitter"
+                    value="{{ company.ceo_twitter|default:'' }}">
         </form>
+            {% endif %}
+
+
+
+
+
+        </div>
+
+        <div style="width: 50%;">
+
+            <div style="display: flex;">
+                <span style="font-size: 20px; white-space: nowrap; margin-right:20px; margin-top:5px;">
+                    Add Jobs at {{ company.name }}</span>
+                <form method="post" action="{% url 'add_job_link' company.slug %}" class="add-job-form"
+                    style="width:100%;">
+                    {% csrf_token %}
+                    <input type="url" name="job_link" id="job_link" placeholder="Add job links for {{ company.name }}"
+                        required class="pulse-border">
+                </form>
+
+
+            </div>
+
+
+            {% if company.job_set.all %}
+
+
+            <table class="job-list" style="border-collapse: collapse; border: 1px solid #ccc; width:100%;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">role</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">salary</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">posted</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">link</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">search</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in company.job_set.all %}
+                    <tr>
+                        <td style="border: 1px solid #ccc;">{{ job.role|default:job.title }}</td>
+                        <td style="border: 1px solid #ccc;">
+                            {% if job.salary_min and job.salary_max %} 
+                            ${{job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }} 
+                            {% endif %}</td>
+                        <td style="border: 1px solid #ccc;">
+                            {{ job.posted_date|default:job.created|default:''|date:"m/d"}}</td>
+                        <td style="border: 1px solid #ccc;">
+                            {% if job.link %}
+                                <a href="{{ job.link }}">Link ({{job.link_status_code }})</a>
+                            {% endif %}</td>
+                        <td style="border: 1px solid #ccc;">
+                            <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" target="_blank"
+                                target="Searh Your Gmail for {{ job.company.name }}">
+                                <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+                            </a>
+                            <a href="https://www.google.com/search?q={{ job.role|default:job.title }} at {{ job.company.name }}"
+                                target="_blank" target="Searh Google for {{ job }}">
+                                <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+
+            {% endif %}
+            <div style="margin-top: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                <span style="margin-right: 10px;">Search for jobs at:</span>
+                <a href="https://wellfound.com/search?q={{ company.name }}&type=companies" target="_blank">
+                    <img src="https://www.google.com/s2/favicons?domain=wellfound.com"
+                        style="height:20px; border: 1px solid #ccc; border-radius: 5px;">
+                </a>
+                <a href="https://google.com/search?q=site:greenhouse.io {{ company.name }}" target="_blank">
+                    <img src="https://www.google.com/s2/favicons?domain=greenhouse.io"
+                        style="height:20px; border: 1px solid #ccc; border-radius: 5px;">
+                </a>
+            </div>
+        </div>
     </div>
 
-    <script>
 
 
-        const companyId = '{{company.id}}';
-        const url = '{{company.website}}';
-        const websiteStatusUpdated = '{{company.website_status_updaated}}';
+    <footer>
+        &copy; Pingojo - All Rights Reserved | <a href="{% url 'privacy_policy' %}" style="color: white;">Privacy
+            Policy</a>
+        | <a href="{% url 'terms_of_service' %}" style="color: white;">Terms of Service</a> | <a
+            href="https://github.com/pingojo/website" style="color: white;">Github</a>
+    </footer>
 
-        checkWebsiteStatus(companyId, url, websiteStatusUpdated);
+    <script type="text/javascript">
+        window._mfq = window._mfq || [];
+        (function () {
+            var mf = document.createElement("script");
+            mf.type = "text/javascript"; mf.defer = true;
+            mf.src = "//cdn.mouseflow.com/projects/75696671-ed61-4656-9ca3-1a503dc1d0b1.js";
+            document.getElementsByTagName("head")[0].appendChild(mf);
+        })();
     </script>
-{% endblock %}
+    {% block extra_js %}
+
+    {% endblock %}
+
+    {% block script %}
+
+    {% endblock %}
+</body>
+
+</html>
