@@ -1014,7 +1014,7 @@ class CompanyDetailView(generic.DetailView):
                 from selenium.webdriver.chrome.service import Service
                 
 
-                service = Service(executable_path=ChromeDriverManager().install())
+                service = Service(executable_path="/usr/local/bin/chromedriver")
 
                 options = webdriver.ChromeOptions()
                 options.add_argument("--headless")  # Ensure GUI is off
