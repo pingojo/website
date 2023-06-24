@@ -989,7 +989,7 @@ class CompanyDetailView(generic.DetailView):
             not company.website_status_updated
             or (datetime.now(timezone.utc) - company.website_status_updated).days >= 7
         ):
-            website = company.website if company.website else f"https://{company.name.lower()}.com"
+            website = company.website if company.website else f"https://{company.slug}.com"
 
             try:
                 response = requests.get(website)
