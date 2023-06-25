@@ -992,7 +992,7 @@ class CompanyDetailView(generic.DetailView):
             website = company.website if company.website else f"https://{company.slug}.com"
 
             try:
-                response = requests.get(website)
+                response = requests.get(website, timeout=10)
             except RequestException as e:
                 company.website_status = 500
                 company.website_status_updated = timezone.now()
@@ -1018,6 +1018,7 @@ class CompanyDetailView(generic.DetailView):
                 service = Service(executable_path="/opt/render/project/.render/chrome/chromedriver")
 
                 options = webdriver.ChromeOptions()
+                options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/google-chrome" 
                 options.add_argument("--headless")  # Ensure GUI is off
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-dev-shm-usage")
