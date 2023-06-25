@@ -1039,7 +1039,7 @@ class CompanyDetailView(generic.DetailView):
                 logger.error(company.website)
 
                 url = company.website  # The URL you want to take a screenshot of
-                browser.get(url, timeout=10)
+                browser.get(url)
 
                 logger.error('getting screenshot')
 

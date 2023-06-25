@@ -14,7 +14,8 @@ if os.environ.get('SENTRY_DSN'):
             DjangoIntegration(),
         ],
         traces_sample_rate=0.2,
-        send_default_pii=True
+        send_default_pii=True,
+        profiles_sample_rate=0.2,
     )
 
 SECRET_KEY = os.environ.get('SECRET_KEY','secret')
