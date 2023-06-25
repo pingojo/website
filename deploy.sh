@@ -21,8 +21,8 @@ echo "Unzipped Chromedriver"
 rm chromedriver_linux64.zip
 
 # Move ChromeDriver to the Chrome directory
-mv chromedriver $CHROMEDRIVER_PATH
-echo "Moved Chromedriver"
+#mv chromedriver $CHROMEDRIVER_PATH
+#echo "Moved Chromedriver"
 
 # Set execute permissions on ChromeDriver
 chmod +x $CHROMEDRIVER_PATH
@@ -31,6 +31,11 @@ echo "Set execute permissions on Chromedriver"
 cd -
 
 # Print the versions of Google Chrome and ChromeDriver
+echo "chrome_binary_path"
+echo $CHROME_BINARY_PATH
+echo "chromedriver_path"
+echo $CHROMEDRIVER_PATH
+
 $CHROME_BINARY_PATH --version
 $CHROMEDRIVER_PATH --version
 

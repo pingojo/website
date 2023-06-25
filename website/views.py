@@ -1015,7 +1015,7 @@ class CompanyDetailView(generic.DetailView):
                 
                 #service = Service(executable_path=ChromeDriverManager().install())
 
-                service = Service(executable_path="/opt/render/project/.render/chrome/opt/google/chrome/google-chrome")
+                service = Service(executable_path="/opt/render/project/.render/chrome/chromedriver")
 
                 options = webdriver.ChromeOptions()
                 options.add_argument("--headless")  # Ensure GUI is off
