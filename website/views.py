@@ -1026,7 +1026,7 @@ class CompanyDetailView(generic.DetailView):
                 logger.info('setting options')
                 options = webdriver.ChromeOptions()
                 options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/google-chrome" 
-                options.page_load_strategy = 'none'
+                options.page_load_strategy = 'eager'
                 options.add_argument("--headless")  # Ensure GUI is off
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-dev-shm-usage")

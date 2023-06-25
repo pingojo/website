@@ -257,11 +257,11 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'WARNING',
+        'level': 'INFO',  # Change level to 'INFO'
     },
     'django': {
         'handlers': ['console'],
-        'level': os.getenv('DJANGO_LOG_LEVEL', 'ERROR'),
+        'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),  # Change level to 'INFO'
         'propagate': False,
     },
 }
