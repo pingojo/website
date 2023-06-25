@@ -1013,7 +1013,7 @@ class CompanyDetailView(generic.DetailView):
             if company.website:
                 from selenium.webdriver.chrome.service import Service
                 
-                service = Service(executable_path="/opt/render/.wdm/drivers/chromedriver/linux64/114.0.5735.90/chromedriver")
+                service = Service(executable_path="/opt/render/.cache/selenium/chromedriver/linux64/114.0.5735.90/chromedriver")
 
                 #service = Service(executable_path="/opt/render/project/.render/chrome/opt/google/chrome")
 
@@ -1021,6 +1021,7 @@ class CompanyDetailView(generic.DetailView):
                 options.binary_location = '/opt/render/project/.render/chrome/opt/google/chrome'
                 options.add_argument("--headless")  # Ensure GUI is off
                 options.add_argument("--no-sandbox")
+                options.add_argument("--remote-allow-origins=*"); 
                 options.add_argument("--disable-dev-shm-usage")
                 options.add_argument("--window-size=1920,1080")  # Set window size to standard desktop size
                 options.add_argument("--hide-scrollbars")  # Hide scrollbars on screenshot
