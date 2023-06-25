@@ -58,6 +58,7 @@ from datetime import timedelta
 from datetime import timedelta
 
 from django.contrib.auth.models import User
+from selenium.common.exceptions import TimeoutException
 
 # import min and max
 from django.db.models import Min, Max
@@ -1035,12 +1036,17 @@ class CompanyDetailView(generic.DetailView):
 
                 logger.info('getting browser')
                 browser = webdriver.Chrome(service=service, options=options)
+                browser.set_page_load_timeout(10) 
 
                 logger.info('getting url')
                 logger.info(company.website)
 
                 url = company.website  # The URL you want to take a screenshot of
-                browser.get(url)
+                try:
+                    browser.get(url)
+                except TimeoutException:
+                    logger.error(f"Timeout exceeded for URL {url}")
+                    browser.quit()
 
                 logger.info('getting screenshot')
 
