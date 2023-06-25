@@ -1018,30 +1018,31 @@ class CompanyDetailView(generic.DetailView):
         
             if company.website:
                 from selenium.webdriver.chrome.service import Service
-                logger.error('getting screenshot')
+                logger.info('getting screenshot')
                 #service = Service(executable_path=ChromeDriverManager().install())
 
                 service = Service(executable_path="/opt/render/project/.render/chrome/chromedriver")
 
-                logger.error('setting options')
+                logger.info('setting options')
                 options = webdriver.ChromeOptions()
                 options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/google-chrome" 
+                options.page_load_strategy = 'none'
                 options.add_argument("--headless")  # Ensure GUI is off
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-dev-shm-usage")
                 options.add_argument("--window-size=1920,1080")  # Set window size to standard desktop size
                 options.add_argument("--hide-scrollbars")  # Hide scrollbars on screenshot
 
-                logger.error('getting browser')
+                logger.info('getting browser')
                 browser = webdriver.Chrome(service=service, options=options)
 
-                logger.error('getting url')
-                logger.error(company.website)
+                logger.info('getting url')
+                logger.info(company.website)
 
                 url = company.website  # The URL you want to take a screenshot of
                 browser.get(url)
 
-                logger.error('getting screenshot')
+                logger.info('getting screenshot')
 
                 screenshot = browser.get_screenshot_as_png()
 
