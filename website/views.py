@@ -1044,16 +1044,15 @@ class CompanyDetailView(generic.DetailView):
                 url = company.website  # The URL you want to take a screenshot of
                 try:
                     browser.get(url)
+                    logger.info('getting screenshot')
+
+                    screenshot = browser.get_screenshot_as_png()
+
+                    file_name = f"screenshot_{company.slug}.png"
+                    company.screenshot.save(file_name, ContentFile(screenshot), save=True)
+
                 except TimeoutException:
                     logger.error(f"Timeout exceeded for URL {url}")
-                    browser.quit()
-
-                logger.info('getting screenshot')
-
-                screenshot = browser.get_screenshot_as_png()
-
-                file_name = f"screenshot_{company.slug}.png"
-                company.screenshot.save(file_name, ContentFile(screenshot), save=True)
 
                 browser.quit()
 
