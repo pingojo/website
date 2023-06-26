@@ -85,6 +85,24 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def generage_follow_up_email(request, application_id):
+    application = get_object_or_404(Application, pk=application_id)
+    company_name = application.company.name
+    date_applied = application.date_applied.strftime('%-m/%-d')
+    role = application.job.role.title if application.job.title else "[role]"
+    email = application.company.email
+    email_subject = f"Follow up on {role} role at {company_name}"
+    email_body = f"Hi {company_name},\n\nI hope you are doing well. " \
+                 f"I wanted to follow up on my application for the {role} " \
+                 f"role at {company_name} that I submitted on {date_applied}. " \
+                 f"I am very interested in the role and would like to learn " \
+                 f"more about the opportunity. Please let me know if you have " \
+                 f"any questions or if there is anything else I can provide.\n\n" \
+                 f"Thanks,\n\n{request.user.first_name} {request.user.last_name}"
+    return redirect(f"https://mail.google.com/mail/?view=cm&fs=1&to={email}" \
+                    f"&su={email_subject}&body={email_body}")
+
+
 
 def update_company(request, company_id):
     company = get_object_or_404(Company, id=company_id)

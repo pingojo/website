@@ -243,7 +243,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-
+GPT_KEY = os.environ.get("GPT_KEY","your_gpt_key")
 
 import os
 

@@ -126,6 +126,7 @@
                 <th>actions</th>
                 <th>link</th>
                 <th>email</th>
+                <td>g</td>
             </tr>
         </thead>
         <tbody>
@@ -205,6 +206,15 @@
                         <td>
                             {% include 'partials/email.html' %}
                         </td>
+                        {% if application.company.email and application.job.role %}
+                            <td nowrap>
+                                <a href="{% url 'generage_follow_up_email' application.id %}" target="_blank" class="email-link">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
 
