@@ -207,14 +207,8 @@
                             {% include 'partials/email.html' %}
                         </td>
                         {% if application.company.email and application.job.role %}
-                            <td nowrap>
-                                <a href="{% url 'generage_follow_up_email' application.id %}" target="_blank" class="email-link">
-                                    <i class="fas fa-envelope"></i>
-                                </a>
-                                <input type="hidden" name="email-link" id="email-link" value="https://mail.google.com/mail/?view=cm&fs=1&to={{application.company.email}}&su=Follow up on {{application.job.role}} at {{application.company}}&body=Hi {{application.company}},%0A%0AI hope you are doing well. I wanted to follow up on my application for the {{application.job.role}} role at {{application.company}} that I submitted on {{application.date_applied|date:'F j'}}. I am very interested in the role and would like to learn more about the opportunity. Please let me know if you have any questions or if there is anything else I can provide.%0A%0AThanks,%0A%0A{{request.user.first_name}} {{request.user.last_name}}">
-                                <i class="fas fa-envelope" id="email-link-button" onclick="copyLink()"></i>
-                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{application.company.email}}&su=Follow up on {{application.job.role}} at {{application.company}}&body=Hi {{application.company}},%0A%0AI hope you are doing well. I wanted to follow up on my application for the {{application.job.role}} role at {{application.company}} that I submitted on {{application.date_applied|date:'F j'}}. I am very interested in the role and would like to learn more about the opportunity. Please let me know if you have any questions or if there is anything else I can provide.%0A%0AThanks,%0A%0A{{request.user.first_name}} {{request.user.last_name}}" target="_blank">e</a>
-
+                            <td nowrap>  
+                                <a href="https://mail.google.com/mail/?view=cm&fs=1&{{ application.company.email|urlencode }}&su={{ application.job.role|urlencode }}%20at%20{{ application.company|urlencode }}&body=Hi%20{{ application.company|urlencode }},%0A%0AI%20hope%20you%20are%20doing%20well.%20I%20wanted%20to%20follow%20up%20on%20my%20application%20for%20the%20{{ application.job.role|urlencode }}%20role%20at%20{{ application.company|urlencode }}%20that%20I%20submitted%20on%20{{ application.date_applied|date:'F%20j'|urlencode }}.%20I%20am%20very%20interested%20in%20the%20role%20and%20would%20like%20to%20learn%20more%20about%20the%20opportunity.%20Please%20let%20me%20know%20if%20you%20have%20any%20questions%20or%20if%20there%20is%20anything%20else%20I%20can%20provide.%0A%0AThanks,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}" target="_blank"><i class="fas fa-envelope" id="email-link-button" onclick="copyLink()"></i></a>
                             </td>
                         {% else %}
                             <td></td>
@@ -268,16 +262,8 @@
 
 
     function copyLink() {
-    var link = document.getElementById("email-link");
-    navigator.clipboard.writeText(link.value)
-        .then(function() {
-            //show it was copied by making the button blue
-            var button = document.getElementById("email-link-button");
+        var button = document.getElementById("email-link-button");
             button.style.color = "yellow";
-        })
-        .catch(function(error) {
-            console.error('Failed to copy text: ', error);
-        });
 }
 
 function updateForm(email, applicationId) {
