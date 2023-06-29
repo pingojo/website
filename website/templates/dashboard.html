@@ -144,7 +144,17 @@
                             {% endif %}
                         </td>
 
-                        <td>{{ application.job.role|truncatechars:50 }}</td>
+                        <td>{% if application.job.role %}{{ application.job.role|truncatechars:50 }}
+                            {% else %}
+                            <form hx-post="{% url 'update_email' %}" hx-trigger="change" hx-target="this"  id="role-form-{{ application.id }}">
+                                {% csrf_token %}
+                                <input type="hidden" name="application_id" value="{{  application.id }}" />
+                                <input type="text" name="role" id="role" class="link-input" placeholder="role" style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;" />
+                            </form>
+                            {% endif %}
+
+
+                        </td>
                         <td nowrap>
                             {% if application.job.salary_min %}
                                 ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}

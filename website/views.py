@@ -178,17 +178,28 @@ def update_email(request):
         application = get_object_or_404(Application, pk=request.POST.get("application_id", None))
 
         new_email = request.POST.get("email", None)
-        regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-        if not re.match(regex, new_email):
-            return JsonResponse({'error': 'Invalid email address'}, status=400)
+        if new_email:
+            regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+            if not re.match(regex, new_email):
+                return JsonResponse({'error': 'Invalid email address'}, status=400)
+            
+            if application.user == request.user and new_email:
+                application.job.company.email = new_email
+                application.job.company.save()
+                application.job.company.refresh_from_db()
+                return render(request, 'partials/email.html', {
+                    'application': application,
+                })
+        new_role = request.POST.get("role", None)
         
-        if application.user == request.user and new_email:
-            application.job.company.email = new_email
-            application.job.company.save()
-            application.job.company.refresh_from_db()
-            return render(request, 'partials/email.html', {
-                'application': application,
-            })
+        if new_role:
+            role_slug = slugify(new_role[:50])
+            role, _ = Role.objects.get_or_create(
+                slug=role_slug, defaults={"title": role_slug}
+            )
+            application.job.role = role
+            application.job.save()
+            return HttpResponse(new_role)
         
     return JsonResponse({'error': 'Invalid Method or Missing email field'}, status=400)
 
