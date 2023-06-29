@@ -13,9 +13,11 @@
 <div class="marquee">
     <ul>
         {% for company in companies %}
+        {% if company.slug %}
         <li style="display: inline;">
             <a href="{% url 'company_detail' slug=company.slug %}">Jobs at {{ company.name }}</a>
         </li>
+        {% endif %}
         {% endfor %}
     </ul>
 </div>
