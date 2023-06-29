@@ -1046,44 +1046,45 @@ class CompanyDetailView(generic.DetailView):
             company.website_status = response.status_code
             company.save()
         
-            if company.website:
-                from selenium.webdriver.chrome.service import Service
-                logger.info('getting screenshot')
-                #service = Service(executable_path=ChromeDriverManager().install())
+            # disable screenshot code until we can get it working on render
+            # if company.website:
+            #     from selenium.webdriver.chrome.service import Service
+            #     logger.info('getting screenshot')
+            #     #service = Service(executable_path=ChromeDriverManager().install())
 
-                service = Service(executable_path="/opt/render/project/.render/chrome/chromedriver")
+            #     service = Service(executable_path="/opt/render/project/.render/chrome/chromedriver")
 
-                logger.info('setting options')
-                options = webdriver.ChromeOptions()
-                options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/google-chrome" 
-                options.page_load_strategy = 'eager'
-                options.add_argument("--headless")  # Ensure GUI is off
-                options.add_argument("--no-sandbox")
-                options.add_argument("--disable-dev-shm-usage")
-                options.add_argument("--window-size=1920,1080")  # Set window size to standard desktop size
-                options.add_argument("--hide-scrollbars")  # Hide scrollbars on screenshot
+            #     logger.info('setting options')
+            #     options = webdriver.ChromeOptions()
+            #     options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/google-chrome" 
+            #     options.page_load_strategy = 'eager'
+            #     options.add_argument("--headless")  # Ensure GUI is off
+            #     options.add_argument("--no-sandbox")
+            #     options.add_argument("--disable-dev-shm-usage")
+            #     options.add_argument("--window-size=1920,1080")  # Set window size to standard desktop size
+            #     options.add_argument("--hide-scrollbars")  # Hide scrollbars on screenshot
 
-                logger.info('getting browser')
-                browser = webdriver.Chrome(service=service, options=options)
-                browser.set_page_load_timeout(10) 
+            #     logger.info('getting browser')
+            #     browser = webdriver.Chrome(service=service, options=options)
+            #     browser.set_page_load_timeout(10) 
 
-                logger.info('getting url')
-                logger.info(company.website)
+            #     logger.info('getting url')
+            #     logger.info(company.website)
 
-                url = company.website  # The URL you want to take a screenshot of
-                try:
-                    browser.get(url)
-                    logger.info('getting screenshot')
+            #     url = company.website  # The URL you want to take a screenshot of
+            #     try:
+            #         browser.get(url)
+            #         logger.info('getting screenshot')
 
-                    screenshot = browser.get_screenshot_as_png()
+            #         screenshot = browser.get_screenshot_as_png()
 
-                    file_name = f"screenshot_{company.slug}.png"
-                    company.screenshot.save(file_name, ContentFile(screenshot), save=True)
+            #         file_name = f"screenshot_{company.slug}.png"
+            #         company.screenshot.save(file_name, ContentFile(screenshot), save=True)
 
-                except TimeoutException:
-                    logger.error(f"Timeout exceeded for URL {url}")
+            #     except TimeoutException:
+            #         logger.error(f"Timeout exceeded for URL {url}")
 
-                browser.quit()
+            #     browser.quit()
 
         return self.render_to_response(context)
 
