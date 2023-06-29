@@ -195,7 +195,7 @@ def update_email(request):
         if new_role:
             role_slug = slugify(new_role[:50])
             role, _ = Role.objects.get_or_create(
-                slug=role_slug, defaults={"title": role_slug}
+                slug=role_slug, defaults={"title": new_role}
             )
             application.job.role = role
             application.job.save()
