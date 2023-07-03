@@ -159,7 +159,7 @@ def update_company(request, company_id):
 
 from django.http import JsonResponse
 
-def add_job(request):
+def job_add(request):
     if request.method == 'POST':
         form = JobForm(request.POST)
         if form.is_valid():
@@ -171,7 +171,7 @@ def add_job(request):
             return JsonResponse({'success': False, 'errors': form.errors})
     else:
         form = JobForm()
-    return render(request, 'add_job.html', {'form': form})
+    return render(request, 'job_add.html', {'form': form})
 
 def update_email(request):
     if request.method == "POST":
@@ -1022,7 +1022,10 @@ class CompanyDetailView(generic.DetailView):
         self.object = company
 
         context = self.get_context_data(object=company)
-        context["next_company"] = Company.objects.get(id=company.id + 1)
+        try:
+            context["next_company"] = Company.objects.get(id=company.id + 1)
+        except:
+            context["next_company"] = Company.objects.get().order_by('*').first()
                 
         if (
             not company.website_status_updated
