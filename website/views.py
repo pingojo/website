@@ -505,6 +505,7 @@ class AddJobLink(APIView):
 
         posted_date = data.get("datePosted")
         salaryRange = data.get("salaryRange")
+        location = data.get("location")
 
         link = data.get("link")
 
@@ -541,6 +542,7 @@ class AddJobLink(APIView):
                 "salary_max": salary_max,
                 "link": link,
                 "title": title,
+                "location": location,
             },
         )
         user_applications = Application.objects.filter(
@@ -735,12 +737,21 @@ class ApplicationView(APIView):
 
         return JsonResponse(data, status=status.HTTP_201_CREATED)
 
+from django.shortcuts import get_object_or_404
+from django.views.generic import DetailView
+from .models import Job, Application
 
 class JobDetailView(DetailView):
     model = Job
     template_name = "job_detail.html"
     context_object_name = "job"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        job = self.get_object()
+        applications = Application.objects.filter(job=job, user=self.request.user)
+        context['applications'] = applications
+        return context
 
 def privacy_policy(request):
     return render(request, "privacy_policy.html")

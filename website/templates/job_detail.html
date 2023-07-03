@@ -13,16 +13,126 @@
                 <h2>{{ job.title }}</h2>
                 <h4>Company: <a href="{% url 'company_detail' slug=job.company.slug %}">{{ job.company.name }}</a></h4>
                 <p>Location: {{ job.location }}</p>
-                <p>Job type: {{ job.job_type }}</p>
-                <p>Posted on: {{ job.posted_on }}</p>
+                {% if job.job_type %}<p>Job type: {{ job.job_type }}</p>{% endif %}
+                <p>Posted on: {{ job.posted_date }}</p>
                 <p>Link (apply): <a href="{{ job.link }}">{{ job.link }}</a></p>
                 <hr>
                 <h3>Job Description</h3>
                 <p>{{ job.description|linebreaks }}</p>
                 <hr>
-                <!-- <h3>How to Apply</h3>
-                <p>{{ job.how_to_apply|linebreaks }}</p> -->
+
             </div>
+            {% if applications %}
+    <h3>Applications</h3>
+    <thead>
+        <tr align="left">
+            <th>Company</th>
+            <th>Role</th>
+            <th>Salary</th>
+            <th>Applied</th>
+            <th>Last Email</th>
+            <th>Days</th>
+            <th>Email</th>
+            <th>Stage</th>
+            <th>actions</th>
+            <th>link</th>
+            <th>email</th>
+            <td>g</td>
+        </tr>
+    </thead>
+    {% for application in applications %}
+    <tr id="row-{{ application.id }}">
+        <td>
+            {% if application.company.website %}
+                <a href="{{ application.company.website }}" target="_blank">{{ application.company.name }}</a>
+            {% else %}
+                {{ application.company.name }}
+            {% endif %}
+        </td>
+
+        <td>{% if application.job.role %}{{ application.job.role|truncatechars:50 }}
+            {% else %}
+            <form hx-post="{% url 'update_email' %}" hx-trigger="change" hx-target="this"  id="role-form-{{ application.id }}">
+                {% csrf_token %}
+                <input type="hidden" name="application_id" value="{{  application.id }}" />
+                <input type="text" name="role" id="role" class="link-input" placeholder="role" style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;" />
+            </form>
+            {% endif %}
+
+
+        </td>
+        <td nowrap>
+            {% if application.job.salary_min %}
+                ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}
+            {% endif %}
+        </td>
+        <td>{{ application.date_applied|date:"m/d" }}</td>
+        <td>{{ application.date_of_last_email|date:"m/d" }}</td>
+        <td>{{ application.days_since_last_email}}</td>
+        <td valign="top" align="right">
+            <span style="padding-bottom: 3px; margin-left: 5px; display: inline-block; vertical-align: middle;">{{ application.email_set.count }}</span>
+            <div class="email-hover" style="display: inline-block; vertical-align: middle;">
+                <a href='https://mail.google.com/mail/u/0/#search/"{{ application.company.name }}"' target="_blank" style="margin:0px;padding:0px;">
+                    <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+                </a>
+                <div class="hover-box">
+                    {% for email in application.email_set.all %}
+                        <p>
+                          <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}" target="_blank">{{ email }}</a> 
+                          <span>({{ email.date|date:"m/d" }}){{email.subject|default:""}}</span>
+                        </p>
+                    {% empty %}
+                        <p>No emails found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </td>
+        <td>
+            <form method="POST" hx-post="{% url 'update-application-stage' %}" hx-trigger="change" hx-get="{% url 'update-application-stage' %}?application_id={{ application.id }}" hx-delete="#row-{{ application.id }}" class="stage-form">
+                {% csrf_token %}
+                <input type="hidden" name="application_id" value="{{ application.id }}">
+                <select name="stage_id" class="stage-dropdown stage-dropdown-{{ application.stage.name|lower }}">
+                    {% for stage in stages %}
+                        <option value="{{ stage.id }}" {% if stage.id == application.stage.id %}selected{% endif %}>
+                            {{ stage.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </td>
+    
+        <td>
+            {% if application.job.slug %}
+                <a href="{% url 'job_detail' application.job.slug %}">
+                    <i class="fas fa-eye"></i>
+                </a>
+            {% endif %}
+            <a href="{% url 'job_application_delete' application.id %}" 
+            hx-post="{% url 'job_application_delete' application.id %}" 
+            hx-swap="none" 
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            hx-confirm="Are you sure you want to delete this application?">
+             <i class="fas fa-trash-alt"></i>
+         </a>
+    
+        </td>
+        <td nowrap>
+            {% include 'partials/link.html' %}
+        </td>
+        <td>
+            {% include 'partials/email.html' %}
+        </td>
+        {% if application.company.email and application.job.role %}
+            <td nowrap>  
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ application.company.email|urlencode }}&su=Follow%20up%20on%20{{ application.job.role|urlencode }}%20at%20{{ application.company|urlencode }}&body=Hi%20{{ application.company|urlencode }},%0A%0AI%20hope%20you%20are%20doing%20well.%20I%20wanted%20to%20follow%20up%20on%20my%20application%20for%20the%20{{ application.job.role|urlencode }}%20role%20at%20{{ application.company|urlencode }}%20that%20I%20submitted%20on%20{{ application.date_applied|date:'F j'|urlencode }}.%20I%20am%20very%20interested%20in%20the%20role%20and%20would%20like%20to%20learn%20more%20about%20the%20opportunity.%20Please%20let%20me%20know%20if%20you%20have%20any%20questions%20or%20if%20there%20is%20anything%20else%20I%20can%20provide.%0A%0AThanks,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}" target="_blank" onclick="copyLink(this)"><i class="fas fa-envelope" id="email-link-button" ></i></a>
+            </td>
+        {% else %}
+            <td></td>
+        {% endif %}
+    </tr>
+{% endfor %}
+{% else %}
+
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
@@ -32,6 +142,9 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
+
+
         </div>
     </div>
 </div>

@@ -298,7 +298,8 @@
                 <tbody>
                     {% for job in company.job_set.all %}
                     <tr>
-                        <td style="border: 1px solid #ccc;">{{ job.role|default:job.title }}</td>
+                        <td style="border: 1px solid #ccc;">
+                            <a href="{% url 'job_detail' job.slug %}">{{ job.role|default:job.title }}</a></td>
                         <td style="border: 1px solid #ccc;">
                             {% if job.salary_min and job.salary_max %} 
                             ${{job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }} 
