@@ -9,7 +9,7 @@
         <h3>Jobs</h3>
         {% for job in paginated_jobs %}
         <div class="job">
-          <h4><a href="{% url 'job_detail' slug=job.slug %}">{{ job.title }}</a></h4>
+          <h4><a href="{% url 'job_detail' slug=job.slug %}">{{ job.role|default:job.title }}</a></h4>
           <p>Company: <a href="{% url 'company_detail' slug=job.company.slug %}">{{ job.company.name }}</a></p>
 
         </div>
