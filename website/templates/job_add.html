@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+    <style>
+
+        .form__label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form__input, .form__select {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn-submit {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+        .btn-submit:hover {
+            background-color: #0069D9;
+        }
+    </style>
+</head>
+<body>
+    <form action="/job_add/" accept-charset="UTF-8" method="post">
+
+        <label class="form__label" for="post_company_attributes_name">Company Name</label>
+        <input autofocus="autofocus" placeholder="Airbnb" class="form__input" type="text" name="company_name" id="company_name" />
+
+        <label class="form__label" for="post_title">Job Title / Role</label>
+        <input placeholder="Full Stack Software Engineer" class="form__input" type="text" name="role" id="role" />
+
+        <label class="form__label" for="post_commitment">Commitment</label>
+        <select class="form__select" name="type" id="type">
+            <option selected="selected" value="Full-Time">Full-Time</option>
+            <option value="Part-Time">Part-Time</option>
+            <option value="Internship">Internship</option>
+            <option value="Contractor">Contractor</option>
+        </select>
+
+        <label class="form__label" for="post_location_str">Primary Location</label>
+        <input placeholder="Texas, USA" class="form__input" type="text" name="location" id="location" />
+
+        <label class="form__label" for="post_remote">Remote OK?</label>
+        <select class="form__select" name="type" id="post_remote">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+        </select>
+
+        <label class="form__label" for="post_url">3rd party Application URL</label>
+        <input placeholder="greenhouse.io" class="form__input" type="text" name="post[url]" id="post_url" />
+
+        <label class="form__label" for="post_url">Public Careers Email</label>
+        <input placeholder="jobs@company.com" class="form__input" type="text" name="post[url]" id="post_url" />
+
+        <label class="form__label" for="post_description">Job Description</label>
+        <textarea class="form__input" rows="5" name="description" id="description"></textarea>
+
+        <button name="button" type="submit" class="btn-submit">Post job for Free</button>
+    </form>
+
+{% endblock %}
