@@ -1025,7 +1025,7 @@ class CompanyDetailView(generic.DetailView):
         try:
             context["next_company"] = Company.objects.get(id=company.id + 1)
         except:
-            context["next_company"] = Company.objects.get().order_by('*').first()
+            context["next_company"] = Company.objects.all().order_by('*').first()
                 
         if (
             not company.website_status_updated
