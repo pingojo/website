@@ -751,6 +751,7 @@ class JobDetailView(DetailView):
         job = self.get_object()
         applications = Application.objects.filter(job=job, user=self.request.user)
         context['applications'] = applications
+        context["stages"] = Stage.objects.annotate(count=Count('application')).order_by("-order")
         return context
 
 def privacy_policy(request):
