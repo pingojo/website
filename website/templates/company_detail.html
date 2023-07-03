@@ -96,7 +96,7 @@
 
 
         <div class="auth-buttons">
-            <a href="{% url 'add_job' %}" class="login-btn" style="background-color: green;">Post a Job</a>
+            <a href="{% url 'job_add' %}" class="login-btn" style="background-color: green;">Post a Job</a>
             <a href="{% url 'jobs_list' %}" class="login-btn" style="background-color: #03a9f4;">Find a Job</a>
             {% if user.is_authenticated %}
             <a href="{% url 'dashboard' %}" class="login-btn" style="background-color: orange;">Dashboard</a>
