@@ -8,6 +8,19 @@
 {% endblock %}
 
 {% block content %}
+<style>
+        table {
+        border-collapse: collapse;
+        border: 1px solid #ccc;
+    }
+    /* make the border go between td also */
+    table td, table th {
+        border: 1px solid #ccc;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+</style>
 <div class="main-content">
     <div class="container">
         <div class="row">
@@ -18,14 +31,18 @@
                 {% if job.job_type %}<p>Job type: {{ job.job_type }}</p>{% endif %}
                 <p>Posted on: {{ job.posted_date }}</p>
                 <p>Link (apply): <a href="{{ job.link }}">{{ job.link }}</a></p>
+                {% if job.description %}
                 <hr>
                 <h3>Job Description</h3>
                 <p>{{ job.description|linebreaks }}</p>
                 <hr>
+                {% endif %}
+
 
             </div>
             {% if applications %}
     <h3>Applications</h3>
+    <table>
     <thead>
         <tr align="left">
             <th>Company</th>
@@ -133,6 +150,8 @@
         {% endif %}
     </tr>
 {% endfor %}
+</table>
+
 {% else %}
 
             <div class="col-md-4">
