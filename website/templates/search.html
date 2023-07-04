@@ -69,13 +69,11 @@
                     {% endif %}
                 </span>
             </div></td>
-            <td valign="top"> <h3>Sources</h3>
+            <td valign="top"> <h3>Search Sources on Google for {{ search_query }}</h3>
             {% for source in sources %}
-            {% if source.search_url %}
-            <a href="{{ source.search_url|replace_search_term:search_query }}">{{ source.name }}  <i class="fas fa-external-link-alt" style="font-size:20px;"></i></a>
-            {% endif %}
+            <a href="https://www.google.com/search?q=site:{{source.get_domain}} {{ search_query }}" target="_new">{{ source.name }}  <i class="fas fa-external-link-alt" style="font-size:20px;"></i></a></br>
             {% endfor %}
-        </td>
+            </td>
     </tr>
 
 </table>

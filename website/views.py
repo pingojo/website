@@ -809,7 +809,7 @@ def search(request):
         request,
         "search.html",
         {   
-            "sources": Source.objects.all().order_by("-job_count"),
+            "sources": Source.objects.all().order_by("-google_result_count"),
             "paginated_jobs": paginated_jobs,
             "paginated_companies": paginated_companies,
             "search_query": search_query,
