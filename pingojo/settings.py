@@ -224,7 +224,7 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER","apikey")
 EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL","email@server.com")
 
-SLACK_WEBHOOK_URL =  os.environ.get("SLACK_WEBHOOK_URL","your_slack_webhook_url")
+SLACK_WEBHOOK_URL =  os.environ.get("SLACK_WEBHOOK_URL","https://hooks.slack.com/services/your_slack_webhook_url")
 ACCOUNT_LOGOUT_CONFIRMATION = False
 ACCOUNT_LOGOUT_ON_GET = True
 

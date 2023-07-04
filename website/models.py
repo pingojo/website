@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
@@ -219,19 +220,26 @@ class Search(BaseModel):
         return self.query
 
 
-class Source(models.Model):
+class Source(BaseModel):
     name = models.CharField(max_length=255)
     website = models.URLField()
     focus = models.CharField(max_length=255,blank=True, null=True)
     from_email = models.EmailField(blank=True, null=True)
     url_structure = models.TextField(blank=True, null=True)
+    search_url = models.URLField(default="",blank=True, null=True)
     job_count = models.PositiveIntegerField(default=0,blank=True, null=True)
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        domain = urlparse(self.website).netloc
+        if domain.startswith('www.'):
+            domain = domain[4:]
+        self.job_count = Job.objects.filter(link__icontains=domain).count()
+        super().save(*args, **kwargs)
     
 # User:
-
 # first_name
 # last_name
 # email
@@ -239,31 +247,27 @@ class Source(models.Model):
 # user_type (job seeker, company, recruiter)
 
 # UserProfile:
-
 # Resume
 # Skills at position
-# Job SeekerProfile:
 
-# user (OneToOneField with User)
-# skills (ManyToManyField with Skill)
-# experience (TextField)
-# education (TextField)
+
+
 # Company:
-
 # user (OneToOneField with User)
 # name
 # description
 # industry
 # location
 # website
-# RecruiterProfile:
 
+# RecruiterProfile:
 # user (OneToOneField with User)
 # rating
 # total_matches
 # earnings
-# Job:
 
+
+# Job:
 # company (ForeignKey to Company)
 # title
 # description
@@ -272,12 +276,9 @@ class Source(models.Model):
 # salary_range
 # job_type (full-time, part-time, contract, etc.)
 # posted_date
-# Skill:
 
-# name
-# description
+
 # Application:
-
 # job (ForeignKey to Job)
 # job_seeker (ForeignKey to User with job seeker user_type)
 # recruiter (ForeignKey to User with recruiter user_type)
@@ -286,8 +287,9 @@ class Source(models.Model):
 # last_email_date
 # commission_fee
 # processing_fee
-# Payment:
 
+
+# Payment:
 # payer (ForeignKey to User)
 # payee (ForeignKey to User)
 # amount
@@ -297,14 +299,13 @@ class Source(models.Model):
 # class JobSeeker(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     skills = models.ManyToManyField('Skill')
-
-
+#     experience (TextField)
+#     education (TextField)
 
 
 # class Recruiter(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     total_earnings = models.DecimalField(max_digits=10, decimal_places=2)
-
 
 # class Match(models.Model):
 #     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
@@ -324,13 +325,9 @@ class Source(models.Model):
 #     terms = models.TextField()
 #     contact_info_exchanged = models.BooleanField(default=False)
 
-
-# class JobSeeker(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
 # class Experience(models.Model):
 #     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
-#     company_name = models.CharField(max_length=255)
+#     company = models.CharField(max_length=255)
 #     position = models.CharField(max_length=255)
 #     start_date = models.DateField()
 #     end_date = models.DateField()
@@ -338,25 +335,4 @@ class Source(models.Model):
 
 
 
-# class Recruiter(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     total_earnings = models.DecimalField(max_digits=10, decimal_places=2)
 
-
-# class Match(models.Model):
-#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
-#     job = models.ForeignKey(Job, on_delete=models.CASCADE)
-#     recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
-#     score = models.FloatField()
-#     commission_adjustment = models.DecimalField(max_digits=6, decimal_places=2)
-
-# class DailyEmail(models.Model):
-#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-#     content = models.TextField()
-#     date_sent = models.DateField()
-
-# class Agreement(models.Model):
-#     job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
-#     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-#     terms = models.TextField()
-#     contact_info_exchanged = models.BooleanField(default=False)

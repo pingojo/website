@@ -785,7 +785,7 @@ def search(request):
 
     send_slack_notification(search)
 
-    jobs_paginator = Paginator(jobs, 10)  # Show 10 jobs per page
+    jobs_paginator = Paginator(jobs, 50)  # Show 10 jobs per page
     jobs_page = request.GET.get("jobs_page", 1)
 
     try:
@@ -795,7 +795,7 @@ def search(request):
 
     paginated_jobs = jobs_paginator.get_page(jobs_page)
 
-    companies_paginator = Paginator(companies, 10)  # Show 10 companies per page
+    companies_paginator = Paginator(companies, 50)  # Show 10 companies per page
     companies_page = request.GET.get("companies_page", 1)
 
     try:
@@ -808,7 +808,8 @@ def search(request):
     return render(
         request,
         "search.html",
-        {
+        {   
+            "sources": Source.objects.all().order_by("-job_count"),
             "paginated_jobs": paginated_jobs,
             "paginated_companies": paginated_companies,
             "search_query": search_query,

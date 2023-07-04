@@ -22,3 +22,7 @@ def keyvalue(dict, key):
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+@register.filter
+def replace_search_term(url, search_query):
+    return url.replace('search_term', search_query)

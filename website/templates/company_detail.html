@@ -93,19 +93,51 @@
             </a>
         </span>
 
+        <style>
+            .auth-buttons {
+                display: flex;
+                align-items: center;
+            }
+        
+            .search-form-company {
+                display: flex;
+                align-items: center;
+               
 
-
+            }
+        
+            .search-input {
+                border: 1px solid #ccc;
+                border-radius: 5px 0 0 5px;
+                height: 36px !important;
+                margin:0px;
+                
+            }
+        
+            .search-btn {
+                margin:0px;
+                border-radius: 0 5px 5px 0;
+                margin-right:20px;
+            }
+        </style>
+        
         <div class="auth-buttons">
+            <form method="get" action="{% url 'search' %}" class="search-form-company">
+                <input type="text" placeholder="Search..." name="search" required class="search-input" style="height:36px;">
+                <button class="login-btn search-btn" style="background-color: #000000;">Search</button>
+            </form>
             <a href="{% url 'job_add' %}" class="login-btn" style="background-color: green;">Post a Job</a>
             <a href="{% url 'jobs_list' %}" class="login-btn" style="background-color: #03a9f4;">Find a Job</a>
             {% if user.is_authenticated %}
             <a href="{% url 'dashboard' %}" class="login-btn" style="background-color: orange;">Dashboard</a>
             <a href="/accounts/logout/" class="login-btn" style="background-color: red;">Logout</a>
             {% else %}
-            <a href="/accounts/signup/" class="login-btn"  style="background-color: orange;">Sign up</a>
+            <a href="/accounts/signup/" class="login-btn" style="background-color: orange;">Sign up</a>
             <a href="/accounts/login/" class="login-btn" style="background-color: red;">Login</a>
             {% endif %}
         </div>
+        
+        
     </header>
     <div
         style="display: flex; justify-content: space-between; align-items: center; background-color: #fcfcfc; padding: 10px; border-bottom:#0000001a 1px solid;">
