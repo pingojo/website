@@ -323,6 +323,7 @@
                         <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">role</th>
                         <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">salary</th>
                         <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">posted</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">added</th>
                         <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">link</th>
                         <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">search</th>
                     </tr>
@@ -338,6 +339,8 @@
                             {% endif %}</td>
                         <td style="border: 1px solid #ccc;">
                             {{ job.posted_date|default:job.created|default:''|date:"m/d"}}</td>
+                        <td style="border: 1px solid #ccc;">
+                                {{ job.created|default:''|date:"m/d"}}</td>
                         <td style="border: 1px solid #ccc;">
                             {% if job.link %}
                                 <a href="{{ job.link }}">Link ({{job.link_status_code }})</a>
@@ -362,7 +365,7 @@
 
             {% endif %}
             <div style="margin-top: 10px; margin-bottom: 10px; display: flex; align-items: center;">
-                <span style="margin-right: 10px;">Search for jobs at:</span>
+                <span style="margin-right: 10px;">Search for {{ company.name }} jobs at:</span>
                 <a href="https://wellfound.com/search?q={{ company.name }}&type=companies" target="_blank">
                     <img src="https://www.google.com/s2/favicons?domain=wellfound.com"
                         style="height:20px; border: 1px solid #ccc; border-radius: 5px;">
