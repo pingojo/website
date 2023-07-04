@@ -534,9 +534,9 @@ class AddJobLink(APIView):
 
         job, _ = Job.objects.update_or_create(
             company=company,
+            role=role,
+            slug=slugify(role + "-at-" + company),
             defaults={
-                "role": role,
-                "slug": slugify(company),
                 "posted_date": posted_date,
                 "salary_min": salary_min,
                 "salary_max": salary_max,
