@@ -30,39 +30,115 @@
 </head>
 
 <body>
-  <header>
+  <style>
+    header {
+        background-color: #f5f5f5;
+
+    }
+
+    body {
+        background-color: #ffffff;
+    }
+
+    .login-btn {
+        /* line-height: 42px; */
+        margin-right: 20px;
+    }
+
+
+    .pulse-border {
+        animation: pulse 5s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            border-color: #ddd;
+        }
+
+        50% {
+            border-color: #000;
+        }
+
+        100% {
+            border-color: #ccc;
+        }
+    }
+
+    footer {
+        background-color: #333;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+    }
+</style>
+  <header style="padding:0px; margin:0px; padding-top:10px;  padding-bottom:10px;">
     {% if messages %}
     <div class="messages">
-      {% for message in messages %}
-      <div class="alert-{{ message.tags }}">
-        {{ message }}
-      </div>
-      {% endfor %}
+        {% for message in messages %}
+        <div class="alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
     </div>
     {% endif %}
-    <div class="logo-container">
-      <a href="/">
-        <img src="{% static 'svg/logo-white.svg' %}" alt="Pingojo Logo" class="logo">
-      </a>
-      <p class="slogan">People-Powered Hiring</p>
+<span style="font-size: 40px; font-weight: bold; margin-left:10px;">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <a href="/" style="color: black; text-decoration: none; line-height: 0px;">
+            <img src="{% static 'svg/logo-black.svg' %}" alt="Pingojo Logo" style="margin:0px;padding:0px;">
+        </a>
+        <small style="color: black; margin-top: 0px; margin-left:51px; font-size: 12px;">People-Powered Hiring</small>
     </div>
-    <form class="search-form" method="get" action="{% url 'search' %}">
-      <div class="search-container">
-        <input type="text" class="search-input" placeholder="Search..." name="search" required>
-        <button class="search-btn">Search</button>
-      </div>
-    </form>
+</span>
 
-    <div>
-      {% if user.is_authenticated %}
-      <a href="{% url 'dashboard' %}" class="login-btn">Dashboard</a>
-      <a href="/accounts/logout/" class="login-btn">Logout</a>
-      {% else %}
-      <a href="/accounts/signup/" class="login-btn">Sign up</a>
-      <a href="/accounts/login/" class="login-btn">Login</a>
-      {% endif %}
+    <style>
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+        }
+    
+        .search-form-company {
+            display: flex;
+            align-items: center;
+           
+
+        }
+    
+        .search-input {
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+            height: 36px !important;
+            margin:0px;
+            
+        }
+    
+        .search-btn {
+            margin:0px;
+            border-radius: 0 5px 5px 0;
+            margin-right:20px;
+        }
+    </style>
+    
+    <div class="auth-buttons">
+        <form method="get" action="{% url 'search' %}" class="search-form-company">
+            <input type="text" placeholder="Search..." name="search" required class="search-input" style="height:36px;">
+            <button class="login-btn search-btn" style="background-color: #000000;">Search</button>
+        </form>
+        <a href="{% url 'job_add' %}" class="login-btn" style="background-color: green;">Post a Job</a>
+        <a href="{% url 'jobs_list' %}" class="login-btn" style="background-color: #03a9f4;">Find a Job</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="login-btn" style="background-color: orange;">Dashboard</a>
+        <a href="/accounts/logout/" class="login-btn" style="background-color: red;">Logout</a>
+        {% else %}
+        <a href="/accounts/signup/" class="login-btn" style="background-color: orange;">Sign up</a>
+        <a href="/accounts/login/" class="login-btn" style="background-color: red;">Login</a>
+        {% endif %}
     </div>
-  </header>
+    
+    
+</header>
 
   {% block content %}
   {% endblock %}
