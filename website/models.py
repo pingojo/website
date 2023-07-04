@@ -109,6 +109,7 @@ class Role(BaseModel):
         return reverse("role-detail", args=[self.slug])
     
 class Job(BaseModel):
+    added_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     title = models.CharField(max_length=255)
     role = models.ForeignKey(Role, on_delete=models.CASCADE, blank=True, null=True)
     slug = models.SlugField(unique=True, max_length=255)

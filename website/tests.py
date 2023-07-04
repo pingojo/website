@@ -111,3 +111,43 @@ class ApplicationAPITestCase(APITestCase):
 
         email = Email.objects.first()
         self.assertEqual(email.gmail_id, data['gmail_id'])
+
+
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth.models import User
+from .models import Job
+from .forms import JobForm
+
+class JobAddTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.job_add_url = reverse('job_add')  # assuming the url name for the view is job_add
+        self.user = User.objects.create_user(username='testuser', password='12345')
+
+    def test_job_add_post(self):
+        self.client.login(username='testuser', password='12345')
+        self.assertTrue(self.client.login(username='testuser', password='12345'))
+        response = self.client.post(self.job_add_url, {
+            'company': 'Test Company',
+            'role': 'Software Developer',
+            'type': 'Full-Time',
+            'location': 'California, USA',
+            'remote': 'true',
+            'link': 'testurl.com',
+            'email': 'test@testcompany.com',
+            'description': 'This is a test job description.'
+        })
+        self.assertEqual(response.status_code, 302)  # After successful post, Django usually redirects so expecting 302
+        self.assertTrue(Job.objects.filter(added_by=self.user).exists())  # check if Job was created for the user
+        new_job = Job.objects.get(added_by=self.user)  # get the Job object associated with the user
+        self.assertEqual(new_job.added_by, self.user)
+        self.assertEqual(new_job.company.name, 'Test Company')
+        self.assertEqual(new_job.role.title, 'Software Developer')
+
+    def test_job_add_get(self):
+        self.client.login(username='testuser', password='12345')
+        response = self.client.get(self.job_add_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], JobForm)
+

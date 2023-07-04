@@ -159,19 +159,25 @@ def update_company(request, company_id):
 
 from django.http import JsonResponse
 
-def job_add(request):
-    if request.method == 'POST':
-        form = JobForm(request.POST)
-        if form.is_valid():
-            job = form.save(commit=False)
-            job.user = request.user
-            job.save()
-            return JsonResponse({'success': True, 'job_id': job.id})
-        else:
-            return JsonResponse({'success': False, 'errors': form.errors})
-    else:
-        form = JobForm()
-    return render(request, 'job_add.html', {'form': form})
+from .models import Company, Role, Job
+
+# def job_add(request):
+#     if request.method == 'POST':
+#         form = JobForm(request.POST)
+#         if form.is_valid():
+#             job = form.save(commit=False)
+#             job.user = request.user
+#             # job.company = form.cleaned_data['company_name']
+#             # job.role = form.cleaned_data['role_title']
+#             job.save()
+
+#             return JsonResponse({'success': True, 'job_id': job.id})
+#         else:
+#             return JsonResponse({'success': False, 'errors': form.errors})
+#     else:
+#         form = JobForm()
+#     return render(request, 'job_add.html', {'form': form})
+
 
 def update_email(request):
     if request.method == "POST":
@@ -371,16 +377,24 @@ def autocomplete(request, model):
     return JsonResponse(results, safe=False)
 
 
-def create_job(request):
+def job_add(request):
     if request.method == "POST":
         form = JobForm(request.POST)
+        
         if form.is_valid():
-            job = form.save()
+            job = form.save(commit=False)  # Do not save the object to DB just yet
+            job.added_by = request.user  # Assign the current user to 'added_by'
+            job.slug = slugify(job.role.title + "-at-" + job.company.name)
+            job.save()  # Now save it to DB
             messages.success(request, "Job created successfully.")
             return redirect("job_detail", slug=job.slug)
+        else:
+            print("form errors", form.errors)
+            messages.error(request, "The form has errors.")
     else:
         form = JobForm()
-    return render(request, "create_job.html", {"form": form})
+    return render(request, "job_add.html", {"form": form})
+
 
 
 def job_sites(request):

@@ -60,7 +60,7 @@ urlpatterns = [
     ),
     path("job_sites/", views.job_sites, name="job_sites"),
     # path('job_sites/<slug:slug>/', views.job_site_detail, name='job_site_detail'),
-    path("create_job/", views.create_job, name="create_job"),
+    path("job_add/", views.job_add, name="job_add"),
     path("autocomplete/<str:model>/", views.autocomplete, name="autocomplete"),
     path('company_list/', CompanyListView.as_view(), name='company_list'),
     path('sources/', SourceListView.as_view(), name='source-list'),
@@ -69,7 +69,6 @@ urlpatterns = [
     path('update-application-link/', views.update_application_link, name='update_application_link'),
     path('job_application_delete/<int:application_id>', views.job_application_delete, name='job_application_delete'),
     path('update_email/', views.update_email, name='update_email'),
-    path('job_add/', views.job_add, name='job_add'),
     path('update_company/<int:company_id>', views.update_company, name='update_company'),
     path('generage_follow_up_email/<int:application_id>', views.generage_follow_up_email, name='generage_follow_up_email'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

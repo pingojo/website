@@ -45,13 +45,33 @@ class AutocompleteTextInput(forms.TextInput):
         return attrs
 
 class JobForm(forms.ModelForm):
-    role = forms.ModelChoiceField(queryset=Role.objects.all(), widget=AutocompleteTextInput(attrs={'id': 'role-autocomplete'}))
-    company = forms.ModelChoiceField(queryset=Company.objects.all(), widget=AutocompleteTextInput(attrs={'id': 'company-autocomplete'}))
+    role = forms.CharField(widget=AutocompleteTextInput(attrs={'id': 'role-autocomplete'}))
+    company = forms.CharField(widget=AutocompleteTextInput(attrs={'id': 'company-autocomplete'}))
 
     class Meta:
         model = Job
-        fields = [ 'link', 'company', 'role', 'salary_min', 'salary_max', 'posted_date', 'closing_date',  'equity_min', 'equity_max']
+        fields = [
+            'link', 
+            'company', 
+            'role', 
+            'salary_min', 
+            'salary_max', 
+            'posted_date', 
+            'closing_date',  
+            'equity_min', 
+            'equity_max', 
+            'description_markdown'
+        ]
 
+    def clean_company(self):
+        name = self.cleaned_data.get('company')
+        company, created = Company.objects.get_or_create(name=name)
+        return company
+
+    def clean_role(self):
+        title = self.cleaned_data.get('role')
+        role, created = Role.objects.get_or_create(title=title)
+        return role
 
 class CompanyUpdateForm(forms.ModelForm):
     class Meta:
