@@ -48,7 +48,7 @@
             <!-- <td>{{ source.from_email }}</td>
             <td>{{ source.url_structure }}</td>-->
             <td>{{ source.job_count }}</td> 
-            <td>{{ source.google_result_count }}</td>
+            <td><a href="https://www.google.com/search?q=site:{{source.get_domain}}" target="_new">{{ source.google_result_count }}</a></td>
         </tr>
         {% empty %}
         <tr>
