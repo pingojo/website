@@ -35,17 +35,20 @@
             <th><a href="?sort=website{% if current_sort == 'website' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'website' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Website</a></th>
             
             <!-- <th><a href="?sort=from_email{% if current_sort == 'from_email' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'from_email' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Email</a></th>
-            <th><a href="?sort=url_structure{% if current_sort == 'url_structure' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'url_structure' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">URL Structure</a></th>
-            <th><a href="?sort=job_count{% if current_sort == 'job_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'job_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Job Count</a></th> -->
+            <th><a href="?sort=url_structure{% if current_sort == 'url_structure' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'url_structure' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">URL Structure</a></th>-->
+            <th><a href="?sort=job_count{% if current_sort == 'job_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'job_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Count</a></th> 
+            <th><a href="?sort=google_result_count{% if current_sort == 'google_result_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'google_result_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Google#</a></th> 
+        
         </tr>
         {% for source in sources %}
         <tr>
-            <td><a href="{{ source.website }}" target="_blank">{{ source.name }}</a></td>
-            <td>({{ source.focus }})</td>
+            <td nowrap><a href="{{ source.website }}" target="_blank">{{ source.name }}</a></td>
+            <td nowrap>({{ source.focus }})</td>
             <td><a href="{{ source.website }}" target="_blank">{{ source.website }}</a></td>
             <!-- <td>{{ source.from_email }}</td>
-            <td>{{ source.url_structure }}</td>
-            <td>{{ source.job_count }}</td> -->
+            <td>{{ source.url_structure }}</td>-->
+            <td>{{ source.job_count }}</td> 
+            <td>{{ source.google_result_count }}</td>
         </tr>
         {% empty %}
         <tr>

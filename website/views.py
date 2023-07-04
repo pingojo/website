@@ -258,8 +258,8 @@ class SourceListView(ListView):
     
     def get_queryset(self):
         queryset = super().get_queryset()
-        sort = self.request.GET.get('sort', '') 
-        direction = self.request.GET.get('direction', '')
+        sort = self.request.GET.get('sort', 'google_result_count') 
+        direction = self.request.GET.get('direction', 'desc')
         if sort:
             if direction == 'desc':
                 sort = '-' + sort
