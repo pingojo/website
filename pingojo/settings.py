@@ -65,12 +65,12 @@ MIDDLEWARE = [
     #"website.middleware.CustomMiddleware",    
 ]
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': './django_cache_directory',
-    }
-}
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#        'LOCATION': './django_cache_directory',
+#    }
+#}
 
 
 CORS_ALLOWED_ORIGINS = [
