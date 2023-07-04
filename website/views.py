@@ -1064,6 +1064,10 @@ class CompanyDetailView(generic.DetailView):
                 company.website = response.url
             company.website_status = response.status_code
             company.save()
+
+        if not company.website and company.email:
+            company.website = f"https://{company.email.split('@')[1]}"
+            company.save()
         
             # disable screenshot code until we can get it working on render
             # if company.website:
