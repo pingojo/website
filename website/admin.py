@@ -50,7 +50,7 @@ class SearchAdmin(admin.ModelAdmin):
     list_display = ('query', 'matched_job_count', 'matched_company_count', 'matched_skill_count', 'matched_role_count')
 
 class SourceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'website', 'search_url', 'url_structure', 'job_count')
+    list_display = ('name', 'website', 'search_url', 'google_result_count', 'url_structure', 'job_count')
     search_fields = ('name',)
     list_filter = ('website',)
     list_editable = ('website','search_url')

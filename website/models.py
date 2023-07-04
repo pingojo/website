@@ -10,7 +10,7 @@ from django.utils.text import slugify
 from bs4 import BeautifulSoup
 import requests
 from functools import lru_cache
-
+import re
 
 class BaseModel(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -228,15 +228,40 @@ class Source(BaseModel):
     url_structure = models.TextField(blank=True, null=True)
     search_url = models.URLField(default="",blank=True, null=True)
     job_count = models.PositiveIntegerField(default=0,blank=True, null=True)
+    google_result_count = models.PositiveIntegerField(default=0,blank=True, null=True)
 
     def __str__(self):
         return self.name
+    
+    def get_google_result_count(self):
+        if self.website:
+            agent = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36"}
 
-    def save(self, *args, **kwargs):
+            response = requests.get("https://www.google.com/search?q=site:"+self.get_domain(), headers=agent)
+            soup = BeautifulSoup(response.content, 'html.parser')
+            result_stats = soup.find(id="result-stats")
+            if result_stats:
+                result_stats = result_stats.text
+                number = re.search(r'(\d+)', result_stats.replace(",", "")) 
+                if number:
+                    return int(number.group(0)) 
+                else:
+                    return 0
+            else:
+                return 0
+        else:
+            return 0
+
+    def get_domain(self):
         domain = urlparse(self.website).netloc
         if domain.startswith('www.'):
             domain = domain[4:]
-        self.job_count = Job.objects.filter(link__icontains=domain).count()
+        return domain
+
+    def save(self, *args, **kwargs):
+        if self.google_result_count < 1:
+            self.google_result_count = self.get_google_result_count()
+        self.job_count = Job.objects.filter(link__icontains=self.get_domain()).count()
         super().save(*args, **kwargs)
     
 # User:
