@@ -108,6 +108,8 @@ CORS_ALLOWED_ORIGINS = CSRF_TRUSTED_ORIGINS = CORS_ORIGIN_WHITELIST = [
     "https://pythoncodingjobs.com"
 ]
 
+SESSION_COOKIE_AGE = 167784760 # 5 years
+
 ROOT_URLCONF = "pingojo.urls"
 
 TEMPLATES = [
