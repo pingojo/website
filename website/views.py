@@ -526,6 +526,7 @@ class AddJobLink(APIView):
         remote = data.get("CompanyRemote", "").strip() == "Yes" or True
         CompanyPhone = data.get("CompanyPhone", "").strip()
         CompanyEmail = data.get("CompanyEmail", "").strip()
+        description = data.get("description", "").strip()
 
 
 
@@ -575,6 +576,7 @@ class AddJobLink(APIView):
                 "location": location,
                 "job_type": job_type,
                 "remote": remote,
+                "description_markdown": description,
             },
         )
         user_applications = Application.objects.filter(

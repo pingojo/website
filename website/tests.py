@@ -215,6 +215,7 @@ class AddJobLinkTestCase(TestCase):
             'datePosted': '2023-07-05',
             'salaryRange': '$50000-$60000',
             'CompanySalary': '',
+            'description': 'This is a test job description.',
             'location': 'California, USA',
             'website': 'testurl.com',
             'CompanyAddress': 'USA',
@@ -235,6 +236,7 @@ class AddJobLinkTestCase(TestCase):
         self.assertEqual(new_job.link, data['link'])
         self.assertEqual(new_job.location, data['location'])
         self.assertEqual(new_job.job_type, data['CompanyStatus'])
+        self.assertEqual(new_job.description_markdown, data['description'])
 
         # Testing the remaining data items
         new_company = Company.objects.get(name=data['company'])
