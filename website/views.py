@@ -514,18 +514,18 @@ class AddJobLink(APIView):
 
         posted_date = data.get("datePosted")
         salaryRange = data.get("salaryRange","").strip()
-        CompanySalary = data.get("CompanySalary","").strip()
+        CompanySalary = data.get("companySalary","").strip()
         if not salaryRange and CompanySalary:
             salaryRange = CompanySalary
         location = data.get("location","").strip()
         website = data.get("website", "").strip()
-        country = data.get("CompanyAddress", "").strip()
+        country = data.get("companyAddress", "").strip()
         if country and not location:
             location = country
-        job_type = data.get("CompanyStatus", "").strip()
-        remote = data.get("CompanyRemote", "").strip() == "Yes" or True
-        CompanyPhone = data.get("CompanyPhone", "").strip()
-        CompanyEmail = data.get("CompanyEmail", "").strip()
+        job_type = data.get("companyStatus", "").strip()
+        remote = data.get("companyRemote", "").strip() == "Yes" or True
+        CompanyPhone = data.get("companyPhone", "").strip()
+        CompanyEmail = data.get("companyEmail", "").strip()
         description = data.get("description", "").strip()
 
 

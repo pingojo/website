@@ -214,15 +214,15 @@ class AddJobLinkTestCase(TestCase):
             'title': self.role.title,
             #'datePosted': '2023-07-05',
             'salaryRange': '$50000-$60000',
-            'CompanySalary': '',
+            'companySalary': '',
             'description': 'This is a test job description.',
             'location': 'California, USA',
             'website': 'testurl.com',
-            'CompanyAddress': 'USA',
-            'CompanyStatus': 'Active',
-            'CompanyRemote': 'Yes',
-            'CompanyPhone': '1234567890',
-            'CompanyEmail': 'test@testcompany.com',
+            'companyAddress': 'USA',
+            'companyStatus': 'Active',
+            'companyRemote': 'Yes',
+            'companyPhone': '1234567890',
+            'companyEmail': 'test@testcompany.com',
             'link': 'https://testurl.com'
         }
 
@@ -235,17 +235,17 @@ class AddJobLinkTestCase(TestCase):
         self.assertEqual(new_job.salary_max, 60000)
         self.assertEqual(new_job.link, data['link'])
         self.assertEqual(new_job.location, data['location'])
-        self.assertEqual(new_job.job_type, data['CompanyStatus'])
+        self.assertEqual(new_job.job_type, data['companyStatus'])
         self.assertEqual(new_job.description_markdown, data['description'])
 
         # Testing the remaining data items
         new_company = Company.objects.get(name=data['company'])
         self.assertEqual(new_company.website, data['website'])
-        self.assertEqual(new_company.email, data['CompanyEmail'])
-        self.assertEqual(new_company.phone, data['CompanyPhone'])
+        self.assertEqual(new_company.email, data['companyEmail'])
+        self.assertEqual(new_company.phone, data['companyPhone'])
 
         # Assume that 'remote' field is a boolean in the Job model
-        self.assertEqual(new_job.remote, True if data['CompanyRemote'] == 'Yes' else False)
+        self.assertEqual(new_job.remote, True if data['companyRemote'] == 'Yes' else False)
 
         # Validate the response data
         self.assertIn('applications', response.json())
