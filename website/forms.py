@@ -47,6 +47,9 @@ class AutocompleteTextInput(forms.TextInput):
 class JobForm(forms.ModelForm):
     role = forms.CharField(widget=AutocompleteTextInput(attrs={'id': 'role-autocomplete'}))
     company = forms.CharField(widget=AutocompleteTextInput(attrs={'id': 'company-autocomplete'}))
+    city = forms.CharField()
+    state = forms.CharField()
+    country = forms.CharField()
 
     class Meta:
         model = Job
@@ -55,9 +58,14 @@ class JobForm(forms.ModelForm):
             'company', 
             'role', 
             'salary_min', 
+            'job_type',
             'salary_max', 
             'posted_date', 
-            'closing_date',  
+            'closing_date',
+            'city',
+            'remote',
+            'state',
+            'country',
             'equity_min', 
             'equity_max', 
             'description_markdown'
@@ -72,6 +80,18 @@ class JobForm(forms.ModelForm):
         title = self.cleaned_data.get('role')
         role, created = Role.objects.get_or_create(title=title)
         return role
+
+    def clean(self):
+        name = self.cleaned_data.get('company')
+        company, created = Company.objects.update_or_create(
+            name=name,
+            defaults={
+                'city': self.cleaned_data.get('city'),
+                'state': self.cleaned_data.get('state'),
+                'country': self.cleaned_data.get('country')
+            }
+        )
+        
 
 class CompanyUpdateForm(forms.ModelForm):
     class Meta:

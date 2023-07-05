@@ -131,9 +131,12 @@ class JobAddTestCase(TestCase):
         response = self.client.post(self.job_add_url, {
             'company': 'Test Company',
             'role': 'Software Developer',
-            'type': 'Full-Time',
+            'job_type': 'Full-Time',
             'location': 'California, USA',
-            'remote': 'true',
+            'city': 'San Francisco',
+            'state': 'CA',
+            'country': 'USA',
+            'remote': True,
             'link': 'testurl.com',
             'email': 'test@testcompany.com',
             'description': 'This is a test job description.'
@@ -143,6 +146,10 @@ class JobAddTestCase(TestCase):
         new_job = Job.objects.get(added_by=self.user)  # get the Job object associated with the user
         self.assertEqual(new_job.added_by, self.user)
         self.assertEqual(new_job.company.name, 'Test Company')
+        self.assertEqual(new_job.company.city, 'San Francisco')
+        self.assertEqual(new_job.company.state, 'CA')
+        self.assertEqual(new_job.company.country, 'USA')
+        self.assertEqual(new_job.remote, True)
         self.assertEqual(new_job.role.title, 'Software Developer')
 
     def test_job_add_get(self):
@@ -151,3 +158,92 @@ class JobAddTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context['form'], JobForm)
 
+
+
+# from selenium import webdriver
+# from selenium.webdriver.common.keys import Keys
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
+# import unittest
+
+# class JobAddFrontendTestCase(unittest.TestCase):
+#     def setUp(self):
+#         self.driver = webdriver.Firefox()  # You can use any browser driver you want
+#         self.driver.get('http://localhost:8000/login')  # Assuming your Django project is running on localhost:8000 and has a login page
+#         self.driver.find_element(By.NAME, "username").send_keys('testuser')
+#         self.driver.find_element(By.NAME, "password").send_keys('12345' + Keys.RETURN)
+#         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "userMenu")))  # assuming there is a user menu appearing after login
+
+#     def test_job_add(self):
+#         self.driver.get('http://localhost:8000/job_add')  # replace with your job_add URL
+#         self.driver.find_element(By.NAME, "company").send_keys('Test Company')
+#         self.driver.find_element(By.NAME, "role").send_keys('Software Developer')
+#         # Continue the above for all the form fields
+#         self.driver.find_element(By.CSS_SELECTOR, "form button[type='submit']").click()
+#         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "jobList")))
+#         jobList = self.driver.find_element(By.ID, "jobList").text  # assuming jobs are listed in an element with id 'jobList'
+#         self.assertIn('Test Company', jobList)
+#         self.assertIn('Software Developer', jobList)
+#         # Continue the above assertions for all the job fields
+
+#     def tearDown(self):
+#         self.driver.quit()
+
+# if __name__ == "__main__":
+#     unittest.main()
+
+from django.test import TestCase, Client
+from django.contrib.auth.models import User
+from rest_framework.test import APIClient
+from .models import Job, Role, Company  # assuming these are the names of your models
+from django.urls import reverse
+
+class AddJobLinkTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.client.force_authenticate(user=self.user)
+        self.add_job_link_url = reverse('add_job_view')  
+        self.role = Role.objects.create(title="Software Developer")
+        self.company = Company.objects.create(name="Test Company")
+
+    def test_add_job_link(self):
+        data = {
+            'company': self.company.name,
+            'title': self.role.title,
+            'datePosted': '2023-07-05',
+            'salaryRange': '$50000-$60000',
+            'CompanySalary': '',
+            'location': 'California, USA',
+            'website': 'testurl.com',
+            'CompanyAddress': 'USA',
+            'CompanyStatus': 'Active',
+            'CompanyRemote': 'Yes',
+            'CompanyPhone': '1234567890',
+            'CompanyEmail': 'test@testcompany.com',
+            'link': 'https://testurl.com'
+        }
+
+        response = self.client.post(self.add_job_link_url, data, format='json')
+        self.assertEqual(response.status_code, 200)  # Checking that the request was processed successfully
+        self.assertTrue(Job.objects.filter(company=self.company, role=self.role).exists())  # Checking that a job was created
+        new_job = Job.objects.get(company=self.company, role=self.role)
+        self.assertEqual(new_job.posted_date.strftime('%Y-%m-%d'), data['datePosted'])
+        self.assertEqual(new_job.salary_min, 50000)
+        self.assertEqual(new_job.salary_max, 60000)
+        self.assertEqual(new_job.link, data['link'])
+        self.assertEqual(new_job.location, data['location'])
+        self.assertEqual(new_job.job_type, data['CompanyStatus'])
+
+        # Testing the remaining data items
+        new_company = Company.objects.get(name=data['company'])
+        self.assertEqual(new_company.website, data['website'])
+        self.assertEqual(new_company.email, data['CompanyEmail'])
+        self.assertEqual(new_company.phone, data['CompanyPhone'])
+
+        # Assume that 'remote' field is a boolean in the Job model
+        self.assertEqual(new_job.remote, True if data['CompanyRemote'] == 'Yes' else False)
+
+        # Validate the response data
+        self.assertIn('applications', response.json())

@@ -508,12 +508,26 @@ class AddJobLink(APIView):
 
     def post(self, request):
         data = request.data
-        company_name = data.get("company")
+
+        company_name = data.get("company").strip()
         role_title = data.get("title", "").strip()
 
-        posted_date = data.get("datePosted")
-        salaryRange = data.get("salaryRange")
-        location = data.get("location")
+        posted_date = data.get("datePosted").strip()
+        salaryRange = data.get("salaryRange").strip()
+        CompanySalary = data.get("CompanySalary").strip()
+        if not salaryRange and CompanySalary:
+            salaryRange = CompanySalary
+        location = data.get("location").strip()
+        website = data.get("website", "").strip()
+        country = data.get("CompanyAddress", "").strip()
+        if country and not location:
+            location = country
+        job_type = data.get("CompanyStatus", "").strip()
+        remote = data.get("CompanyRemote", "").strip() == "Yes" or True
+        CompanyPhone = data.get("CompanyPhone", "").strip()
+        CompanyEmail = data.get("CompanyEmail", "").strip()
+
+
 
         link = data.get("link")
 
@@ -536,13 +550,17 @@ class AddJobLink(APIView):
                 slug=role_slug, defaults={"title": data.get("title", "").strip()[:50]}
             )
 
-        company, _ = Company.objects.get_or_create(
-            slug=slugify(company_name).strip()[:50], defaults={"name": company_name}
+        company, _ = Company.objects.update_or_create(
+            slug=slugify(company_name).strip()[:50], 
+            defaults={
+                "name": company_name,
+                "website": website,
+                "country": country,
+                "email": CompanyEmail,
+                "phone": CompanyPhone,
+                }
         )
 
-        if "wellfound" in link:
-            company.website = data.get("website", "").strip()
-            company.save()
 
         job, _ = Job.objects.update_or_create(
             company=company,
@@ -555,6 +573,8 @@ class AddJobLink(APIView):
                 "link": link,
                 "title": role.title,
                 "location": location,
+                "job_type": job_type,
+                "remote": remote,
             },
         )
         user_applications = Application.objects.filter(
