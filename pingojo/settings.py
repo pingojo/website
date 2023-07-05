@@ -73,15 +73,7 @@ MIDDLEWARE = [
 #}
 
 
-CORS_ALLOWED_ORIGINS = [
-    "https://mail.google.com",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://boards.greenhouse.io",
-    "https://boards.eu.greenhouse.io",
-    "https://wellfound.com",
-    # Add any other allowed origins
-]
+
 
 def show_toolbar(request):
     return request.user.is_superuser
@@ -105,14 +97,15 @@ CORS_ALLOW_CREDENTIALS = True
 #CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ORIGIN_ALLOW_ALL = False
-CSRF_TRUSTED_ORIGINS = [
-    "https://mail.google.com","https://boards.greenhouse.io", "https://wellfound.com", "https://boards.eu.greenhouse.io"]
 
-CORS_ORIGIN_WHITELIST = [
-    'https://mail.google.com',
-    'https://boards.greenhouse.io',
-    'https://boards.eu.greenhouse.io',
-    'https://wellfound.com',
+CORS_ALLOWED_ORIGINS = CSRF_TRUSTED_ORIGINS = CORS_ORIGIN_WHITELIST = [
+    "https://mail.google.com",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://boards.greenhouse.io",
+    "https://boards.eu.greenhouse.io",
+    "https://wellfound.com",
+    "https://pythoncodingjobs.com/"
 ]
 
 ROOT_URLCONF = "pingojo.urls"
