@@ -529,13 +529,17 @@ class AddJobLink(APIView):
             role, _ = Role.objects.get_or_create(
                 slug=role_slug, defaults={"title": role_title}
             )
+        else:
+            role_slug = slugify(data.get("title", "").strip()[:50])
+            role, _ = Role.objects.get_or_create(
+                slug=role_slug, defaults={"title": data.get("title", "").strip()[:50]}
+            )
 
         company, _ = Company.objects.get_or_create(
             slug=slugify(company_name), defaults={"name": company_name}
         )
-        title = ""
+
         if "wellfound" in link:
-            title = data.get("title", "").strip()
             company.website = data.get("website", "").strip()
             company.save()
 
@@ -548,7 +552,7 @@ class AddJobLink(APIView):
                 "salary_min": salary_min,
                 "salary_max": salary_max,
                 "link": link,
-                "title": title,
+                "title": role.title,
                 "location": location,
             },
         )
