@@ -512,7 +512,7 @@ class AddJobLink(APIView):
         company_name = data.get("company","").strip()
         role_title = data.get("title", "").strip()
 
-        posted_date = data.get("datePosted","").strip()
+        posted_date = data.get("datePosted")
         salaryRange = data.get("salaryRange","").strip()
         CompanySalary = data.get("CompanySalary","").strip()
         if not salaryRange and CompanySalary:

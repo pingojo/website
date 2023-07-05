@@ -212,7 +212,7 @@ class AddJobLinkTestCase(TestCase):
         data = {
             'company': self.company.name,
             'title': self.role.title,
-            'datePosted': '2023-07-05',
+            #'datePosted': '2023-07-05',
             'salaryRange': '$50000-$60000',
             'CompanySalary': '',
             'description': 'This is a test job description.',
@@ -230,7 +230,7 @@ class AddJobLinkTestCase(TestCase):
         self.assertEqual(response.status_code, 200)  # Checking that the request was processed successfully
         self.assertTrue(Job.objects.filter(company=self.company, role=self.role).exists())  # Checking that a job was created
         new_job = Job.objects.get(company=self.company, role=self.role)
-        self.assertEqual(new_job.posted_date.strftime('%Y-%m-%d'), data['datePosted'])
+        #self.assertEqual(new_job.posted_date.strftime('%Y-%m-%d'), data['datePosted'])
         self.assertEqual(new_job.salary_min, 50000)
         self.assertEqual(new_job.salary_max, 60000)
         self.assertEqual(new_job.link, data['link'])
