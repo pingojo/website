@@ -536,7 +536,7 @@ class AddJobLink(APIView):
             )
 
         company, _ = Company.objects.get_or_create(
-            slug=slugify(company_name), defaults={"name": company_name}
+            slug=slugify(company_name).strip()[:50], defaults={"name": company_name}
         )
 
         if "wellfound" in link:
