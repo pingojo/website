@@ -776,7 +776,7 @@ def terms_of_service(request):
 
 
 def search(request):
-    search_query = re.sub(r"[^a-zA-Z0-9 ]", "", request.GET.get("search", ""))
+    search_query = re.sub(r"[^a-zA-Z0-9 ]", "", request.GET.get("search", "").strip())
 
     if search_query:
         jobs = Job.objects.filter(
