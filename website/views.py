@@ -509,15 +509,15 @@ class AddJobLink(APIView):
     def post(self, request):
         data = request.data
 
-        company_name = data.get("company").strip()
+        company_name = data.get("company","").strip()
         role_title = data.get("title", "").strip()
 
-        posted_date = data.get("datePosted").strip()
-        salaryRange = data.get("salaryRange").strip()
-        CompanySalary = data.get("CompanySalary").strip()
+        posted_date = data.get("datePosted","").strip()
+        salaryRange = data.get("salaryRange","").strip()
+        CompanySalary = data.get("CompanySalary","").strip()
         if not salaryRange and CompanySalary:
             salaryRange = CompanySalary
-        location = data.get("location").strip()
+        location = data.get("location","").strip()
         website = data.get("website", "").strip()
         country = data.get("CompanyAddress", "").strip()
         if country and not location:
