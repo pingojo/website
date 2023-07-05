@@ -77,6 +77,7 @@ class CustomDurationField(models.DurationField):
 from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from .models import Company
+from django.contrib.sessions.models import Session
 
 import re
 
@@ -989,6 +990,7 @@ class Index(TemplateView):
         context["company_count"] = all_companies.count()
         context["job_count"] = Job.objects.all().count()
         context["sources_count"] = Source.objects.all().count()
+        context["sessions_count"] = Session.objects.all().count()
 
         time_threshold = timezone.now() - timedelta(hours=24)
 
