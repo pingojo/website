@@ -58,8 +58,6 @@ urlpatterns = [
         views.update_application_stage,
         name="update-application-stage",
     ),
-    path("job_sites/", views.job_sites, name="job_sites"),
-    # path('job_sites/<slug:slug>/', views.job_site_detail, name='job_site_detail'),
     path("job_add/", views.job_add, name="job_add"),
     path("autocomplete/<str:model>/", views.autocomplete, name="autocomplete"),
     path('company_list/', CompanyListView.as_view(), name='company_list'),

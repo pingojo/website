@@ -396,13 +396,6 @@ def job_add(request):
     return render(request, "job_add.html", {"form": form})
 
 
-
-def job_sites(request):
-    sources = Source.objects.all()
-    return render(request, "job_sites.html", {"sources": sources})
-
-
-
 @login_required
 def job_application_delete(request, application_id):
     if request.method == "POST":
@@ -549,7 +542,7 @@ class AddJobLink(APIView):
         job, _ = Job.objects.update_or_create(
             company=company,
             role=role,
-            slug=slugify(role + "-at-" + company),
+            slug=slugify(role.title + "-at-" + company.name),
             defaults={
                 "posted_date": posted_date,
                 "salary_min": salary_min,
