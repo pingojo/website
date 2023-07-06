@@ -278,9 +278,8 @@ class JobListView(ListView):
 
 
     def get_queryset(self):
-        # update the only to use the fields above
 
-        return Job.objects.all().only('company', 'role', 'salary_min', 'salary_max', 'posted_date', 'created', 'link', 'link_status_code' ).select_related('company', 'role').order_by('-id')
+        return Job.objects.all().only('company', 'role', 'salary_min', 'salary_max', 'posted_date', 'created', 'link', 'link_status_code' ).select_related('company', 'role').order_by(self.request.GET.get('ordering', '-posted_date'))
     
     # def get_ordering(self):
     #     self.ordering = self.request.GET.get('ordering', '-posted_date')
