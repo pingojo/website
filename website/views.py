@@ -261,25 +261,25 @@ class JobListView(ListView):
     context_object_name = 'jobs'
     paginate_by = 100
 
-    def get_ordering(self):
-        self.ordering = self.request.GET.get('ordering', '-posted_date')
-        return self.ordering
+    # def get_ordering(self):
+    #     self.ordering = self.request.GET.get('ordering', '-posted_date')
+    #     return self.ordering
 
-    def get_queryset(self):
-        ordering = self.get_ordering()
-        direction = '-' if ordering.startswith('-') else ''
-        field = ordering.lstrip('-')
+    # def get_queryset(self):
+    #     ordering = self.get_ordering()
+    #     direction = '-' if ordering.startswith('-') else ''
+    #     field = ordering.lstrip('-')
 
-        queryset = super().get_queryset()
-        queryset = queryset.select_related('company', 'role')
-        queryset = queryset.annotate(null_dates=Case(
-            When(posted_date__isnull=True, then=Value(1)),
-            default=Value(0),
-            output_field=IntegerField(),
-        ))
-        queryset = queryset.order_by('null_dates', f'{direction}{field}')
+    #     queryset = super().get_queryset()
+    #     queryset = queryset.select_related('company', 'role')
+    #     queryset = queryset.annotate(null_dates=Case(
+    #         When(posted_date__isnull=True, then=Value(1)),
+    #         default=Value(0),
+    #         output_field=IntegerField(),
+    #     ))
+    #     queryset = queryset.order_by('null_dates', f'{direction}{field}')
         
-        return queryset
+    #     return queryset
 
 
 
