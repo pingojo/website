@@ -76,7 +76,8 @@ a {
       
       <th><a href="?ordering=salary_min">Min Salary</a></th>
       <th><a href="?ordering=salary_max">Max Salary</a></th>
-      <th><a href="?ordering=posted_date">Posted Date</a></th>
+      <th><a href="?ordering=posted_date">Posted</a></th>
+      <th><a href="?ordering=created">Created</a></th>
       <th>Link</th>
       <th>Status Code</th>
       <th>Search</th>
@@ -101,6 +102,7 @@ a {
           <td>${{ job.salary_min|floatformat:0|intcomma }}</td>
           <td>${{ job.salary_max|floatformat:0|intcomma }}</td>
           <td>{{ job.posted_date }}</td>
+          <td>{{ job.created }}</td>
           <td>{% if job.link %}<a href="{{ job.link }}">Link</a>{% endif %}</td>
           <td>{% if job.link %}{{ job.link_status_code }}{% endif %}</td>
           <td>
