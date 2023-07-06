@@ -80,31 +80,37 @@ from .models import Company
 from django.contrib.sessions.models import Session
 
 import re
+from django.http import JsonResponse
 
+from .models import Company, Role, Job
 
 import logging
+from django.core.cache import cache
+
 
 logger = logging.getLogger(__name__)
 
-def generage_follow_up_email(request, application_id):
-    application = get_object_or_404(Application, pk=application_id)
-    company_name = application.company.name
-    date_applied = application.date_applied.strftime('%-m/%-d')
-    role = application.job.role.title if application.job.title else "[role]"
-    email = application.company.email
-    email_subject = f"Follow up on {role} role at {company_name}"
-    email_body = f"Hi {company_name},\n\nI hope you are doing well. " \
-                 f"I wanted to follow up on my application for the {role} " \
-                 f"role at {company_name} that I submitted on {date_applied}. " \
-                 f"I am very interested in the role and would like to learn " \
-                 f"more about the opportunity. Please let me know if you have " \
-                 f"any questions or if there is anything else I can provide.\n\n" \
-                 f"Thanks,\n\n{request.user.first_name} {request.user.last_name}"
-    return redirect(f"https://mail.google.com/mail/?view=cm&fs=1&to={email}" \
-                    f"&su={email_subject}&body={email_body}")
+# def generage_follow_up_email(request, application_id):
+#     application = get_object_or_404(Application, pk=application_id)
+#     company_name = application.company.name
+#     date_applied = application.date_applied.strftime('%-m/%-d')
+#     role = application.job.role.title if application.job.title else "[role]"
+#     email = application.company.email
+#     email_subject = f"Follow up on {role} role at {company_name}"
+#     email_body = f"Hi {company_name},\n\nI hope you are doing well. " \
+#                  f"I wanted to follow up on my application for the {role} " \
+#                  f"role at {company_name} that I submitted on {date_applied}. " \
+#                  f"I am very interested in the role and would like to learn " \
+#                  f"more about the opportunity. Please let me know if you have " \
+#                  f"any questions or if there is anything else I can provide.\n\n" \
+#                  f"Thanks,\n\n{request.user.first_name} {request.user.last_name}"
+#     return redirect(f"https://mail.google.com/mail/?view=cm&fs=1&to={email}" \
+#                     f"&su={email_subject}&body={email_body}")
 
 
+#reqired login
 
+@login_required
 def update_company(request, company_id):
     company = get_object_or_404(Company, id=company_id)
 
@@ -112,20 +118,39 @@ def update_company(request, company_id):
         email = request.POST.get('email')
         if email and not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return JsonResponse({'success': False, 'error': 'Invalid email address'})
-
-        company.email = email or company.email
-        company.twitter_url = request.POST.get('twitter_url') or company.twitter_url
-        company.number_of_employees_min = request.POST.get('number_of_employees_min') or company.number_of_employees_min
-        company.number_of_employees_max = request.POST.get('number_of_employees_max') or company.number_of_employees_max
-        company.description = request.POST.get('description') or company.description
-        company.website = request.POST.get('website') or company.website
-        company.city = request.POST.get('city') or company.city
-        company.state = request.POST.get('state') or company.state
-        company.country = request.POST.get('country') or company.country
-        company.ceo = request.POST.get('ceo') or company.ceo
-        company.ceo_twitter = request.POST.get('ceo_twitter') or company.ceo_twitter
-
-
+        
+        if not company.email:
+            company.email = email or company.email
+        
+        if not company.twitter_url:
+            company.twitter_url = request.POST.get('twitter_url') or company.twitter_url
+        
+        if not company.number_of_employees_min:
+            company.number_of_employees_min = request.POST.get('number_of_employees_min') or company.number_of_employees_min
+        
+        if not company.number_of_employees_max:
+            company.number_of_employees_max = request.POST.get('number_of_employees_max') or company.number_of_employees_max
+        
+        if not company.description:
+            company.description = request.POST.get('description') or company.description
+        
+        if not company.website:
+            company.website = request.POST.get('website') or company.website
+        
+        if not company.city:
+            company.city = request.POST.get('city') or company.city
+        
+        if not company.state:
+            company.state = request.POST.get('state') or company.state
+        
+        if not company.country:
+            company.country = request.POST.get('country') or company.country
+        
+        if not company.ceo:
+            company.ceo = request.POST.get('ceo') or company.ceo
+        
+        if not company.ceo_twitter:
+            company.ceo_twitter = request.POST.get('ceo_twitter') or company.ceo_twitter
 
         company.save()
 
@@ -158,9 +183,7 @@ def update_company(request, company_id):
 #         form = ChallengeForm()
 #     return render(request, 'challenge.html', {'form': form})
 
-from django.http import JsonResponse
 
-from .models import Company, Role, Job
 
 # def job_add(request):
 #     if request.method == 'POST':
@@ -211,7 +234,6 @@ def update_email(request):
     return JsonResponse({'error': 'Invalid Method or Missing email field'}, status=400)
 
 
-from django.core.cache import cache
 
 class JobListView(ListView):
     model = Job
@@ -281,7 +303,6 @@ class SourceListView(ListView):
 
 
 
-from django.core.cache import cache
 
 class CompanyListView(ListView):
     model = Company
