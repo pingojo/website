@@ -85,7 +85,7 @@ a {
   <tbody>
       {% for job in page_obj %}
       <tr>
-          <td><a href="{% url 'company_detail' job.company.id %}" target="_blank">{{ job.company.name }}</a></td>
+          <td><a href="{% url 'company_detail' slug=company.slug %}" target="_blank">{{ job.company.name }}</a></td>
           <td>
             {% if job.role %}
             {{ job.role }}
