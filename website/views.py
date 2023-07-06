@@ -111,6 +111,26 @@ logger = logging.getLogger(__name__)
 #reqired login
 
 @login_required
+def update_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+
+    if request.method == 'POST':
+        #job.title = request.POST.get('title')
+        #job.description = request.POST.get('description')
+        if not job.role:
+            role = request.POST.get('role')
+            if role:
+                role_slug = slugify(role[:50])
+                role, _ = Role.objects.get_or_create(
+                    slug=role_slug, defaults={"title": role}
+                )
+                job.role = role
+                job.save()
+                return HttpResponse(role)
+
+    return JsonResponse({'success': False})
+
+@login_required
 def update_company(request, company_id):
     company = get_object_or_404(Company, id=company_id)
 
@@ -167,7 +187,7 @@ def update_company(request, company_id):
 
         return JsonResponse({'success': True})
 
-    return render(request, 'update_company.html', {'company': company})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
     
 # def challenge(request):
 #     if request.method == 'POST':
@@ -249,34 +269,17 @@ class JobListView(ListView):
         ordering = self.get_ordering()
         direction = '-' if ordering.startswith('-') else ''
         field = ordering.lstrip('-')
-        
-        # Use Django's caching system
-        queryset = cache.get('jobs_queryset')
-        
-        if not queryset:
-            queryset = super().get_queryset()
-            
-            queryset = queryset.select_related('company','role')  # Replace with your actual foreign key fields
-            
-            queryset = queryset.annotate(null_dates=Case(
-                When(posted_date__isnull=True, then=Value(1)),
-                default=Value(0),
-                output_field=IntegerField(),
-            )).order_by('null_dates', f'{direction}{field}')
-            
-            cache.set('jobs_queryset', queryset, 300)
+
+        queryset = super().get_queryset()
+        queryset = queryset.select_related('company', 'role')
+        queryset = queryset.annotate(null_dates=Case(
+            When(posted_date__isnull=True, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        ))
+        queryset = queryset.order_by('null_dates', f'{direction}{field}')
         
         return queryset
-
-
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        paginator = Paginator(context['jobs'], self.paginate_by)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        context['page_obj'] = page_obj
-        return context
 
 
 

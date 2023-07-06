@@ -4,6 +4,8 @@
 {% load humanize %}
 
 {% block content %}
+<script src="https://unpkg.com/htmx.org@1.6.1"></script>
+
 <style>
 
 #job-list-table {
@@ -28,14 +30,49 @@ a {
     color: blue;
     text-decoration: none;
 }
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    padding: 10px;
+  }
+
+  .pagination a, .pagination .current, .pagination .disabled {
+    display: inline-block;
+    padding: 4px 3px; /* Updated padding for smaller buttons */
+    margin: 0 2px; /* Updated margin for smaller buttons */
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    border-radius: 4px;
+    font-size: 10px; /* Updated font size for smaller buttons */
+  }
+
+  .pagination a:hover {
+    background-color: #ccc;
+  }
+
+  .pagination .current {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .pagination .disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    pointer-events: none;
+  }
 </style>
 
 <h1>Job Listings</h1>
 <table id="job-list-table">
   <thead>
     <tr>
-      <th><a href="?ordering=title">Title</a></th>
       <th><a href="?ordering=company">Company</a></th>
+      <th><a href="?ordering=role">Role</a></th>
+      
       
       <th><a href="?ordering=salary_min">Min Salary</a></th>
       <th><a href="?ordering=salary_max">Max Salary</a></th>
@@ -48,8 +85,18 @@ a {
   <tbody>
       {% for job in page_obj %}
       <tr>
-          <td>{{ job.role|default:job.title }}</td>
           <td>{{ job.company }}</td>
+          <td>
+            {% if job.role %}
+            {{ job.role }}
+            {% else %}
+            <form hx-post="{% url 'update_job' job.id %}" hx-trigger="change"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' >
+                <input type="text" name="role" id="role" value="">
+            </form>
+            {% endif %}
+          </td>
+          
           <td>${{ job.salary_min|floatformat:0|intcomma }}</td>
           <td>${{ job.salary_max|floatformat:0|intcomma }}</td>
           <td>{{ job.posted_date }}</td>
@@ -75,19 +122,35 @@ a {
 
 <div class="pagination">
   <span class="step-links">
-    {% if page_obj.has_previous %}
-      <a href="?page=1">&laquo; first</a>
-      <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-    {% endif %}
+      {% if page_obj.has_previous %}
+          <a href="?page=1{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">&laquo; first</a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">previous</a>
+      {% else %}
+          <span class="disabled">&laquo; first</span>
+          <span class="disabled">previous</span>
+      {% endif %}
 
-    <span class="current-page">
-      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-    </span>
+      {% for i in page_obj.paginator.page_range %}
+          {% if page_obj.number == i %}
+              <span class="current">{{ i }}</span>
+          {% else %}
+              <a href="?page={{ i }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">{{ i }}</a>
+          {% endif %}
+      {% endfor %}
 
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}">next</a>
-      <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-    {% endif %}
+      {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">next</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">last &raquo;</a>
+      {% else %}
+          <span class="disabled">next</span>
+          <span class="disabled">last &raquo;</span>
+      {% endif %}
   </span>
 </div>
+
+</br>
+</br>
+</br>
+</br>
+
 {% endblock %}
