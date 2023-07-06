@@ -56,6 +56,7 @@ class JobAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "title",
+        "slug",
         "role",
         "application_count",
         "company",

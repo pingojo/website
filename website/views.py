@@ -588,7 +588,7 @@ class AddJobLink(APIView):
             application_data.append(
                 {
                     "id": application.id,
-                    "role": application.job.role.title,
+                    "role": application.job.role.title if application.job.role else "",
                     "company": application.company.name,
                     "stage": application.stage.name,
                     "date_applied": application.date_applied,
