@@ -998,7 +998,7 @@ from django.views.decorators.vary import vary_on_cookie
 from django.utils.decorators import method_decorator
 
 @method_decorator(vary_on_cookie, name='dispatch')
-@method_decorator(cache_page(60 * 15), name='dispatch')  # cache for 15 minutes
+@method_decorator(cache_page(60 * 60 * 24), name='dispatch')  # cache for 1 day
 
 class Index(TemplateView):
     template_name = "index.html"
