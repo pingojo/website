@@ -261,6 +261,9 @@ class JobListView(ListView):
     context_object_name = 'jobs'
     paginate_by = 100
 
+    def get_queryset(self):
+        return Job.objects.all().order_by('-id')  # you can order by any field
+    
     # def get_ordering(self):
     #     self.ordering = self.request.GET.get('ordering', '-posted_date')
     #     return self.ordering
@@ -279,7 +282,7 @@ class JobListView(ListView):
     #     ))
     #     queryset = queryset.order_by('null_dates', f'{direction}{field}')
         
-    #     return queryset
+    #     return queryset1
 
 
 
