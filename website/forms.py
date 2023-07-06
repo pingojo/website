@@ -5,6 +5,8 @@ from .models import (Application, Company, Email, Job, Role, Search, Skill,
                      Source, Stage)
 
 
+from django.utils.text import slugify
+
 class CustomSignupForm(SignupForm):
     first_name = forms.CharField(max_length=30, label='First Name')
     last_name = forms.CharField(max_length=30, label='Last Name')
@@ -78,7 +80,13 @@ class JobForm(forms.ModelForm):
 
     def clean_role(self):
         title = self.cleaned_data.get('role')
-        role, created = Role.objects.get_or_create(title=title)
+
+        role_slug = slugify(title[:50])
+        role, _ = Role.objects.get_or_create(
+                slug=role_slug, defaults={"title": title}
+        )
+        
+        #role, created = Role.objects.get_or_create(title=title)
         return role
 
     def clean(self):
