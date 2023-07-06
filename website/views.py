@@ -259,10 +259,28 @@ class JobListView(ListView):
     model = Job
     template_name = 'job_list.html'
     context_object_name = 'jobs'
-    paginate_by = 100
+    paginate_by = 50
+
+
+# <tr>
+#       <th><a href="?ordering=company">Company</a></th>
+#       <th><a href="?ordering=role">Role</a></th>
+      
+      
+#       <th><a href="?ordering=salary_min">Min Salary</a></th>
+#       <th><a href="?ordering=salary_max">Max Salary</a></th>
+#       <th><a href="?ordering=posted_date">Posted</a></th>
+#       <th><a href="?ordering=created">Created</a></th>
+#       <th>Link</th>
+#       <th>Status Code</th>
+#       <th>Search</th>
+#     </tr>
+
 
     def get_queryset(self):
-        return Job.objects.all().order_by('-id')  # you can order by any field
+        # update the only to use the fields above
+
+        return Job.objects.all().only('company', 'role', 'salary_min', 'salary_max', 'posted_date', 'created', 'link', 'link_status_code' ).select_related('company', 'role').order_by('-id')
     
     # def get_ordering(self):
     #     self.ordering = self.request.GET.get('ordering', '-posted_date')
