@@ -68,7 +68,7 @@ urlpatterns = [
     path('job_application_delete/<int:application_id>', views.job_application_delete, name='job_application_delete'),
     path('update_email/', views.update_email, name='update_email'),
     path('update_company/<int:company_id>', views.update_company, name='update_company'),
-    path('generage_follow_up_email/<int:application_id>', views.generage_follow_up_email, name='generage_follow_up_email'),
+    #path('generage_follow_up_email/<int:application_id>', views.generage_follow_up_email, name='generage_follow_up_email'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.ENABLE_DEBUG_TOOLBAR:
