@@ -57,8 +57,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "website.middleware.CustomCsrfMiddleware",
-    #"django.middleware.csrf.CsrfViewMiddleware",
+    #"website.middleware.CustomCsrfMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware", 
     "corsheaders.middleware.CorsMiddleware",
@@ -112,6 +112,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://boards.eu.greenhouse.io",
     "https://wellfound.com",
     "https://pythoncodingjobs.com",
+    "https://taconicbiosciences.applytojob.com",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
