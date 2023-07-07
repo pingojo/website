@@ -111,12 +111,14 @@ CORS_ALLOWED_ORIGINS = [
     "https://boards.eu.greenhouse.io",
     "https://wellfound.com",
     "https://pythoncodingjobs.com",
-    "https://*.applytojob.com",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://\w+\.applytojob\.com$",
 ]
 
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
 
-CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS.copy()
 
 SESSION_COOKIE_AGE = 167784760 # 5 years
 
