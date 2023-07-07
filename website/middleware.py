@@ -22,25 +22,25 @@ class CustomCsrfMiddleware:
 
     def __call__(self, request):
 
-        if request.method == 'POST':
-            referer = request.META.get('HTTP_REFERER')
-            if referer is not None:
-                referer_hostname = urlparse(referer).hostname
-                allowed_origins = [
-                    "mail.google.com",
-                    "pingojo.com",
-                    "localhost",
-                    "localhost:8000",
-                    "127.0.0.1",
-                    "127.0.0.1:8000",
-                    "boards.greenhouse.io",
-                    "boards.eu.greenhouse.io",
-                    "wellfound.com",
-                    "pythoncodingjobs.com",
-                ]
+        # if request.method == 'POST':
+        #     referer = request.META.get('HTTP_REFERER')
+        #     if referer is not None:
+        #         referer_hostname = urlparse(referer).hostname
+        #         allowed_origins = [
+        #             "mail.google.com",
+        #             "pingojo.com",
+        #             "localhost",
+        #             "localhost:8000",
+        #             "127.0.0.1",
+        #             "127.0.0.1:8000",
+        #             "boards.greenhouse.io",
+        #             "boards.eu.greenhouse.io",
+        #             "wellfound.com",
+        #             "pythoncodingjobs.com",
+        #         ]
 
-                if referer_hostname not in allowed_origins and not re.match(r'https://\w+\.applytojob\.com', referer):
-                    return HttpResponseForbidden()
+        #         if referer_hostname not in allowed_origins and not re.match(r'https://\w+\.applytojob\.com', referer):
+        #             return HttpResponseForbidden()
 
         response = self.get_response(request)
 
