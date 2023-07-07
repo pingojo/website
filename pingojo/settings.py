@@ -112,14 +112,13 @@ CORS_ALLOWED_ORIGINS = [
     "https://boards.eu.greenhouse.io",
     "https://wellfound.com",
     "https://pythoncodingjobs.com",
-    "https://applytojob.com",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://[\w-]+\.applytojob\.com$", # This allows for any subdomain
 ]
 
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy() + ['https://*.applytojob.com']
 
 
 SESSION_COOKIE_AGE = 167784760 # 5 years
