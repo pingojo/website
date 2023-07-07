@@ -110,7 +110,8 @@ CORS_ALLOWED_ORIGINS = CSRF_TRUSTED_ORIGINS = CORS_ORIGIN_WHITELIST = [
     "https://boards.greenhouse.io",
     "https://boards.eu.greenhouse.io",
     "https://wellfound.com",
-    "https://pythoncodingjobs.com"
+    "https://pythoncodingjobs.com",
+    "https://applytojob.com",
 ]
 
 SESSION_COOKIE_AGE = 167784760 # 5 years
