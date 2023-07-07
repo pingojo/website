@@ -126,6 +126,18 @@ def update_job(request, job_id):
                 )
                 job.role = role
                 job.save()
+
+                webhook_url = settings.SLACK_WEBHOOK_URL
+        
+                if webhook_url:
+                    message = f"{job.company.name} updated to {role.title}"
+                    payload = {
+                        "text": message,
+                        "channel": "#updates",
+                        "username": "Job Update",
+                        "icon_emoji": ":tada:"
+                    }
+                    requests.post(webhook_url, json=payload)
                 return HttpResponse(role)
 
     return JsonResponse({'success': False})
