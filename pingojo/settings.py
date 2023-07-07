@@ -112,11 +112,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://boards.eu.greenhouse.io",
     "https://wellfound.com",
     "https://pythoncodingjobs.com",
-    "https://taconicbiosciences.applytojob.com",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://\w+\.applytojob\.com$",
+    r"^https://[\w-]+\.applytojob\.com$", # This allows for any subdomain
 ]
 
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
