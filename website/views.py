@@ -180,7 +180,8 @@ def update_company(request, company_id):
             message = f"{company.name} updated:" + str(request.POST)
             payload = {
                 "text": message,
-                "username": "Company Update Notification",
+                "channel": "#updates",
+                "username": "Company Update",
                 "icon_emoji": ":tada:"
             }
             requests.post(webhook_url, json=payload)
@@ -847,9 +848,9 @@ def search(request):
     
     if search_query:
         jobs = Job.objects.filter(
-            Q(title__icontains=search_query) | Q(company__name__icontains=search_query)
+            Q(title__icontains=search_query) | Q(company__name__icontains=search_query) | Q(description__icontains=search_query) 
         )
-        companies = Company.objects.filter(name__icontains=search_query)
+        companies = Company.objects.filter(Q(name__icontains=search_query) | Q(website__icontains=search_query))
     else:
         jobs = Job.objects.all()
         companies = Company.objects.all()

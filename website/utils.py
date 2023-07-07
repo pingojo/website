@@ -76,14 +76,15 @@ from django.conf import settings
 
 def send_slack_notification(search):
     slack_webhook_url = settings.SLACK_WEBHOOK_URL
-    message = f"New search added: {search.query}\n" \
-              f"Matched Jobs: {search.matched_job_count}\n" \
-              f"Matched Companies: {search.matched_company_count}\n" \
-              f"Matched Skills: {search.matched_skill_count}\n" \
-              f"Matched Roles: {search.matched_role_count}"
+    message = f"new search: {search.query} " \
+              f"Jobs: {search.matched_job_count}" \
+              f"Companies: {search.matched_company_count}" \
+              f"Skills: {search.matched_skill_count}" \
+              f"Roles: {search.matched_role_count}"
 
     payload = {
         "text": message,
+        "channel": "#searches",
         "username": "Search Bot",
         "icon_emoji": ":mag:"
     }
