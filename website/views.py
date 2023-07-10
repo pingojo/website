@@ -275,19 +275,7 @@ class JobListView(ListView):
     paginate_by = 50
 
 
-# <tr>
-#       <th><a href="?ordering=company">Company</a></th>
-#       <th><a href="?ordering=role">Role</a></th>
-      
-      
-#       <th><a href="?ordering=salary_min">Min Salary</a></th>
-#       <th><a href="?ordering=salary_max">Max Salary</a></th>
-#       <th><a href="?ordering=posted_date">Posted</a></th>
-#       <th><a href="?ordering=created">Created</a></th>
-#       <th>Link</th>
-#       <th>Status Code</th>
-#       <th>Search</th>
-#     </tr>
+
 
 
     def get_queryset(self):
@@ -842,8 +830,9 @@ class JobDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         job = self.get_object()
-        applications = Application.objects.filter(job=job, user=self.request.user)
-        context['applications'] = applications
+        if self.request.user.is_authenticated:
+            applications = Application.objects.filter(job=job, user=self.request.user)
+            context['applications'] = applications
         context["stages"] = Stage.objects.annotate(count=Count('application')).order_by("-order")
         return context
 
