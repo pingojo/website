@@ -138,19 +138,19 @@
                     <tr id="row-{{ application.id }}">
                         <td>
                             {% if application.company.website %}
-                            <img src="https://www.google.com/s2/favicons?domain={{ application.company.website }}" alt="{{ company.name }} Logo"
-                            height="30px;">
+                            <img src="https://www.google.com/s2/favicons?domain={{ application.company.website }}" alt="{{ application.company.name }} Logo"
+                            height="15px;">
                             {% endif %}
 
                             <a href="{% url 'company_detail' application.company.id %}" target="_blank">{{ application.company.name }}</a>
 
 
                             {% if application.company.website %}
-                            <a href="{{ application.company.website }}" target="_blank">{{ application.company.name }}</a>
-                                <i class="fas fa-external-link-alt" style="font-size:30px;"></i>
+                            <a href="{{ application.company.website }}" target="_blank">
+                                <i class="fas fa-external-link-alt" style="font-size:15px;"></i>
                             </a>
                             {% endif %}
-                        </a>
+                     
 
 
                         </td>
