@@ -142,7 +142,7 @@
                             height="15px;">
                             {% endif %}
 
-                            <a href="{% url 'company_detail' application.company.id %}" target="_blank">{{ application.company.name }}</a>
+                            <a href="{% url 'company_detail' slug=application.company.slug %}" target="_blank">{{ application.company.name }}</a>
 
 
                             {% if application.company.website %}
