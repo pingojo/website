@@ -850,7 +850,13 @@ def search(request):
     if search_query:
         jobs = Job.objects.filter(
             Q(title__icontains=search_query) | Q(company__name__icontains=search_query) | Q(description_markdown__icontains=search_query) 
-        )
+        ).annotate(
+            relevance=Case(
+                When(title__icontains=search_query, then=Value(2)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by("-relevance")
         companies = Company.objects.filter(Q(name__icontains=search_query) | Q(website__icontains=search_query))
     else:
         jobs = Job.objects.all()
