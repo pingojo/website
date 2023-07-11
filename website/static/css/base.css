@@ -356,8 +356,11 @@ form.allauth {
 
 
 input[type=checkbox] {
-    width: 30px;
+    width: auto;
+    text-align: left;
     margin-bottom: 7px;
+    margin-left: 0px;
+    margin-right: 5px;
 }
 
 

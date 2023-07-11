@@ -235,6 +235,7 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL","email@server.com")
 SLACK_WEBHOOK_URL =  os.environ.get("SLACK_WEBHOOK_URL","https://hooks.slack.com/services/your_slack_webhook_url")
 ACCOUNT_LOGOUT_CONFIRMATION = False
 ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_SESSION_REMEMBER = True
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [

@@ -11,10 +11,7 @@
                     {{ field }}
                 {% endif %}
             {% endfor %}
-            <div class="checkbox-container" style="color:grey;">
-                <label class="checkbox-label" for="{{ form.remember.auto_id }}">{{ form.remember.label }}:</label>
-                {{ form.remember }}
-            </div>
+
             <button type="submit">Login</button>
             <div>
                 <p><a href="{% url 'account_signup' %}">Sign up to Pingojo</a></p>
