@@ -112,7 +112,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://boards.eu.greenhouse.io",
     "https://wellfound.com",
     "https://pythoncodingjobs.com",
-    "https://dice.com",
+    "https://www.dice.com",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
