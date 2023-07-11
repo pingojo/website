@@ -69,19 +69,19 @@ a {
 <h1>Job Listings</h1>
 <table id="job-list-table">
   <thead>
-    <tr>
-      <th><a href="?ordering=company">Company</a></th>
-      <th><a href="?ordering=role">Role</a></th>
-      
-      
-      <th><a href="?ordering=salary_min">Min Salary</a></th>
-      <th><a href="?ordering=salary_max">Max Salary</a></th>
-      <th><a href="?ordering=posted_date">Posted</a></th>
-      <th><a href="?ordering=created">Created</a></th>
-      <th>Link</th>
-      <th>Status Code</th>
-      <th>Search</th>
-    </tr>
+<tr>
+<tr>
+  <th><a href="?ordering={% if request.GET.ordering == 'company' %}-company{% else %}company{% endif %}">Company</a></th>
+  <th><a href="?ordering={% if request.GET.ordering == 'role' %}-role{% else %}role{% endif %}">Role</a></th>
+  <th><a href="?ordering={% if request.GET.ordering == 'salary_min' %}-salary_min{% else %}salary_min{% endif %}">Min Salary</a></th>
+  <th><a href="?ordering={% if request.GET.ordering == 'salary_max' %}-salary_max{% else %}salary_max{% endif %}">Max Salary</a></th>
+  <th><a href="?ordering={% if request.GET.ordering == 'posted_date' %}-posted_date{% else %}posted_date{% endif %}">Posted</a></th>
+  <th><a href="?ordering={% if request.GET.ordering == 'created' %}-created{% else %}created{% endif %}">Created</a></th>
+  <th>Link</th>
+  <th>Status Code</th>
+  <th>Search</th>
+</tr>
+</tr>
   </thead>
   <tbody>
       {% for job in page_obj %}
@@ -128,8 +128,8 @@ a {
 <div class="pagination">
   <span class="step-links">
       {% if page_obj.has_previous %}
-          <a href="?page=1{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">&laquo; first</a>
-          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">previous</a>
+          <a href="?page=1{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">&laquo; first</a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">previous</a>
       {% else %}
           <span class="disabled">&laquo; first</span>
           <span class="disabled">previous</span>
@@ -139,13 +139,13 @@ a {
           {% if page_obj.number == i %}
               <span class="current">{{ i }}</span>
           {% else %}
-              <a href="?page={{ i }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">{{ i }}</a>
+              <a href="?page={{ i }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">{{ i }}</a>
           {% endif %}
       {% endfor %}
 
       {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">next</a>
-          <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">last &raquo;</a>
+          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">next</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">last &raquo;</a>
       {% else %}
           <span class="disabled">next</span>
           <span class="disabled">last &raquo;</span>
