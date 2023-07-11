@@ -1,33 +1,38 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="main-content centered-form">
     <div class="container">
         <div class="form-container">
             <form method="post" class="allauth">
-                <h2>Sign Up</h2>
+                <center>
+                <h2>Sign Up to Pingojo</h2>
                 {% csrf_token %}
-                <label for="{{ form.first_name.auto_id }}">{{ form.first_name.label }}</label>
                 {{ form.first_name }}
 
-                <label for="{{ form.last_name.auto_id }}">{{ form.last_name.label }}</label>
                 {{ form.last_name }}
 
-                <label for="{{ form.email.auto_id }}">{{ form.email.label }}</label>
                 {{ form.email }}
 
-                <label for="{{ form.password1.auto_id }}">{{ form.password1.label }}</label>
                 {{ form.password1 }}
 
-                <div class="checkbox-container">
-                    <input type="checkbox" name="terms_agree" id="terms_agree" required>
-                    <label for="terms_agree">I agree to the <a href="{% url 'terms_of_service' %}">Terms of Service</a> and <a href="{% url 'privacy_policy' %}">Privacy Policy</a>.</label>
+                <div class="checkbox-container" >
+                    <input type="checkbox" name="terms_agree" id="terms_agree" required >
+                    <label for="terms_agree" style="font-weight:normal;">I agree to the <a href="{% url 'terms_of_service' %}">Terms of Service</a> and <a href="{% url 'privacy_policy' %}">Privacy Policy</a>.</label>
                 </div>
 
                 <button type="submit">Sign Up</button>
+                
                 <div>
                     <p>Already have an account? <a href="{% url 'account_login' %}">Log in</a></p>
                 </div>
+                <hr>
+                <div style="margin-top: 20px; height:80px;">
+                    <img src="{% static 'img/quote.png' %}" alt="Quote" style="float: left; margin-right: 10px;">
+                    <p style="font-style: italic;">"Pingojo helped me find my dream job! I couldn't be happier with the results."</p>
+                </div>
+            </center>
             </form>
         </div>
     </div>

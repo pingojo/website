@@ -349,17 +349,15 @@ form.allauth {
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
+    /* nowrap */
+    white-space: nowrap;
 }
 
-/* Checkbox label */
-.checkbox-label {
-    margin-left: 0.5rem;
-    font-size: 14px;
-}
+
 
 input[type=checkbox] {
-    vertical-align: middle;
-    margin-top: -2px;
+    width: 30px;
+    margin-bottom: 7px;
 }
 
 

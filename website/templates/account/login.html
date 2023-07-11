@@ -2,25 +2,25 @@
 
 {% block content %}
 <div class="main-content centered-form">
-    <div class="container">
+    <div class="container" style="width:50%; max-width:500px;">
         <form method="post" class="allauth">
-            <h2>Login</h2>
+            <center><h2>Login to Pingojo</h2>
             {% csrf_token %}
             {% for field in form %}
-                {% if field.widget.input_type != 'checkbox' %}
-                    <label for="{{ field.auto_id }}">{{ field.label }}</label>
+                {% if field.label != 'Remember Me' %}
                     {{ field }}
                 {% endif %}
             {% endfor %}
-            <div class="checkbox-container">
-                {{ form.remember_me }}
-                <label class="checkbox-label" for="{{ form.remember_me.auto_id }}">{{ form.remember_me.label }}</label>
+            <div class="checkbox-container" style="color:grey;">
+                <label class="checkbox-label" for="{{ form.remember.auto_id }}">{{ form.remember.label }}:</label>
+                {{ form.remember }}
             </div>
             <button type="submit">Login</button>
             <div>
-                <p><a href="{% url 'account_signup' %}">Sign up</a></p>
-                <p><a href="{% url 'account_reset_password' %}">Forgot password?</a></p>
+                <p><a href="{% url 'account_signup' %}">Sign up to Pingojo</a></p>
+                <p><a href="{% url 'account_reset_password' %}">Forgot your password?</a></p>
             </div>
+        </center>
         </form>
     </div>
 </div>
