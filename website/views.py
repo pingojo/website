@@ -274,13 +274,17 @@ class JobListView(ListView):
     context_object_name = 'jobs'
     paginate_by = 50
 
-
-
-
-
     def get_queryset(self):
-
-        return Job.objects.all().only('company', 'role', 'salary_min', 'salary_max', 'posted_date', 'created', 'link', 'link_status_code' ).select_related('company', 'role').order_by(self.request.GET.get('ordering', '-posted_date'))
+        if self.request.GET.get('view') == "grid":
+            self.template_name = "job_list_grid.html"
+        else:
+            self.template_name = "job_list_table.html"
+        jobs = Job.objects.all().only('company', 'role', 'salary_min', 'salary_max', 'posted_date', 'created', 'link', 'link_status_code' ).select_related('company', 'role').order_by(self.request.GET.get('ordering', '-posted_date'))
+        if self.request.GET.get("apply_by_email", ""):
+            print("apply by email")
+            # filter jobs that have company_email set
+            jobs = jobs.filter(company__email__isnull=False)
+        return jobs
     
     # def get_ordering(self):
     #     self.ordering = self.request.GET.get('ordering', '-posted_date')
@@ -861,6 +865,9 @@ def search(request):
     else:
         jobs = Job.objects.all()
         companies = Company.objects.all()
+    if request.GET.get("apply_by_email", ""):
+        print("apply by email")
+        jobs = jobs.filter(company__email__isnull=False)
 
     search = Search(
         query=search_query,
@@ -872,8 +879,9 @@ def search(request):
     search.save()
 
     send_slack_notification(search)
+    total_jobs = jobs.count()
 
-    jobs_paginator = Paginator(jobs, 50)  # Show 10 jobs per page
+    jobs_paginator = Paginator(jobs, 50) 
     jobs_page = request.GET.get("jobs_page", 1)
 
     try:
@@ -883,24 +891,17 @@ def search(request):
 
     paginated_jobs = jobs_paginator.get_page(jobs_page)
 
-    companies_paginator = Paginator(companies, 50)  # Show 10 companies per page
-    companies_page = request.GET.get("companies_page", 1)
+    if request.GET.get("view", "") == "grid":
+        template = "job_list_grid.html"
 
-    try:
-        companies_page = int(companies_page)
-    except:
-        companies_page = 1
-
-    paginated_companies = companies_paginator.get_page(companies_page)
-
+    else:
+        template = "job_list_table.html"
     return render(
         request,
-        "search.html",
+        template,
         {   
-            "sources": Source.objects.all().order_by("-google_result_count"),
-            "paginated_jobs": paginated_jobs,
-            "paginated_companies": paginated_companies,
-            "search_query": search_query,
+            "page_obj": paginated_jobs,
+            "total_jobs": total_jobs,
         },
     )
 

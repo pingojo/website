@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<script src="https://unpkg.com/htmx.org@1.6.1"></script>
+
+<style>
+
+#job-list-table {
+    margin-top:20px;
+    width: 70%;
+    border-collapse: collapse;
+}
+
+#job-list-table, th, td {
+    border: 1px solid black;
+    padding: 5px;
+    text-align: left;
+}
+
+
+
+a {
+    color: blue;
+    text-decoration: none;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    padding: 10px;
+  }
+
+  .pagination a, .pagination .current, .pagination .disabled {
+    display: inline-block;
+    padding: 4px 3px; /* Updated padding for smaller buttons */
+    margin: 0 2px; /* Updated margin for smaller buttons */
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    border-radius: 4px;
+    font-size: 10px; /* Updated font size for smaller buttons */
+  }
+
+  .pagination a:hover {
+    background-color: #ccc;
+  }
+
+  .pagination .current {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .pagination .disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    pointer-events: none;
+  }
+
+  .apply-button{
+
+padding-left: 5px;
+padding-right: 5px;
+padding-top: 3px;
+padding-bottom: 3px;
+margin:0px;
+border-radius: 5px;
+background-color: #007bff;
+color: white;
+text-decoration: none;
+font-size: 17px;
+margin-right:5px;
+margin-bottom:5px;
+}
+
+
+</style>
+
+
+<div style="display: flex; justify-content: space-between; align-items: center; background-color: #fcfcfc; padding: 10px; border-bottom:#0000001a 1px solid;">
+    <div style="margin-left: 20px; color: black;">
+        <a href="/" style="color: black; text-decoration: none;">HOME </a> &gt;
+        <a href="/jobs" style="color: black; text-decoration: none;">JOBS</a> {% if request.GET.search %} &gt;{% endif %} {{ request.GET.search }}  {% if total_jobs %}({{ total_jobs|intcomma }} results){% endif %}
+    </div>
+    <div style="margin-right: 20px; display: flex; ">
+        <div style="display: flex; align-items: center; margin-left:20px; margin-right:20px;">
+            <input type="checkbox" id="apply_by_email" {% if request.GET.apply_by_email %}checked{% endif %}>
+            <label for="apply_by_email">Apply by Email</label>
+            </div>
+    
+            <script>
+            document.getElementById("apply_by_email").addEventListener("click", function() {
+                if (this.checked) {
+                window.location.href = "/jobs/?view={{ request.GET.view }}&page=1{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}&apply_by_email=true ";
+                } else {
+                window.location.href = "/";
+                }
+            });
+            </script>
+            <!-- add icons to view either grid or list here -->
+            <a href="?view=grid" style="margin-right:10px;"><i class="fa fa-th-large"></i></a>
+            <a href="?view=list"><i class="fa fa-list"></i></a>
+            </div>
+
+</div>
+</div>
+<center>
+<table id="job-list-table">
+  <thead>
+<tr>
+<tr>
+    <th><a href="?view={{ request.GET.view }}&ordering={% if request.GET.ordering == 'company' %}-company{% else %}company{% endif %}">Company</a></th>
+    <th><a href="?view={{ request.GET.view }}&ordering={% if request.GET.ordering == 'role' %}-role{% else %}role{% endif %}">Role</a></th>
+    <th><a href="?view={{ request.GET.view }}&ordering={% if request.GET.ordering == 'location' %}-location{% else %}location{% endif %}">Location</a></th>
+    <th>Salary: <a href="?view={{ request.GET.view }}&ordering={% if request.GET.ordering == 'salary_min' %}-salary_min{% else %}salary_min{% endif %}">Min</a> 
+        <a href="?view={{ request.GET.view }}&ordering={% if request.GET.ordering == 'salary_max' %}-salary_max{% else %}salary_max{% endif %}">Max</a></th>
+    <th><a href="?view={{ request.GET.view }}&ordering={% if request.GET.ordering == 'posted_date' %}-posted_date{% else %}posted_date{% endif %}">Posted</a> /
+    <a href="?view={{ request.GET.view }}&ordering={% if request.GET.ordering == 'created' %}-created{% else %}created{% endif %}">Created</a></th>
+
+    <th>Actions</th>
+</tr>
+</tr>
+  </thead>
+  <tbody>
+      {% for job in page_obj %}
+      <tr>
+          <td>
+            <a href="{% url 'company_detail' slug=job.company.slug %}" target="_blank">{{ job.company.name }}</a>
+          </td>
+          <td>
+            {% if job.role %}
+            {{ job.role }}
+            {% else %}
+            <form hx-post="{% url 'update_job' job.id %}" hx-trigger="change"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' >
+                <input type="text" name="role" id="role" value="">
+            </form>
+            {{job.title}}
+            {% endif %}
+          </td>
+          <td>{{ job.location|default:"" }}</td>
+          <td>{% if job.salary_min  and job.salary_max  %}
+            ${{ job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }}
+            {% endif %}    
+        </td>
+          <td>{% if job.posted_date %}{{ job.posted_date|timesince }}{% else %}{{job.created|timesince}}{% endif %} ago</td>
+
+          <td nowrap>       
+            
+            {% if job.company.email and job.role %}
+                        
+            <a class="apply-button" href="https://mail.google.com/mail/?view=cm&fs=1&to={{ job.company.email|urlencode }}&su=Application%20for%20{{ job.role|urlencode }}%20at%20{{ job.company|urlencode }}&body=Dear%20{{ job.company|urlencode }},%0A%0AI%20am%20writing%20to%20apply%20for%20the%20{{ job.role|urlencode }}%20role%20at%20{{ job.company|urlencode }}.%20I%20am%20very%20interested%20in%20the%20opportunity%20and%20believe%20that%20my%20skills%20and%20experience%20make%20me%20a%20strong%20candidate.%0A%0APlease%20find%20my%20resume%20attached%20to%20this%20email.%20If%20you%20require%20any%20further%20information%20or%20would%20like%20to%20schedule%20an%20interview,%20please%20let%20me%20know.%0A%0AThank%20you%20for%20your%20time%20and%20consideration.%0A%0ASincerely,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}" target="_blank" onclick="copyLink(this)">
+              Apply
+            </a>
+                                    {% endif %}
+
+            <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" 
+            style="text-decoration:none;" target="_blank" target="Searh Your Gmail for {{ job.company.name }}">
+              <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+            </a>
+            <a href="https://www.google.com/search?q={{ job.company }} {{job.role}}" target="_blank" target="Searh Google for {{ job.company }} {{job.role}}"
+            style="text-decoration:none;"  >
+              <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
+            </a>
+            {% if job.link %}
+            {% if job.link_status_code == 200 %}
+            <a href="{{ job.link }}" target="_blank" title="Source Link">
+              <img src="https://www.google.com/s2/favicons?domain={{ job.link }}"
+                            style="height:20px; border: 1px solid #ccc; border-radius: 5px;">
+             
+                            
+            </a>
+            {% endif %}
+            {% endif %}
+            {% if request.user.is_superuser %}
+            <a href="{% url 'admin:website_job_change' job.id %}">edit</a>
+            {% endif %}
+    
+        </td>
+
+      </tr>
+      {% endfor %}
+  </tbody>
+</table>
+</center>
+
+
+
+
+<div class="pagination">
+  <span class="step-links">
+      {% if page_obj.has_previous %}
+          <a href="?view={{ request.GET.view }}&page=1{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">&laquo; first</a>
+          <a href="?view={{ request.GET.view }}&page={{ page_obj.previous_page_number }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">previous</a>
+      {% else %}
+          <span class="disabled">&laquo; first</span>
+          <span class="disabled">previous</span>
+      {% endif %}
+
+      {% for i in page_obj.paginator.page_range %}
+          {% if page_obj.number == i %}
+              <span class="current">{{ i }}</span>
+          {% else %}
+              <a href="?view={{ request.GET.view }}&page={{ i }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">{{ i }}</a>
+          {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+          <a href="?view={{ request.GET.view }}&page={{ page_obj.next_page_number }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">next</a>
+          <a href="?view={{ request.GET.view }}&page={{ page_obj.paginator.num_pages }}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">last &raquo;</a>
+      {% else %}
+          <span class="disabled">next</span>
+          <span class="disabled">last &raquo;</span>
+      {% endif %}
+  </span>
+</div>
+
+
+
+</br>
+</br>
+</br>
+</br>
+
+{% endblock %}
