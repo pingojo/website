@@ -1,0 +1,20 @@
+/* job_form.css */
+.form-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.form-field {
+    flex-basis: 50%;
+}
+
+.form-link {
+    flex-basis: 100%;
+}
+
+.form-salary,
+.form-equity {
+    display: flex;
+    gap: 1rem;
+}

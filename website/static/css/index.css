@@ -1,0 +1,92 @@
+.features {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+
+  
+  .leaderboard {
+      padding: 20px;
+    width: 20%;
+    background-color: #ffffff;
+    box-sizing: border-box;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+  
+  .table-style {
+      width: 100%; /* Make the table stretch the full width */
+      border-collapse: collapse; /* Remove space between borders */
+  }
+  
+  .table-style th,
+  .table-style td {
+      border: 1px solid #000; /* Add a thin border */
+      padding: 10px; /* Add some padding */
+      text-align: center; /* Center the text */
+  }
+  
+  .features {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+  }
+  
+  .benefits {
+      width: 80%;
+      margin-right: 10px; /* added to create space between the benefits and leaderboard */
+      order: 1; /* add this line */
+  }
+  
+  .leaderboard {
+      padding: 20px;
+      width: 20%;
+      background-color: #ffffff;
+      box-sizing: border-box;
+      margin-bottom: 20px;
+      margin-right: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      order: 2; /* add this line */
+  }
+  
+  /* Styles for screens smaller than 768px */
+  @media (max-width: 768px) {
+      .features {
+          flex-direction: column;
+      }
+  
+      .benefits, .leaderboard {
+          width: 100%;
+      }
+  
+      /* Add some margin to the bottom of benefits for spacing */
+      .benefits {
+          margin-bottom: 20px;
+          margin-right: 0;
+          order: 2; /* change the order to 2 */
+      }
+  
+      .leaderboard {
+          order: 1; /* change the order to 1 */
+      }
+  }
+  
+  /* CSS */
+  header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  }
+  
+  
+  @media (min-width: 600px) {
+  header {
+  flex-direction: row;
+  justify-content: space-between;
+  }
+  
+  
+  }

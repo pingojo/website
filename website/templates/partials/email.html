@@ -1,0 +1,10 @@
+{% load static %}
+{% if application.job.company.email %}
+<a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ application.job.company.email }}&su=Application for {{ application.job.role|default:application.job.title }} at {{ company.name }}" target="_blank">{{ application.job.company.email }}</a>
+{% else %}
+<form hx-post="{% url 'update_email' %}" hx-trigger="change" hx-target="this" id="email-form-{{ application.id }}">
+    {% csrf_token %}
+    <input type="hidden" name="application_id" value="{{ application.id }}" />
+    <input type="text" name="email" id="email-{{ application.id }}" class="link-input" placeholder="email" style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;" oninput="this.value = this.value.replace(/\s/g, '');" />
+</form>
+{% endif %}

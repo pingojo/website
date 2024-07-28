@@ -1,0 +1,26 @@
+{% load static %}
+{% if "greenhouse" in application.job.link %}
+<a href="{{ application.job.link }}" target="_blank">greenhouse</a>
+{% elif "lever" in application.job.link %}
+<a href="{{ application.job.link }}" target="_blank">lever</a>
+{% elif "wellfound" in application.job.link %}
+<a href="{{ application.job.link }}" target="_blank">wellfound</a>
+{% elif application.job.link %}
+<a href="{{ application.job.link }}" target="_blank">link</a>
+{% else %}
+<div class="link-input-container" style="display: flex; align-items: flex-start;">
+    <form method="POST" hx-post="{% url 'update_application_link' %}" hx-trigger="change"
+        id="link-form-{{ application.id }}">
+        {% csrf_token %}
+        <input type="hidden" name="application_id" value="{{ application.id }}">
+        <input type="text" name="link" class="link-input" placeholder="link"
+            style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;">
+        <a href="https://www.google.com/search?q={{ application.job.company.name }}" target="_blank"
+            title="Search Google for {{ application.job.company.name }}"
+            style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+            <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
+        </a>
+    </form>
+
+</div>
+{% endif %}

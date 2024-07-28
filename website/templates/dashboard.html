@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+{% load humanize %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+    <style>
+.stage-container {
+    width: 100%;
+    background-color: white;
+    border-top: 1px solid rgb(209, 209, 209);
+    border-bottom: 1px solid rgb(209, 209, 209);
+    display: flex;
+    justify-content: space-between;
+}
+
+.stage {
+    flex-grow: 1;
+    padding: 10px 0;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    font-weight:bold;
+}
+
+/* Default style for ::after pseudo-element */
+.stage::after {
+    content: '';
+    position: absolute;
+    left: 0px;
+    top: 50%;
+    border: solid transparent;
+    border-width: 20px;
+    transform: translateY(-50%);
+}
+.active{
+  text-decoration: underline;
+}
+
+/* Separate selectors for each stage combination */
+.new + .applied::after { border-left-color: white; }
+.applied + .scheduled::after { border-left-color: green; }
+.scheduled + .next::after { border-left-color: dodgerblue; }
+.next + .offer::after { border-left-color: orange; }
+.offer + .passed::after { border-left-color: purple; }
+
+.new { background-color: white; color:black; }
+.applied { background-color: green; }
+.scheduled { background-color: dodgerblue; }
+.next { background-color: orange; }
+.offer { background-color: purple; /* Light Blue */ }
+.passed { background-color: red; }
+
+.hover-visible-link{
+  display: none;
+
+}
+
+.job-card-header:hover .hover-visible-link {
+    display: inline; /* Or 'block', depending on your layout */
+  }
+    </style>
+    <div class="stage-container">
+        <a href="/"
+           class="stage new active"
+           style="color:black;
+                  text-decoration: none">
+            New <span class="number">{{ total_jobs|intcomma }}</span>
+        </a>
+        <a href="/dashboard/?stage=Applied"
+           class="stage applied"
+           style="color:white;
+                  text-decoration: none">
+            Applied <span class="number">{{ stages.0.count|default:0 }}</span>
+        </a>
+        <a href="/dashboard/?stage=Scheduled"
+           class="stage scheduled"
+           style="color:white;
+                  text-decoration: none">
+            Scheduled <span class="number">{{ stages.1.count|default:0 }}</span>
+        </a>
+        <a href="/dashboard/?stage=Next"
+           class="stage next"
+           style="color:black;
+                  text-decoration: none">
+            Next <span class="number">{{ stages.2.count|default:0 }}</span>
+        </a>
+        <a href="/dashboard/?stage=Offer"
+           class="stage offer"
+           style="color:white;
+                  text-decoration: none">
+            Offer <span class="number">0</span>
+        </a>
+        <a href="/dashboard/?stage=Passed"
+           class="stage passed"
+           style="color:white;
+                  text-decoration: none">
+            Passed <span class="number">{{ stages.3.count|default:0 }}</span>
+        </a>
+    </div>
+    <style>
+      .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    padding: 10px;
+  }
+
+  .pagination a, .pagination .current, .pagination .disabled {
+  display: inline-block;
+  padding: 8px 6px; /* Increased padding for larger buttons */
+  margin: 0 4px; /* Increased margin for larger buttons */
+  border: 1px solid #ccc;
+  text-decoration: none;
+  color: #000;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+  .pagination a:hover {
+    background-color: #ccc;
+  }
+
+  .pagination .current {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .pagination .disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    pointer-events: none;
+  }
+  a {
+    color: #007bff;
+    text-decoration: none;
+    background-color: transparent;
+  }
+  a.visited {
+    color: #ccc;
+  }
+  
+
+    table {
+        border-collapse: collapse;
+        border: 1px solid #ccc;
+    }
+    /* make the border go between td also */
+    table td, table th {
+        border: 1px solid #ccc;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+
+    .email-hover {
+    position: relative; 
+    display: inline-block;
+  }
+
+  .hover-box {
+    display: none;
+    position: absolute;
+    z-index: 1;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 0px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Optional: Add a shadow for a nice hover effect */
+  }
+
+
+
+  .email-hover:hover .hover-box {
+    display: block;
+  }
+    </style>
+    <div class="main-content">
+        {% if applications %}
+            <table>
+                <thead>
+                    <tr align="left">
+                        <th>
+                            <a href="?stage={{ stage }}&sort_by=company{% if sort_by == 'company' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Company</a>
+                        </th>
+                        <th>
+                            <a href="?stage={{ stage }}&sort_by=role{% if sort_by == 'role' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Role</a>
+                        </th>
+                        <th>
+                            <a href="?stage={{ stage }}&sort_by=salary{% if sort_by == 'salary' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Salary</a>
+                        </th>
+                        <th>
+                            <a href="?stage={{ stage }}&sort_by=applied{% if sort_by == 'applied' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Applied</a>
+                        </th>
+                        <th>
+                            <a href="?stage={{ stage }}&sort_by=last_email{% if sort_by == 'last_email' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Last Email</a>
+                        </th>
+                        <th>
+                            <a href="?stage={{ stage }}&sort_by=days{% if sort_by == 'days' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Days</a>
+                        </th>
+                        <th>
+                            <a href="?stage={{ stage }}&sort_by=email{% if sort_by == 'email' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Email</a>
+                        </th>
+                        <th>Stage</th>
+                        <th>actions</th>
+                        <th>link</th>
+                        <th>email</th>
+                        <td>g</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="11" class="grouper" data-stage="{{ stage }}">
+                            <strong>{{ stage }}</strong>
+                        </td>
+                    </tr>
+                    {% for application in applications %}
+                        <tr id="row-{{ application.id }}">
+                            <td>
+                                {% if application.company.website %}
+                                    <img src="https://www.google.com/s2/favicons?domain={{ application.company.website }}"
+                                         alt="{{ application.company.name }} Logo"
+                                         height="15px;">
+                                {% endif %}
+                                <a href="{% url 'company_detail' slug=application.company.slug %}"
+                                   target="_blank">{{ application.company.name }}</a>
+                                {% if application.company.website %}
+                                    <a href="{{ application.company.website }}" target="_blank">
+                                        <i class="fas fa-external-link-alt" style="font-size:15px;"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if application.job.role %}
+                                    <a href="{% url 'job_detail' slug=application.job.slug %}"
+                                       target="_blank">{{ application.job.role|truncatechars:50 }}</a>
+                                {% else %}
+                                    <form hx-post="{% url 'update_email' %}"
+                                          hx-trigger="change"
+                                          hx-target="this"
+                                          id="role-form-{{ application.id }}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="application_id" value="{{ application.id }}" />
+                                        <input type="text"
+                                               name="role"
+                                               id="role"
+                                               class="link-input"
+                                               placeholder="role"
+                                               style="height: 20px;
+                                                      width: 120px;
+                                                      display: inline-block;
+                                                      vertical-align: middle;
+                                                      margin:0px" />
+                                    </form>
+                                {% endif %}
+                            </td>
+                            <td nowrap>
+                                {% if application.job.salary_min %}
+                                    ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}
+                                {% endif %}
+                            </td>
+                            <td>{{ application.date_applied|date:"m/d/Y" }}</td>
+                            <td>{{ application.date_of_last_email|date:"m/d/Y" }}</td>
+                            <td>{{ application.days_since_last_email }}</td>
+                            <td valign="top" align="right">
+                                <span style="padding-bottom: 3px;
+                                             margin-left: 5px;
+                                             display: inline-block;
+                                             vertical-align: middle">{{ application.email_set.count }}</span>
+                                <div class="email-hover"
+                                     style="display: inline-block;
+                                            vertical-align: middle">
+                                    <a href='https://mail.google.com/mail/u/0/#search/"{{ application.company.name }}"'
+                                       target="_blank"
+                                       style="margin:0px;
+                                              padding:0px">
+                                        <img src="{% static 'svg/search-mail.svg' %}"
+                                             alt="email"
+                                             width="20"
+                                             height="20">
+                                    </a>
+                                    <div class="hover-box">
+                                        {% for email in application.email_set.all %}
+                                            <p>
+                                                <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
+                                                   target="_blank">{{ email }}</a>
+                                                <span>{{ email.date|date:"m/d/y" }}</span>
+                                            </p>
+                                        {% empty %}
+                                            <p>No emails found.</p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <form method="POST"
+                                      hx-post="{% url 'update-application-stage' %}"
+                                      hx-trigger="change"
+                                      hx-get="{% url 'update-application-stage' %}?application_id={{ application.id }}"
+                                      hx-delete="#row-{{ application.id }}"
+                                      class="stage-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="application_id" value="{{ application.id }}">
+                                    <select name="stage_id"
+                                            class="stage-dropdown stage-dropdown-{{ application.stage.name|lower }}">
+                                        {% for stage in stages %}
+                                            <option value="{{ stage.id }}"
+                                                    {% if stage.id == application.stage.id %}selected{% endif %}>
+                                                {{ stage.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </td>
+                            <td>
+                                {% if application.job.slug %}
+                                    <a href="{% url 'job_detail' application.job.slug %}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'job_application_delete' application.id %}"
+                                   hx-post="{% url 'job_application_delete' application.id %}"
+                                   hx-swap="none"
+                                   hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                   hx-confirm="Are you sure you want to delete this application?">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                            <td nowrap>{% include 'partials/link.html' %}</td>
+                            <td>{% include 'partials/email.html' %}</td>
+                            {% if application.company.email and application.job.role %}
+                                <td nowrap>
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ application.company.email|urlencode }}&su=Follow%20up%20on%20{{ application.job.role|urlencode }}%20at%20{{ application.company|urlencode }}&body=Hi%20{{ application.company|urlencode }},%0A%0AI%20hope%20you%20are%20doing%20well.%20I%20wanted%20to%20follow%20up%20on%20my%20application%20for%20the%20{{ application.job.role|urlencode }}%20role%20at%20{{ application.company|urlencode }}%20that%20I%20submitted%20on%20{{ application.date_applied|date:'F j'|urlencode }}.%20I%20am%20very%20interested%20in%20the%20role%20and%20would%20like%20to%20learn%20more%20about%20the%20opportunity.%20Please%20let%20me%20know%20if%20you%20have%20any%20questions%20or%20if%20there%20is%20anything%20else%20I%20can%20provide.%0A%0AThanks,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}"
+                                       target="_blank"
+                                       onclick="copyLink(this)"><i class="fas fa-envelope" id="email-link-button"></i></a>
+                                </td>
+                            {% else %}
+                                <td></td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div>
+                Add your applications from Gmail using the extension to fill in the Company and Role and they will show here.
+            </div>
+        {% endif %}
+        {% if page_obj.paginator.page_range|length > 1 %}
+            <center>
+                <div class="pagination">
+                    <span class="step-links">
+                        {% if page_obj.has_previous %}
+                            <a href="?stage={{ stage }}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}&page=1">&laquo; first</a>
+                            <a href="?stage={{ stage }}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}&page={{ page_obj.previous_page_number }}">previous</a>
+                        {% endif %}
+                        {% for i in page_obj.paginator.page_range %}
+                            {% if page_obj.number == i %}
+                                <span class="current">{{ i }}</span>
+                            {% else %}
+                                <a href="?page={{ i }}&stage={{ stage }}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}">{{ i }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <a href="?stage={{ stage }}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}&page={{ page_obj.next_page_number }}">next</a>
+                            <a href="?stage={{ stage }}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                        {% endif %}
+                    </span>
+                </div>
+                {% if data_chart1 %}
+                    <div style="width:600px;">
+                        <canvas id="chart1"></canvas>
+                    </div>
+                {% endif %}
+            </center>
+        {% endif %}
+    </div>
+</div>
+</br>
+</br>
+</br>
+</br>
+</br>
+<script>
+
+
+
+function copyLink(icon) {
+            icon.style.color = "yellow";
+}
+
+function updateForm(email, applicationId) {
+    var formId = 'email-form-' + applicationId;
+    var form = document.getElementById(formId);
+    var emailInput = form.querySelector('input[name="email"]');
+    email = email.replace(/<|>/g, '');
+    emailInput.value = email;
+    var event = new Event('change');
+    form.dispatchEvent(event);
+}
+
+
+
+    document.body.addEventListener('htmx:afterSwap', function(event) {        
+        let response;
+
+        try {
+            response = JSON.parse(event.detail.xhr.responseText);
+        } catch (error) {
+            
+            return;
+        }
+        
+        if(response.status == "success") {
+            let rowId = "row-" + response.application_id;
+            let rowElement = document.getElementById(rowId);
+            if(rowElement) {
+                rowElement.remove();
+            }
+        }
+    });
+
+        var chart1Data = {{ data_chart1|safe }};
+    var chart1Ctx = document.getElementById('chart1').getContext('2d');
+    var chart1 = new Chart(chart1Ctx, {
+      type: 'bar',
+      data: chart1Data,
+    });
+</script>
+{% block extra_js %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}
+{% endblock %}

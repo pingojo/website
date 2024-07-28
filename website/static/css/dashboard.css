@@ -1,0 +1,80 @@
+.marquee {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.marquee li {
+    display: inline-block;
+    margin-right: 10px;
+    background-color: transparent;
+    border-radius: 5px;
+
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    height: 50px;
+    line-height: 50px;
+    padding: 0 20px;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+.marquee li a {
+    color: inherit;
+    text-decoration: none;
+}
+.marquee li[data-stage="Applied"] {
+    background-color: green;
+}
+.marquee li[data-stage="Passed"] {
+    background-color: red;
+}
+.marquee li[data-stage="Next"] {
+    background-color: orange;
+}
+.marquee li[data-stage="Scheduled"] {
+    background-color: #03a9f4;
+}
+
+.grouper{
+    color:white;
+}
+.grouper[data-stage="Applied"] {
+    background-color: green;
+}
+
+.grouper[data-stage="Passed"] {
+    background-color: red;
+}
+
+.grouper[data-stage="Next"] {
+    background-color: orange;
+}
+
+.grouper[data-stage="Scheduled"] {
+    background-color: #03a9f4;
+}
+
+.stage-dropdown-applied {
+    background-color: green;
+    color: white;
+}
+
+.stage-dropdown-passed {
+    background-color: red;
+    color: white;
+}
+
+.stage-dropdown-next {
+    background-color: orange;
+    color: white;
+}
+
+.stage-dropdown-scheduled {
+    background-color: #03a9f4;
+    color: white;
+}

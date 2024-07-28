@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://unpkg.com/htmx.org"></script>
+<style>
+    .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .profile,
+    .prompts {
+        width: 45%;
+        /* Adjust as needed */
+    }
+
+    .profile ul,
+    .prompts ul {
+        list-style-type: none;
+    }
+
+    #skills-list {
+        border: 1px solid #ccc;
+        /* Adjust color and width as desired */
+        border-radius: 4px;
+        /* Optional: for rounded corners */
+        padding: 5px;
+        /* Optional: for spacing inside the list */
+        margin-top: 5px;
+        /* Optional: for spacing between the input box and list */
+
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .skills-horizontal-list {
+        list-style-type: none;
+        padding: 0;
+        display: flex;
+        gap: 10px;
+        /* Space between items */
+        flex-wrap: wrap;
+    }
+
+    .skill-item {
+        display: inline-block;
+        /* or flex depending on your design */
+        position: relative;
+        padding-right: 0px;
+    }
+
+    .skill-item .skill-icon {
+        width: 20px;
+        /* Adjust size as needed */
+        height: 20px;
+        /* Adjust size as needed */
+        margin-right: 5px;
+    }
+
+    .delete-skill {
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: inline-block;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .skill-item:hover .delete-skill {
+        opacity: 1;
+    }
+</style>
+
+<div class="container">
+
+    <div class="profile">
+        <h2>Your Pingojo Profile Page</h2>
+
+        {% csrf_token %}
+        <form method="post">
+            {% csrf_token %}
+            {{ profile_form.as_p }}
+            <input type="hidden" name="profile_form" value="profile_form">
+
+            <button type="submit">Save Changes</button>
+        </form>
+
+        <!-- Add the Pingojo profile page link -->
+        <p>View: <a href="/{{ user.username }}" target="_blank">pingojo.com/{{ user.username }}</a></p>
+
+
+
+        <form method="post">
+            <div class="section">
+                <h2>Edit Skills</h2>
+                <input type="text" name="skill" id="skill-input" placeholder="Type to search skills..."
+                    autocomplete="off" hx-get="{% url 'skill_search' %}" hx-swap="outerHTML"
+                    hx-trigger="keyup input changed delay:500ms" hx-target="#autocomplete-skills-results"
+                    hx-indicator="#loading-skills">
+                <div id="autocomplete-skills-results"></div>
+                {% include "partials/_skills_list.html" %}
+
+                <div id="loading-skills" style="display: none;">Loading...</div>
+            </div>
+
+            <div class="section">
+                <h2>Edit Roles</h2>
+                <input type="text" name="role" id="role-input" placeholder="Type to search roles..." autocomplete="off"
+                    hx-get="{% url 'role_search' %}" hx-swap="outerHTML" hx-trigger="keyup input changed delay:500ms"
+                    hx-target="#autocomplete-roles-results" hx-indicator="#loading-roles">
+                <div id="autocomplete-roles-results"></div>
+                {% include "partials/_roles_list.html" %}
+
+                <div id="loading-roles" style="display: none;">Loading...</div>
+            </div>
+
+            <div class="section">
+                <h2>Edit Links</h2>
+                <form method="post">
+                    <input type="hidden" name="add_link" value="add_link">
+                    {% csrf_token %}
+                    {{ links_form.as_p }}
+                    <button type="submit" name="links_form">Update Links</button>
+                </form>
+                {% include "partials/_links_list.html" %}
+            </div>
+
+        </form>
+        <!-- allauth password change link -->
+    </div>
+
+    <div class="prompts">
+
+        <div class="profile">
+            <h2>Profile</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ account_form.as_p }}
+
+
+                <a href="{% url 'account_change_password' %}">Change Password</a>
+                </br>
+                <button type="submit" name="account_form">Update Profile</button>
+            </form>
+            <!-- allauth password change link -->
+        </div>
+        <h2>{% if prompt_form.instance.pk %}Edit Prompt{% else %}Add Prompt{% endif %}</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ prompt_form.as_p }}
+            <button type="submit" name="prompt_form">
+                {% if prompt_form.instance.pk %}Update Prompt{% else %}Add Prompt{% endif %}
+            </button>
+        </form>
+
+        <h2>Your Prompts</h2>
+        <ul>
+            {% for prompt in prompts %}
+            <li>{{ prompt.content }} <a href="{% url 'profile_with_prompt' prompt.id %}">Edit</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

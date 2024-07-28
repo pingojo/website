@@ -1,0 +1,13 @@
+<!-- _links_list.html -->
+<ul id="links-list" class="links-horizontal-list">
+    {% for link in links %}
+        <li>
+            <div class="link-item">
+                <a href="{{link.url}}" target="_blank">{% if link.title %}{{ link.title }}{% else %}{{link.url}}{% endif %}</a>
+                {% if '/accounts/profile' in request.path %}
+                    <span class="delete-link" title="Remove" hx-get="{% url 'delete_link' link.id %}" hx-confirm="Are you sure you want to remove this link?" hx-target="#links-list" hx-swap="outerHTML">&times;</span>
+                {% endif %}
+            </div>
+        </li>
+    {% endfor %}
+</ul>

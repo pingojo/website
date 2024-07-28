@@ -1,0 +1,11 @@
+<!-- templates/partials/role_suggestions.html -->
+
+<ul>
+    {% for role in roles %}
+      <li hx-post="{% url 'update_roles' %}" hx-vals='{"role_id": "{{ role.id }}"}'>
+        {{ role.title }}
+      </li>
+    {% empty %}
+      <li>No roles found.</li>
+    {% endfor %}
+    </ul>

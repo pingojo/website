@@ -1,0 +1,476 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+}
+
+header {
+    background-color: #2c3e50;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+
+.company-search-container {
+    display: inline-flex;
+    align-items: baseline;
+    height: 36px;
+}
+
+.search-container {
+    display: inline-flex;
+    align-items: baseline;
+    height: 36px;
+    margin-left: 20px;
+}
+
+.search-input {
+    padding: 6px 12px;
+    border: none;
+    width: 100%;
+    background-color: white;
+    color: #2c3e50;
+    border-radius: 5px 0 0 5px;
+    font-size: 14px;
+    height: 100%;
+    /* Add this property */
+    box-sizing: border-box;
+    /* Add this property */
+}
+
+.search-btn {
+    padding: 0 12px;
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    border-radius: 0 5px 5px 0;
+    line-height: 20px;
+    height: 100%;
+    /* Add this property */
+    box-sizing: border-box;
+    /* Add this property */
+}
+
+
+.login-btn {
+    background-color: #3498db;
+    padding: 8px 16px;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    height: 36px;
+    line-height: 20px;
+}
+
+.login-btn:hover {
+    background-color: #2980b9;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.logo {
+    max-width: 70%;
+    height: auto;
+}
+.slogan {
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top:20px;
+}
+
+.job-stats {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.stat {
+    width: 30%;
+    font-size: 1.2em;
+    padding: 15px;
+    background-color: #ffffff;
+    margin-top:10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.signup {
+    background-color: #3498db;
+    padding: 10px 20px;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.upload-resume {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.upload-resume input {
+    display: none;
+}
+
+.upload-resume label {
+    background-color: #2ecc71;
+    padding: 10px 20px;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.benefits {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.benefit {
+    width: 30%;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    background-color: #ffffff;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.benefit h3 {
+    margin-top: 0;
+}
+
+.benefit i {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+footer {
+    background-color: #2c3e50;
+    color: white;
+    padding:
+        20px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .benefit {
+        width: 100%;
+    }
+
+    .job-stats {
+        flex-direction: column;
+    }
+
+    .stat {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.company-name {
+    font-size: 2em;
+    text-align: center;
+    margin-bottom: 1.5em;
+}
+
+.company-details p {
+    font-size: 1.1em;
+    margin-bottom: 0.5em;
+}
+
+.jobs-heading {
+    font-size: 1.5em;
+    text-align: center;
+    margin-top: 2em;
+    margin-bottom: 1em;
+}
+
+.job-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.job-item {
+    font-size: 1.1em;
+    margin-bottom: 0.5em;
+}
+
+.add-job-heading {
+    font-size: 1.5em;
+    text-align: center;
+    margin-top: 2em;
+    margin-bottom: 1em;
+}
+
+.add-job-form {
+    display: flex;
+
+}
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 1em;
+    position: relative;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1em;
+    text-align: center;
+    text-decoration: none;
+    color: #ffffff;
+    background-color: #007bff;
+    border: solid 1px #007bff;
+    border-radius: 4px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.prev-company {
+    text-align: left;
+}
+
+.next-company {
+    text-align: right;
+}
+
+.company-name {
+    margin-top: 60px;
+    /* Adjust this value if needed */
+}
+
+.marquee {
+    width: 100%;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    background-color: #4CAF50;
+    margin-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+    /* For smooth scrolling on iOS devices */
+}
+
+.marquee::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar for WebKit browsers */
+}
+
+.marquee ul {
+    display: inline-block;
+    padding: 5px;
+}
+
+.marquee li {
+    display: inline;
+    margin-right: 15px;
+}
+
+.marquee a {
+    color: white;
+    text-decoration: none;
+    font-family: 'Arial', sans-serif;
+    font-size: 18px;
+    padding: 5px 10px 5px 10px;
+    border: 1px solid white;
+    border-radius: 5px;
+}
+
+.marquee a:hover {
+    background-color: white;
+    color: #4CAF50;
+}
+
+
+
+/* Centered form */
+.centered-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+}
+
+/* Form styles */
+form.allauth {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    /* Increase the max-width */
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Checkbox container */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    /* nowrap */
+    white-space: nowrap;
+}
+
+
+
+input[type=checkbox] {
+    width: auto;
+    text-align: left;
+    margin-bottom: 7px;
+    margin-left: 0px;
+    margin-right: 5px;
+}
+
+
+h2 {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+input {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 1rem;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+
+
+
+
+footer a {
+    color: white;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #bdc3c7;
+}
+
+
+@media (max-width: 767px) {
+    .search-container {
+        margin-left: 0;
+    }
+
+    .search-form {
+        flex-grow: 1;
+        max-width: 75%;
+    }
+
+    .login-btn {
+        order: -1;
+        margin-left: auto;
+        margin-bottom: 10px;
+    }
+
+    header {
+        flex-direction: column;
+    }
+}
+/* Success message */
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+/* Error message */
+.alert-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+@media screen and (max-width: 600px) {
+    /* This media query targets screens with a width of 600px or less (typically mobile devices) */
+
+    .search-form {
+        /* Adjust the size of the search box on smaller screens */
+        width: 100%;
+    }
+
+    .search-container {
+        /* Adjust the search-container on smaller screens */
+        width: 80%;
+        margin: auto;
+    }
+
+    .login-btn {
+        /* Adjust the size and placement of the login/signup buttons on smaller screens */
+        display: block;
+        margin: 10px auto;
+    }
+}

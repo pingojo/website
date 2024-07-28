@@ -1,0 +1,14 @@
+<!-- templates/partials/skill_suggestions.html -->
+<ul>
+    {% for skill in skills %}
+      <li hx-post="{% url 'update_skills' %}" 
+      hx-vals='{"skill_id": "{{ skill.id }}"}'
+      hx-target="#skills-list"
+      hx-swap="outerHTML"
+      >
+        {{ skill.name }}
+      </li>
+    {% empty %}
+      <li>No skills found.</li>
+    {% endfor %}
+    </ul>

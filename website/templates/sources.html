@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+
+<style>
+    table {
+        width: 500px;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 15px;
+        text-align: left;
+    }
+    .sorted-asc::after {
+        content: '▲';
+    }
+    .sorted-desc::after {
+        content: '▼';
+    }
+    .table-container {
+        padding: 30px;
+    }
+    h1 {
+        padding-left: 30px;
+    }
+</style>
+<center>
+
+<h1>Job Sources</h1>
+<div class="table-container">
+    <table>
+        <tr>
+            <th><a href="?sort=name{% if current_sort == 'name' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'name' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Name</a></th>
+            <th><a href="?sort=focus{% if current_sort == 'focus' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'focus' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Focus</a></th>
+            <th><a href="?sort=website{% if current_sort == 'website' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'website' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Website</a></th>            
+            <th><a href="?sort=job_count{% if current_sort == 'job_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'job_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Count</a></th> 
+            <th><a href="?sort=google_result_count{% if current_sort == 'google_result_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'google_result_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Google#</a></th> 
+        
+        </tr>
+        {% for source in sources %}
+        <tr>
+            <td nowrap>
+                <img src="https://www.google.com/s2/favicons?domain={{ source.website }}" style="vertical-align: middle; background-color:white; border-radius: 5px; margin-right: 5px; padding-bottom:2px;">
+                <a href="{{ source.website }}" target="_blank">{{ source.name }}</a></td>
+            <td nowrap>({{ source.focus }})</td>
+            <td><a href="{{ source.website }}" target="_blank">{{ source.website }}</a></td>
+            <td>{{ source.job_count }}</td> 
+            <td><a href="https://www.google.com/search?q=site:{{source.get_domain}}" target="_new">{{ source.google_result_count }}</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No sources available.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</center>
+{% endblock %}

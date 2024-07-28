@@ -1,0 +1,19 @@
+<!-- _skills_list.html -->
+<ul id="skills-list" class="skills-horizontal-list">
+    {% for skill in skills %}
+    <li>
+        <div class="skill-item">
+            <img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/{{ skill.slug }}.png"
+                alt="{{ skill.name }} Icon" class="skill-icon"
+                onerror="this.onerror=null; this.src='/static/img/logo.png'">
+
+            {{ skill.name }}
+            {% if '/accounts/profile' in request.path %}
+            <span class="delete-skill" title="Remove" hx-get="{% url 'delete_skill' skill.id %}"
+                hx-confirm="Are you sure you want to remove this skill?" hx-target="#skills-list"
+                hx-swap="outerHTML">&times;</span>
+            {% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>

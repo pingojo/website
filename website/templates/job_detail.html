@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% block seo_header %}
+    <title>{{ job.title }} at {{ job.company.name }}</title>
+    <meta name="description"
+          content="{{ job.description|striptags|truncatechars:155 }}">
+    <meta name="keywords" content="{{ job.job_type }}, {{ job.location }}">
+{% endblock %}
+{% block content %}
+    <style>
+    table {
+        border-collapse: collapse;
+        border: 1px solid #ccc;
+    }
+    /* make the border go between td also */
+    table td, table th {
+        border: 1px solid #ccc;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    .email-hover {
+        position: relative;
+        display: inline-block;
+    }
+
+    .hover-box {
+        display: none;
+        position: absolute;
+        z-index: 1;
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 0px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Optional: Add a shadow for a nice hover effect */
+    }
+
+
+
+    .email-hover:hover .hover-box {
+        display: block;
+    }
+    </style>
+    <div class="main-content">
+        <div class="container">
+            {% if applications %}
+                <h3>Applications</h3>
+                <table>
+                    <thead>
+                        <tr align="left">
+                            <th>Company</th>
+                            <th>Role</th>
+                            <th>Salary</th>
+                            <th>Applied</th>
+                            <th>Last Email</th>
+                            <th>Days</th>
+                            <th>Email</th>
+                            <th>Stage</th>
+                            <th>actions</th>
+                            <th>link</th>
+                            <th>email</th>
+                            <td>g</td>
+                        </tr>
+                    </thead>
+                    {% for application in applications %}
+                        <tr id="row-{{ application.id }}">
+                            <td>
+                                {% if application.job.company.website %}
+                                    <img src="https://www.google.com/s2/favicons?domain={{ application.job.company.website }}"
+                                         style="margin-right: 5px">
+                                {% endif %}
+                                <a href="{% url 'company_detail' slug=application.job.company.slug %}"
+                                   target="_blank"
+                                   style="text-decoration: none;
+                                          font-size:14px">{{ application.job.company.name }}</a>
+                            </td>
+                            <td>
+                                {% if application.job.role %}
+                                    {{ application.job.role|truncatechars:50 }}
+                                {% else %}
+                                    <form hx-post="{% url 'update_email' %}"
+                                          hx-trigger="change"
+                                          hx-target="this"
+                                          id="role-form-{{ application.id }}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="application_id" value="{{ application.id }}" />
+                                        <input type="text"
+                                               name="role"
+                                               id="role"
+                                               class="link-input"
+                                               placeholder="role"
+                                               style="height: 20px;
+                                                      width: 120px;
+                                                      display: inline-block;
+                                                      vertical-align: middle;
+                                                      margin:0px" />
+                                    </form>
+                                {% endif %}
+                            </td>
+                            <td nowrap>
+                                {% if application.job.salary_min %}
+                                    ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}
+                                {% endif %}
+                            </td>
+                            <td>{{ application.date_applied|date:"m/d" }}</td>
+                            <td>{{ application.date_of_last_email|date:"m/d" }}</td>
+                            <td>{{ application.days_since_last_email }}</td>
+                            <td valign="top" align="right">
+                                <span style="padding-bottom: 3px;
+                                             margin-left: 5px;
+                                             display: inline-block;
+                                             vertical-align: middle">{{ application.email_set.count }}</span>
+                                <div class="email-hover"
+                                     style="display: inline-block;
+                                            vertical-align: middle">
+                                    <a href='https://mail.google.com/mail/u/0/#search/"{{ application.company.name }}"'
+                                       target="_blank"
+                                       style="margin:0px;
+                                              padding:0px">
+                                        <img src="{% static 'svg/search-mail.svg' %}"
+                                             alt="email"
+                                             width="20"
+                                             height="20">
+                                    </a>
+                                    <div class="hover-box">
+                                        {% for email in application.email_set.all %}
+                                            <p>
+                                                <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
+                                                   target="_blank">{{ email }}</a>
+                                                <span>({{ email.date|date:"m/d" }})</span>
+                                            </p>
+                                        {% empty %}
+                                            <p>No emails found.</p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <form method="POST"
+                                      hx-post="{% url 'update-application-stage' %}"
+                                      hx-trigger="change"
+                                      hx-get="{% url 'update-application-stage' %}?application_id={{ application.id }}"
+                                      hx-delete="#row-{{ application.id }}"
+                                      class="stage-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="application_id" value="{{ application.id }}">
+                                    <select name="stage_id"
+                                            class="stage-dropdown stage-dropdown-{{ application.stage.name|lower }}">
+                                        {% for stage in stages %}
+                                            <option value="{{ stage.id }}"
+                                                    {% if stage.id == application.stage.id %}selected{% endif %}>
+                                                {{ stage.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </td>
+                            <td>
+                                {% if application.job.slug %}
+                                    <a href="{% url 'job_detail' application.job.slug %}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'job_application_delete' application.id %}"
+                                   hx-post="{% url 'job_application_delete' application.id %}"
+                                   hx-swap="none"
+                                   hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                   hx-confirm="Are you sure you want to delete this application?">
+                                    <i class="fas fa-trash-alt"></i>
+                                    {% if request.user.is_superuser %}
+                                        <a href="{% url 'admin:website_application_change' application.id %}">edit</a>
+                                    {% endif %}
+                                </a>
+                            </td>
+                            <td nowrap>{% include 'partials/link.html' %}</td>
+                            <td>{% include 'partials/email.html' %}</td>
+                            {% if application.company.email and application.job.role %}
+                                <td nowrap>
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ application.company.email|urlencode }}&su=Follow%20up%20on%20{{ application.job.role|urlencode }}%20at%20{{ application.company|urlencode }}&body=Hi%20{{ application.company|urlencode }},%0A%0AI%20hope%20you%20are%20doing%20well.%20I%20wanted%20to%20follow%20up%20on%20my%20application%20for%20the%20{{ application.job.role|urlencode }}%20role%20at%20{{ application.company|urlencode }}%20that%20I%20submitted%20on%20{{ application.date_applied|date:'F j'|urlencode }}.%20I%20am%20very%20interested%20in%20the%20role%20and%20would%20like%20to%20learn%20more%20about%20the%20opportunity.%20Please%20let%20me%20know%20if%20you%20have%20any%20questions%20or%20if%20there%20is%20anything%20else%20I%20can%20provide.%0A%0AThanks,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}"
+                                       target="_blank"
+                                       onclick="copyLink(this)"><i class="fas fa-envelope" id="email-link-button"></i></a>
+                                </td>
+                            {% else %}
+                                <td></td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+            <div class="row">
+                <div class="col-md-8">
+                    <h2>{{ job.title }}
+                    {% if request.user.is_superuser %}
+                        <a href="{% url 'admin:website_job_change' job.id %}">edit</a>
+                    {% endif %}
+                    </h2>
+                    <h4>
+                        Company: <a href="{% url 'company_detail' slug=job.company.slug %}">{{ job.company.name }}</a>
+                    </h4>
+                    {% if job.location %}<p>Location: {{ job.location }}</p>{% endif %}
+                    {% if job.salary_min and job.salary_max %}
+                        <p>Salary: ${{ job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }}</p>
+                    {% endif %}
+                    {% if job.job_type %}<p>Job type: {{ job.job_type }}</p>{% endif %}
+                    <p>Posted on: {{ job.posted_date }}</p>
+                    {% if job.company.email %}
+                        <p>
+                            Company Email: <a href="mailto:{{ job.company.email }}" target="_blank">{{ job.company.email }}</a>
+                        </p>
+                    {% endif %}
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                {% if job.company.email %}
+                                    <a href="mailto:{{ job.company.email }}"
+                                       class="btn btn-primary"
+                                       target="_blank">Apply Now</a>
+                                {% elif job.link %}
+                                    <a href="{{ job.link }}" class="btn btn-primary" target="_blank">Apply Now</a>
+                                {% else %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% if job.description_markdown %}
+                        <hr>
+                        <h3>Job Description</h3>
+                        <p>{{ job.description_markdown|linebreaks }}</p>
+                        <hr>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</br>
+</br>
+</br>
+</br>
+{% endblock %}
+{% block styles %}
+    <style>
+    .main-content {
+        padding: 50px 0;
+    }
+    h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+    h3 {
+        font-size: 24px;
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    p {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+    .card {
+        margin-top: 40px;
+    }
+    </style>
+    <script>
+    function updateForm(email, applicationId) {
+        var formId = 'email-form-' + applicationId;
+        var form = document.getElementById(formId);
+        var emailInput = form.querySelector('input[name="email"]');
+        email = email.replace(/<|>/g, '');
+        emailInput.value = email;
+        var event = new Event('change');
+        form.dispatchEvent(event);
+    }
+    </script>
+{% endblock %}

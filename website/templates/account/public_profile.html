@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{{user.first_name}} {{user.last_name}} {% endblock %}
+{% if user.profile.bio %}
+    {% block description %}{{user.profile.bio|default:""}}{% endblock %}
+{% endif %}
+
+{% block content %}
+
+<style>
+    .container {
+        font-family: Arial, sans-serif;
+        margin: 0 auto;
+        /* Center container */
+        padding: 20px;
+        max-width: 800px;
+        /* Set a max-width for the container */
+        text-align: center;
+        /* Center text */
+    }
+
+    .profile-section {
+        margin-bottom: 20px;
+    }
+
+    h1,
+    h2 {
+        color: #333;
+    }
+
+    .skills-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        /* Remove default margin */
+        display: flex;
+        /* Use flexbox for layout */
+        justify-content: center;
+        /* Center flex items horizontally */
+        flex-wrap: wrap;
+        /* Allow items to wrap */
+    }
+
+    .skills-list li {
+        display: inline;
+        margin: 5px 10px;
+        /* Provide space around items */
+        background: #f2f2f2;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .experience {
+        margin-bottom: 20px;
+    }
+
+    .social-links a {
+        margin: 0 10px;
+        /* Space out links */
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .social-links a:hover {
+        text-decoration: underline;
+    }
+
+
+
+    .skills-horizontal-list {
+        list-style-type: none;
+        padding: 0;
+        display: flex;
+        gap: 10px;
+        /* Space between items */
+    }
+
+    .skill-item {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .skill-item .skill-icon {
+        width: 20px;
+        /* Adjust size as needed */
+        height: 20px;
+        /* Adjust size as needed */
+        margin-right: 5px;
+    }
+</style>
+
+<div class="container">
+    {% if user.is_authenticated %}
+        {% if user == request.user %}
+        <a href="{% url 'profile' %}">Edit</a>
+        {% endif %}
+    {% endif %}
+    <div class="profile-section">
+        <h1>{{user.first_name}} {{user.last_name}}</h1>
+        <p>{{user.profile.bio|default:""}}</p>
+    </div>
+    <div class="profile-section">
+        <h2>Skills</h2>
+        {% include "partials/_skills_list.html" %}
+    </div>
+    <div class="role-section">
+        <h2>Roles</h2>
+        {% include "partials/_roles_list.html" %}
+    </div>
+    <div class="link-section">
+        <h2>Links</h2>
+        {% include "partials/_links_list.html" %}
+    </div>
+
+    <small>profile views: {{user.profile.web_views}}</small>
+
+</div>
+
+{% endblock %}

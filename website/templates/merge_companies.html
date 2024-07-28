@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+    <h1>Merge Companies</h1>
+    <p>
+        Select the company to merge <strong>{{ company1.name }}</strong> and <strong>{{ company2.name }}</strong> into:
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <input type="radio" name="target_company" value="{{ company1.pk }}" required> {{ company1.name }}<br>
+        <input type="radio" name="target_company" value="{{ company2.pk }}" required> {{ company2.name }}<br>
+        <button type="submit">Merge Companies</button>
+    </form>
+{% endblock %}

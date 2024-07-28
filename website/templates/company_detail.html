@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+
+{% block seo_header %}
+<title>{{ company.name }} - Jobs</title>
+<meta name="description" content="{{ company.name }} {{ company.description }}">
+<meta name="keywords"
+    content="Pingojo, recruitment platform, job seekers, recruiters, companies, job matching, virtual recruitment, contact management, real-time dashboard">
+{% endblock %}
+
+
+        {% block logo %}
+        <span style="font-size: 40px; font-weight: bold; margin-left:20px;">
+            <a href="{% if company.website %}{{ company.website }}{% endif %}" {% if company.website %}target="_blank"
+                {% endif %} rel="noopener noreferrer" style="color: black; text-decoration: none;">
+                {% if company.website %}
+                    <img src="https://www.google.com/s2/favicons?domain={{ company.website }}" alt="{{ company.name }} Logo"
+                        height="30px;">
+                {% endif %}
+                {{ company.name }}
+                {% if company.website %}
+                    <i class="fas fa-external-link-alt" style="font-size:30px;"></i>
+                {% endif %}
+                {% if user.is_superuser %}
+                    <a href="{% url 'admin:website_company_change' company.id %}" style="color: black; text-decoration: none;">
+                        <i class="fas fa-edit" style="font-size:30px;"></i>
+                    </a>
+                {% endif %}
+            </a>
+        </span>
+        {% endblock %}
+
+     
+
+    {% block content %}
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; background-color: #fcfcfc; padding: 10px; border-bottom:#0000001a 1px solid;">
+        <div style="margin-left: 20px; color: black;">
+            <a href="/" style="color: black; text-decoration: none;">HOME </a> &gt;
+            <a href="/company_list" style="color: black; text-decoration: none;">COMPANIES</a> &gt; {{ company.name }}
+        </div>
+        <div style="margin-right: 20px;">
+            {% if next_company.slug %}
+            <a href="{% url 'company_detail' next_company.slug %}" style="color: black; text-decoration: none;">Next
+                Company: {{next_company.name}}</a>
+            {% endif %}
+        </div>
+    </div>
+
+
+    {% csrf_token %}
+
+
+
+
+    <div class="container"
+        style="gap: 20px; display: flex; align-items: flex-start; justify-content: space-between; width:100%; max-width: none;">
+
+        <div style="width: 30%;">
+
+
+
+            <div class="company-details">
+
+                {% if not company.website %}
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#website" hx-swap="outerHTML">
+
+                    <input type="text" name="website" id="website" placeholder="website"
+                        value="{{ company.website|default:'' }}">
+            </form>
+                {% endif %}
+
+                {% if company.description %}
+                <p> {{ company.description }}</p>
+                {% else %}
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#description" hx-swap="outerHTML">
+
+                    <textarea name="description" id="description" placeholder="add a company description"
+                        style="width:100%; height:100px; border-radius: 4px; border: 1px solid #ccc;">{{ company.description|default:'' }}</textarea>
+                </form>
+                {% endif %}
+                {% if company.screenshot %}
+                <img src="{{ company.screenshot.url }}"
+                    style="width: 100%; height: auto; border: 1px solid #9b9b9b; border-radius: 20px;">
+                   
+                    {% endif %}
+                
+
+          
+
+                <div style="display: flex; justify-content: center;">
+                    <small style="color:grey;">
+                        status: {{company.status}} 
+                        updated: {{ company.website_status_updated|naturaltime }}</small>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div style="width: 20%;">
+            {% if company.email %}
+            <p><strong>Email:</strong> <a href="mailto:{{ company.email }}">{{ company.email }}</a> | 
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ company.email|urlencode }}">
+                <i class="fas fa-envelope" style="color: #007bff;"></i>
+            </a>
+            </p>
+
+            
+            {% else %}
+            <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#email" hx-swap="outerHTML">
+                <input type="text" name="email" id="email" value="{{ company.email|default:'' }}"
+                    placeholder="add {{company.name}}'s email address">
+            </form>
+            {% endif %}
+
+
+
+            {% if company.twitter_url %}
+            <p><strong>Twitter:</strong> <a href="https://{{ company.twitter_url }}">{{ company.twitter_url }}</a></p>
+            {% else %}
+            <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#twitter_url" hx-swap="outerHTML">
+                <input type="text" name="twitter_url" id="twitter_url" value="{{ company.twitter_url|default:'' }}"
+                    placeholder="add {{company.name}}'s twitter url">
+            </form>
+            {% endif %}
+
+            {% if company.number_of_employees_min and company.number_of_employees_max %}
+            <p># of employees: {{ company.number_of_employees_min }} - {{ company.number_of_employees_max }}</p>
+            {% else %}
+            
+                <span style="width:100%; text-align:center;"># of employees: </span>
+                <div style="display: flex; width:100%;margin-top:5px; ">
+                    <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#number_of_employees_min" hx-swap="outerHTML">
+                    <input type="number" name="number_of_employees_min" id="number_of_employees_min"
+                        style="width:90%; " placeholder="min"
+                        value="{{ company.number_of_employees_min|default:"" }}">
+                    </form>
+                    <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#number_of_employees_max" hx-swap="outerHTML">
+                    <input type="number" name="number_of_employees_max" id="number_of_employees_max" style="width:100%;"
+                        placeholder="max" value="{{ company.number_of_employees_max|default:"" }}">
+                    </form>
+                </div>
+        
+            {% endif %}
+            
+
+
+            {% if company.city and company.state and company.country %}
+            <p><strong>Location:</strong> {{ company.city }}, {{ company.state }}, {{ company.country }}</p>
+            {% else %}
+            <div >
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#city" hx-swap="outerHTML">
+                <input type="text" name="city" id="city" placeholder="city" value="{{ company.city|default:'' }}">
+                </form>
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#state" hx-swap="outerHTML">
+                <input type="text" name="state" id="state" placeholder="state" value="{{ company.state|default:'' }}">
+                </form>
+                <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#country" hx-swap="outerHTML">
+                <input type="text" name="country" id="country" placeholder="country"
+                    value="{{ company.country|default:'' }}">
+                </form>
+            </div>
+            {% endif %}
+
+            {% if company.ceo %}
+            <p><strong>CEO:</strong> {{ company.ceo }}</p>
+            {% else %}
+            <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#ceo" hx-swap="outerHTML">
+                <input type="text" name="ceo" id="ceo" placeholder="add {{company.name}}'s ceo name"
+                    value="{{ company.ceo|default:'' }}">
+         </form> 
+            {% endif %}
+
+            {% if company.ceo_twitter %}
+            <p><strong>CEO TWITTER:</strong> <a href="{{ company.ceo_twitter }}">{{ company.ceo_twitter }}</a></p>
+            {% else %}
+            <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change" style="width:100%;"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#ceo_twitter" hx-swap="outerHTML">
+                <input type="text" name="ceo_twitter" id="ceo_twitter" placeholder="add {{company.name}}'s ceo twitter"
+                    value="{{ company.ceo_twitter|default:'' }}">
+        </form>
+            {% endif %}
+
+
+
+
+
+        </div>
+
+        <div style="width: 50%;">
+
+            <div style="display: flex;">
+                <span style="font-size: 20px; white-space: nowrap; margin-right:20px; margin-top:5px;">
+                    Add Jobs at {{ company.name }}</span>
+                <form method="post" action="{% url 'add_job_link' company.slug %}" class="add-job-form"
+                    style="width:100%;">
+                    {% csrf_token %}
+                    <input type="url" name="job_link" id="job_link" placeholder="Add job links for {{ company.name }}"
+                        required class="pulse-border">
+                </form>
+
+
+            </div>
+
+
+            {% if company.job_set.all %}
+
+
+            <table class="job-list" style="border-collapse: collapse; border: 1px solid #ccc; width:100%;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">role</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">salary</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">posted</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">added</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">link</th>
+                        <th style="border: 1px solid #ccc; text-align: left; color: #ccc;">search</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in company.job_set.all %}
+                    <tr>
+                        <td style="border: 1px solid #ccc;">
+                            <a href="{% url 'job_detail' job.slug %}">{{ job.role|default:job.title|default:job.slug }}</a></td>
+                        <td style="border: 1px solid #ccc;">
+                            {% if job.salary_min and job.salary_max %} 
+                            ${{job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }} 
+                            {% endif %}</td>
+                        <td style="border: 1px solid #ccc;">
+                            {{ job.posted_date|default:job.created|default:''|date:"m/d/Y"}}</td>
+                        <td style="border: 1px solid #ccc;">
+                                {{ job.created|default:''|date:"m/d/Y"}}</td>
+                        <td style="border: 1px solid #ccc;">
+                            {% if job.link %}
+                                <a href="{{ job.link }}">Link ({{job.link_status_code }})</a>
+                            {% endif %}</td>
+                        <td style="border: 1px solid #ccc;">
+                            <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" target="_blank"
+                                target="Searh Your Gmail for {{ job.company.name }}">
+                                <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+                            </a>
+                            <a href="https://www.google.com/search?q={{ job.role|default:job.title }} at {{ job.company.name }}"
+                                target="_blank" target="Searh Google for {{ job }}">
+                                <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+
+            {% endif %}
+            <div style="margin-top: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+                <span style="margin-right: 10px;">Search for {{ company.name }} jobs at:</span>
+                <a href="https://wellfound.com/search?q={{ company.name }}&type=companies" target="_blank">
+                    <img src="https://www.google.com/s2/favicons?domain=wellfound.com"
+                        style="height:20px; border: 1px solid #ccc; border-radius: 5px;">
+                </a>
+                <a href="https://google.com/search?q=site:greenhouse.io {{ company.name }}" target="_blank">
+                    <img src="https://www.google.com/s2/favicons?domain=greenhouse.io"
+                        style="height:20px; border: 1px solid #ccc; border-radius: 5px;">
+                </a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

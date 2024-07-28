@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main-content centered-form">
+    <div class="container">
+        <form method="post" class="allauth">
+            <h2>Add Email Address</h2>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Add Email</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+<!-- _roles_list.html -->
+<ul id="roles-list" class="roles-horizontal-list">
+    {% for role in roles %}
+        <li>
+            <div class="role-item">
+                {{ role.title }}
+                {% if '/accounts/profile' in request.path %}
+               
+                <span class="delete-role" title="Remove" 
+                hx-get="{% url 'delete_role' role.id %}" hx-confirm="Are you sure you want to remove this role?" 
+                hx-target="#roles-list" 
+                hx-swap="outerHTML">&times;</span>
+                {% endif %}
+            </div>
+        </li>
+    {% endfor %}
+</ul>

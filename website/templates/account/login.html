@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main-content centered-form">
+    <div class="container" style="width:50%; max-width:500px;">
+        <form method="post" class="allauth">
+            <center><h2>Login to Pingojo</h2>
+            {% csrf_token %}
+            {% for field in form %}
+                {% if field.label != 'Remember Me' %}
+                    {{ field }}
+                {% endif %}
+            {% endfor %}
+
+            <button type="submit">Login</button>
+            <div>
+                <p><a href="{% url 'account_signup' %}">Sign up to Pingojo</a></p>
+                <p><a href="{% url 'account_reset_password' %}">Forgot your password?</a></p>
+            </div>
+        </center>
+        </form>
+    </div>
+</div>
+{% endblock %}

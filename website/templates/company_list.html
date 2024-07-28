@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+ 
+  <style>
+    .center-table {
+      margin-left: auto;
+      margin-right: auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .job-site-button {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: none;
+    }
+    .greenhouse {
+      background-color: #38b2a7;
+    }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    padding: 10px;
+  }
+
+  .pagination a, .pagination .current, .pagination .disabled {
+    display: inline-block;
+    padding: 4px 3px; /* Updated padding for smaller buttons */
+    margin: 0 2px; /* Updated margin for smaller buttons */
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    border-radius: 4px;
+    font-size: 10px; /* Updated font size for smaller buttons */
+  }
+
+  .pagination a:hover {
+    background-color: #ccc;
+  }
+
+  .pagination .current {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .pagination .disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    pointer-events: none;
+  }
+</style>
+<center>
+  <h1>Company List</h1>
+</center>
+{% include "partials/pagination.html" %}
+<script>
+  function invertSorting(sortField) {
+  return sortField.startsWith("-") ? sortField.slice(1) : "-" + sortField;
+}
+</script>
+
+  <table class="center-table">
+    <thead>
+      <tr>
+        <th>Favicon</th>
+        <th><a href="?order={% if request.GET.order == 'name' %}-{% endif %}name">Name</a></th>
+        <th>website</th>
+        <th># of Jobs</th>
+        <th>Greenhouse</th>
+        <th>Wellfound</th>
+        <th>Lever</th>
+        <th>Careers</th>
+        <th>Application Stage</th>
+        <th>Search Email</th>
+        <th><a href="?order={% if request.GET.order == 'created' %}-{% endif %}created">Created</a></th>
+        {% if user.is_superuser %}
+          <th>Actions</th>
+        {% endif %}
+        <th><a href="?order={% if request.GET.order == 'skills' %}-{% endif %}skills">Skills</a></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for company in companies %}
+        <tr id="company-{{ company.id }}" align="left">
+          <td>
+            {% if company.website %}
+              <img src="https://www.google.com/s2/favicons?domain={{ company.website }}" alt="{{ company.name }} favicon" />
+            {% endif %}
+          </td>
+          <td>
+           
+            <a href="/company/{{company.slug}}" target="_blank">{{ company.name }}</a></td>
+
+          </td>
+          <td>
+          {% if company.website %}
+          <a href="{{ company.website }}" target="_blank">{{ company.website|truncatechars:30 }}</a>
+          {% else %}
+
+          <a href="https://www.google.com/search?q={{ company.name|urlencode }}" target="_blank">google it: {{ company.name }}</a>
+          
+          <form method="post" class="company-update-form" action="">
+            {% csrf_token %}
+            <input type="text" name="website" value="{{ company.website }}">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            <input type="hidden" name="order" value="{{ request.GET.order }}">
+            <input type="hidden" name="page" value="{{ request.GET.page }}">
+            <button type="submit">Update</button>
+          </form>
+        
+          {% endif %}
+        </td>
+          <td>{{ company.job_count }}</td>
+          <td>
+            {% if company.greenhouse_url %}
+              <a href="{{ company.greenhouse_url }}" target="_blank">
+                &#x2617;
+              </a>
+            {% endif %}
+          </td>
+          <td>
+            {% if company.wellfound_url %}
+
+              <a href="{{ company.wellfound_url }}" target="_blank">
+                &#x2617;
+              </a>
+            {% endif %}
+          </td>
+          <td>
+            {% if company.lever_url %}
+
+              <a href="{{ company.lever_url }}" target="_blank">
+                &#x2617;
+              </a>
+            {% endif %}
+          </td>
+          <td>
+            {% if company.website %}
+              <a href="{{ company.website }}/careers" target="_blank">
+                &#x2617;
+              </a>
+            {% endif %}
+           
+          </td>
+
+          <td>
+            stage-name
+          </td>
+          <td>
+
+            <a href="https://mail.google.com/mail/u/0/#search/{{ company.name }}" target="_blank">
+
+           
+            <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
+        </a>
+        </td>
+          <td>{{ company.created|date:"F j, Y" }}</td>
+          {% if user.is_superuser %}
+          <td><a href="{% url 'admin:website_company_change' company.id %}">Update</a></td>
+        {% endif %}
+          <td>skills
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "partials/pagination.html" %}
+</br>
+</br>
+<script>
+  function isValidURL(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const urlInputs = document.querySelectorAll('.company-update-form input[type="url"]');
+
+
+  urlInputs.forEach(input => {
+    input.addEventListener('paste', function() {
+      setTimeout(() => {
+        if (isValidURL(this.value)) {
+          const currentRow = this.closest('tr');
+          const nextRow = currentRow.nextElementSibling;
+          if (nextRow) {
+            if (nextRow.textContent.includes('google it')) {
+              const nextLink = nextRow.querySelector('a[href*="google"]');
+              if (nextLink) {
+                this.form.action = window.location.pathname + window.location.search + '#' + nextRow.id;
+                window.open(nextLink.href, '_blank');
+
+              }
+            }
+          }
+          this.form.submit();
+        } else {
+          alert('Invalid URL. Please paste a valid URL.');
+        }
+      }, 100);
+    });
+  });
+});
+
+</script>
+
+
+{% endblock %}

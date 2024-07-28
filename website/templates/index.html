@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+<meta name="google-site-verification" content="dhhHqe9KeRwsPf5C-RLS_jntACzFzzTM0-i8uXQBWEU" />
+{% endblock %}
+{% block content %}
+
+
+
+<style>
+    .header-image {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+
+    }
+    
+    .header-image img {
+        width: 100%;
+        height: auto;
+    }
+    
+    .header-text {
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 3rem;
+        color: white;
+        text-align: center;
+        text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.6);
+        padding: 20px;
+        background: rgb(59 166 199 / 83%);
+        border-radius: 10px;
+        line-height: ;
+    }
+    </style>
+    
+    <div class="header-image">
+        <img src="{% static 'img/header.png' %}" alt="Header Image">
+        <h1 class="header-text">People-Powered Hiring</h1>
+    </div>
+    
+    <style>
+        .job-stats a {
+            text-decoration: none;
+            color: #333;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px 5px 10px;
+
+            border-radius: 10px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            background-color: #f2f2f2;
+        }
+        
+        .stat:hover {
+            background-color: #e7e7e7;
+            box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-7px);
+        }
+        
+        .stat strong {
+            font-size: 1.8em;
+        }
+        
+        .stat span {
+            text-align: center;
+        }
+        
+        #chrome_extension_button strong {
+            color: #4285F4; /* Change this to the color you want for the Chrome Extension button text */
+        }
+    </style>
+    
+    <section class="main-content" style="margin-bottom:20px;"">
+        <div class="job-stats">
+            <div class="stat" id="stat">
+                <a href="https://chrome.google.com/webstore/detail/pingojo-extension/ihocmimgkfmbonmbdjbicbhlhffaheef" target="_blank" id="chrome_extension_button"> 
+                <strong>Install the Chrome Extension</strong>
+                </a>
+            </div>
+        
+            <a href="{% url 'jobs_list' %}">
+                <div class="stat">
+                    <strong>{{job_count|intcomma}}</strong>
+                    <span>Jobs</span>
+                </div>
+            </a>
+            <a href="{% url 'company_list' %}">
+                <div class="stat">
+                    <strong>{{company_count|intcomma}}</strong>
+                    <span>Companies</span>
+                </div>
+            </a>
+    
+            <a href="{% url 'source-list' %}">
+                <div class="stat">
+                    <strong>{{sources_count|intcomma}}</strong>
+                    <span>Sources</span>
+                </div>
+            </a>
+            <a>
+                <div class="stat">
+                    <strong>{{sessions_count|intcomma}}</strong>
+                    <span>Visitors</span>
+                </div>
+            </a>
+        </div>
+    </section>
+    
+    <style>
+
+.benefit-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+}
+
+.benefit {
+        box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+        border-radius: 15px;
+        padding: 20px;
+        transition: all 0.3s ease-in-out;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .benefit i {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+        float: left;
+        margin-right: 10px;
+    }
+
+    .benefit p {
+        margin:0px;
+        padding:0px;
+    }
+
+    .benefit:hover {
+        transform: scale(1.05);
+    }
+
+    .benefit:nth-child(1) { background-color: #e6f7ff; }
+    .benefit:nth-child(2) { background-color: #fff0f6; }
+    .benefit:nth-child(3) { background-color: #f9f0ff; }
+    .benefit:nth-child(4) { background-color: #e8e8e8; }
+    .benefit:nth-child(5) { background-color: #feffe6; }
+    .benefit:nth-child(6) { background-color: #e6fffb; }
+    </style>
+
+<section class="features">
+    <div class="benefits">
+        <div class="benefit">
+            <div class="benefit-header">
+            <i class="fas fa-users-cog"></i>
+            <h3>Simplified Recruitment</h3>
+            </div>
+            <p>Streamline the recruitment process for job seekers, companies, and recruiters with seamless
+                collaboration.</p>
+        </div>
+        <div class="benefit">
+            <div class="benefit-header">
+            <i class="fas fa-brain"></i>
+            <h3>Personalized Job Matching</h3>
+        </div>
+            <p>Find the perfect job or candidate with advanced AI technology that matches users based on skills,
+                experience, and preferences.</p>
+        </div>
+        <div class="benefit">
+            <div class="benefit-header">
+            <i class="fas fa-comments"></i>
+            <h3>Efficient Communication</h3>
+        </div>
+            <p>Stay updated with real-time notifications and well-designed dashboards, ensuring a smooth hiring process
+                for all parties.</p>
+        </div>
+        <div class="benefit">
+            <div class="benefit-header">
+            <i class="fas fa-lightbulb"></i>
+            <h3>Empowerment Through Flexibility</h3>
+        </div>
+            <p>Become a recruiter with Pingojo, providing flexible income opportunities and expanding the pool of
+                potential candidates.</p>
+        </div>
+        <div class="benefit">
+            <div class="benefit-header">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Privacy Protection</h3>
+        </div>
+            <p>Rest assured that your data and contact information are protected throughout the recruitment process.</p>
+        </div>
+        <div class="benefit">
+            <div class="benefit-header">
+            <i class="fas fa-globe"></i>
+            <h3>Wide Network</h3>
+        </div>
+            <p>Access a vast network of recruiters and companies, increasing the chances of finding the perfect job or
+                candidate.</p>
+        </div>
+    </div>
+    <style>
+        .leaderboard {
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            background: linear-gradient(
+                140deg,
+                rgba(255, 255, 255, 1) 0%,
+                rgba(204, 204, 204, 1) 35%,
+                rgba(204, 204, 204, 1) 65%,
+                rgba(255, 255, 255, 1) 100%
+            );
+            background-size: 200% 200%;
+            animation: shimmer 1.5s infinite;
+        }
+    
+        .leaderboard h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+    
+        .table-style {
+            width: 100%;
+            border-collapse: collapse;
+        }
+    
+        .table-style th,
+        .table-style td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+    
+        .table-style th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #333;
+            color: white;
+        }
+    
+
+    </style>
+    
+
+    
+</section>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile List{% endblock %}
+
+{% block content %}
+
+<style>
+    h1, p {
+        text-align: center; /* Centering the text */
+    }
+    a {
+        text-decoration: none; /* Remove underline */
+        color: black;
+    }
+
+    ul {
+        list-style-type: none; /* Remove bullets */
+        padding: 0; /* Remove default padding */
+
+    }
+
+    .profile-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center; /* Center the cards horizontally */
+        margin: 0 auto; /* Center the container */
+    }
+
+    .card {
+        display: flex;
+    flex-direction: column; /* Stack children vertically */
+    justify-content: space-between; /* Space between header, body, and footer */
+
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+        width: 300px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header, .card-footer {
+        background-color: #f8f8f8;
+        padding: 10px;
+        text-align: center; /* Centering the text */
+
+    }
+
+    .card-footer {
+        /* center the buttons */
+        justify-content: center;
+    }
+    .card-body {
+        flex-grow: 1;
+        padding: 15px;
+    }
+
+    .card-header img {
+        width: 20px;
+        height: 20px;
+        vertical-align: middle;
+        margin-right: 10px;
+    }
+
+
+    .schedule-btn {
+        background-color: dodgerblue; /* Green background */
+        border: none;
+        color: white;
+        padding: 5px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    .create-btn {
+        background-color: green; /* Green background */
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 20px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 5px;
+        width: 300px;
+        margin: 0 auto;
+        margin-bottom: 20px;
+    }
+
+    .skill-icon {
+        width: 20px;
+        /* Adjust size as needed */
+        height: 20px;
+        /* Adjust size as needed */
+        margin-right: 5px;
+    }
+</style>
+
+<h1>Discover Our Community</h1>
+<p>Explore profiles, connect with others, and join the excitement! Create your own profile to be a part of this vibrant community.</p>
+<!-- make a big button in the center here to "create your profile" -->
+<a href="/accounts/profile/" class="create-btn">Create Your Profile</a>
+
+
+
+
+<div class="profile-cards">
+    {% for profile in profiles %}
+        <div class="card">
+            <a href="/{{ profile.user.username }}" style="font-size:35px;">
+                <div class="card-header">
+                {{ profile.user.first_name }} {{ profile.user.last_name }}
+
+                <div style="font-size:13px;">{{ profile.web_views }} View{{profile.web_views|pluralize}}</div>
+            </div>
+        </a>
+            <div class="card-body">
+                <p>{{profile.bio|default:""}}</p>
+                <h5>Roles:</h5>
+                <ul>
+                    {% for role in profile.roles.all %}
+                        <li>{{ role.title }}</li>
+                    {% endfor %}
+                </ul>
+                <h5>Skills:</h5>
+                <ul>
+                    {% for skill in profile.skills.all %}
+                        <li>            <img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/{{ skill.slug }}.png"
+                            alt="{{ skill.name }} Icon" class="skill-icon"
+                            onerror="this.onerror=null; this.src='/static/img/logo.png'"> {{ skill.name }}</li>
+                    {% endfor %}
+                </ul>
+                <h5>Links:</h5>
+                <ul style="display: flex; list-style-type: none; gap: 10px; padding: 0;" class="skills-horizontal-list">
+                    {% for link in profile.links.all %}
+                        <li>
+                            <a href="{{ link.url }}" target="_blank">
+                            <img src="https://www.google.com/s2/favicons?domain={{ link.url }}" alt="Link Icon">
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="card-footer">  
+                <a href="/accounts/login/" class="schedule-btn">Schedule Interview</a>
+            </div>
+        </div>
+    {% empty %}
+        <p>No profiles available.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

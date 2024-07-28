@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .errorlist {
+        color: red;
+    }
+
+
+    .captcha-container {
+        display: flex; /* Align the items in a row */
+        align-items: flex-start; /* Align items to the top */
+       
+    }
+
+    .captcha-container input[type="text"] {
+        order: 1; /* The text input will come first */
+    }
+
+    .captcha-container img {
+        order: 2; /* The image will come second */
+        margin-left: 15px; /* Spacing between the text input and the image */
+        padding:1px;
+        border : 1px solid #ccc;
+        border-radius: 6px;
+    }
+</style>
+
+
+
+  
+</style>
+<div class="main-content centered-form">
+    <div class="container">
+        <div class="form-container">
+            <form method="post" class="allauth">
+                <center>
+                <h2>Sign Up to Pingojo</h2>
+                <!-- show errors on form if they exist -->
+
+
+                {% csrf_token %}
+                {{ form.first_name }}
+                <p style="color: red;">{{ form.first_name.errors }}</p>
+
+                {{ form.last_name }}
+                <p style="color: red;">{{ form.last_name.errors }}</p>
+
+                {{ form.email }}
+                <p style="color: red;">{{ form.email.errors }}</p>
+
+                {{ form.email2 }}
+                <p style="color: red;">{{ form.email2.errors }}</p>
+
+                {{ form.password1 }}
+                {{ form.password1.errors }}
+
+                <div class="captcha-container">
+                    {{ form.captcha }}
+                    <p style="color: red;">{{ form.captcha.errors }}</p>
+                </div>
+
+                
+                <div class="checkbox-container" >
+                    <input type="checkbox" name="terms_agree" id="terms_agree" required >
+                    <label for="terms_agree" style="font-weight:normal;">I agree to the <a href="{% url 'terms_of_service' %}">Terms of Service</a> and <a href="{% url 'privacy_policy' %}">Privacy Policy</a>.</label>
+                </div>
+
+                <button type="submit">Sign Up</button>
+                
+                <div>
+                    <p>Already have an account? <a href="{% url 'account_login' %}">Log in</a></p>
+                </div>
+                <hr>
+                <div style="margin-top: 20px; height:80px;">
+                    <img src="{% static 'img/quote.png' %}" alt="Quote" style="float: left; margin-right: 10px;">
+                    <p style="font-style: italic;">"Pingojo helped me find my dream job! I couldn't be happier with the results."</p>
+                </div>
+            </center>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
