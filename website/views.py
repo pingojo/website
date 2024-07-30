@@ -1167,8 +1167,9 @@ class ApplicationView(APIView):
             "job_role": role.title if role else None,
             "stage": stage.name,
         }
+        et_timezone = timezone.get_fixed_timezone(-5 * 60)
+        now = timezone.now().astimezone(et_timezone)
 
-        now = timezone.localtime()  # Ensure you're using the user's local timezone
         start_time = datetime.combine(now.date(), datetime.min.time())
         today_count = Application.objects.filter(
             user=request.user, created__gte=start_time
