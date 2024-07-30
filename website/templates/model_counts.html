@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+
+    {% if user_data %}
+    <h2>User-Specific Stats</h2>
+    <ul>
+        <li>Your Prompts: {{ user_data.user_prompts }}</li>
+        <li>Your Applications: {{ user_data.user_applications }}</li>
+        <li>Your Skills: {{ user_data.user_skills }}</li>
+        <li>Your Links: {{ user_data.user_links }}</li>
+        <li>Your Roles: {{ user_data.user_roles }}</li>
+    </ul>
+    {% else %}
+    <p>Please <a href="/accounts/login?next=/stats">log in</a> to see your specific counts.</p>
+    {% endif %}
+
+    <h1>Stats</h1>
+    <ul>
+        <li>Total Users: {{ total_users }}</li>
+        <li>Total Profiles: {{ total_profiles }}</li>
+        <li>Total Links: {{ total_links }}</li>
+        <li>Total Prompts: {{ total_prompts }}</li>
+        <li>Total Skills: {{ total_skills }}</li>
+        <li>Total Companies: {{ total_companies }}</li>
+        <li>Total Roles: {{ total_roles }}</li>
+        <li>Total Jobs: {{ total_jobs }}</li>
+        <li>Total Applications: {{ total_applications }}</li>
+        <li>Total Searches: {{ total_searches }}</li>
+        <li>Total Sources: {{ total_sources }}</li>
+    </ul>
+
+
+</div>
+{% endblock %}

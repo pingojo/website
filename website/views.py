@@ -42,7 +42,20 @@ from .forms import (
     PromptForm,
     ResumeUploadForm,
 )
-from .models import BouncedEmail, Link, Profile, Prompt, Search, Skill, Source
+from .models import (
+    Application,
+    BouncedEmail,
+    Company,
+    Job,
+    Link,
+    Profile,
+    Prompt,
+    Role,
+    Search,
+    Skill,
+    Source,
+    User,
+)
 from .parse_resume import parse_resume
 
 
@@ -1567,3 +1580,50 @@ def update_company_email(request):
     else:
         messages.error(request, "No email address provided.")
         return redirect("company_list")
+
+
+
+
+def model_counts_view(request):
+    # Get counts for each model
+    total_users = User.objects.count()
+    total_profiles = Profile.objects.count()
+    total_links = Link.objects.count()
+    total_prompts = Prompt.objects.count()
+    total_skills = Skill.objects.count()
+    total_companies = Company.objects.count()
+    total_roles = Role.objects.count()
+    total_jobs = Job.objects.count()
+    total_applications = Application.objects.count()
+    total_searches = Search.objects.count()
+    total_sources = Source.objects.count()
+    total_emails = Email.objects.count()
+
+    user_data = {}
+
+    # Check if the user is logged in
+    if request.user.is_authenticated:
+        user_data['user_prompts'] = Prompt.objects.filter(user=request.user).count()
+        user_data['user_applications'] = Application.objects.filter(user=request.user).count()
+        user_data['user_skills'] = request.user.skills.count()
+        user_data['user_links'] = Profile.objects.get(user=request.user).links.count() if Profile.objects.filter(user=request.user).exists() else 0
+        user_data['user_roles'] = Profile.objects.get(user=request.user).roles.count() if Profile.objects.filter(user=request.user).exists() else 0
+        user_data['user_emails'] = Email.objects.filter(application__user=request.user).count()
+
+    context = {
+        'total_users': total_users,
+        'total_profiles': total_profiles,
+        'total_links': total_links,
+        'total_prompts': total_prompts,
+        'total_skills': total_skills,
+        'total_companies': total_companies,
+        'total_roles': total_roles,
+        'total_jobs': total_jobs,
+        'total_applications': total_applications,
+        'total_searches': total_searches,
+        'total_sources': total_sources,
+        'total_emails': total_emails,
+        'user_data': user_data,
+    }
+
+    return render(request, 'model_counts.html', context)

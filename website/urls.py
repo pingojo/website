@@ -35,6 +35,7 @@ urlpatterns = [
     path(
         "company/<slug:slug>/", views.CompanyDetailView.as_view(), name="company_detail"
     ),
+    path('model-counts/', views.model_counts_view, name='model-counts'),
     path("company/<slug:slug>/add_job_link/", views.add_job_link, name="add_job_link"),
     path("add_email/", views.update_company_email, name="add_email"),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
