@@ -1,6 +1,6 @@
 import os
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 import html2text
 import requests
@@ -1170,7 +1170,8 @@ class ApplicationView(APIView):
         et_timezone = timezone.get_fixed_timezone(-5 * 60)
         now = timezone.now().astimezone(et_timezone)
 
-        start_time = datetime.combine(now.date(), datetime.min.time())
+        start_time = datetime.combine(now.date(), time.min).astimezone(et_timezone)
+
         today_count = Application.objects.filter(
             user=request.user, created__gte=start_time
         ).count()
