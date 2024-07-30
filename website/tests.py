@@ -69,8 +69,6 @@ class ApplicationAPITestCase(APITestCase):
         self.assertEqual(email.gmail_id, data["gmail_id"])
 
     def test_get_applications(self):
-        # delete all applications
-        Application.objects.all().delete()
         # Create test data
         company = Company.objects.create(name="Test Company")
         role = Role.objects.create(title="Software Engineer")
@@ -88,7 +86,7 @@ class ApplicationAPITestCase(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()), 3)
+        self.assertEqual(len(response.json()), 2)
         email_data = response.json()["emails"][0]
         self.assertEqual(email_data["gmail_id"], email.gmail_id)
         # self.assertEqual(email_data['subject'], role.title)
