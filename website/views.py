@@ -1026,18 +1026,9 @@ class ApplicationView(APIView):
             for stage in stage_counts
         }
 
-        now = timezone.now()
-        # Calculate the time 24 hours ago
-        start_time = now - timezone.timedelta(days=1)
-        # Filter applications created in the past 24 hours
-        today_count = Application.objects.filter(
-            user=request.user, created__gte=start_time
-        ).count()
-
         data = {
             "emails": email_data,
             "counts": stage_counts_dict,
-            "today_count": today_count,
         }
 
         return Response(data)
@@ -1167,13 +1158,19 @@ class ApplicationView(APIView):
             "job_role": role.title if role else None,
             "stage": stage.name,
         }
-        et_timezone = timezone.get_fixed_timezone(-5 * 60)
-        now = timezone.now().astimezone(et_timezone)
+        et_offset = timedelta(hours=-4)
 
-        start_time = datetime.combine(now.date(), time.min).astimezone(et_timezone)
+        now_server = timezone.now()
+
+        now_et = now_server + et_offset
+
+        start_time_et = datetime.combine(now_et.date(), time.min).replace(tzinfo=timezone.utc)
+
+        start_time_server = start_time_et - et_offset
 
         today_count = Application.objects.filter(
-            user=request.user, created__gte=start_time
+            user=request.user,
+            created__gte=start_time_server
         ).count()
 
         data = {"email": email_data, "counts": stage_counts, "today_count": today_count}
