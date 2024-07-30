@@ -69,6 +69,8 @@ class ApplicationAPITestCase(APITestCase):
         self.assertEqual(email.gmail_id, data["gmail_id"])
 
     def test_get_applications(self):
+        # delete all applications
+        Application.objects.all().delete()
         # Create test data
         company = Company.objects.create(name="Test Company")
         role = Role.objects.create(title="Software Engineer")
