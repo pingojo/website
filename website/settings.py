@@ -122,6 +122,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://pythoncodingjobs.com",
     "https://www.dice.com",
     "https://www.linkedin.com",
+    "https://ycombinator.com",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
