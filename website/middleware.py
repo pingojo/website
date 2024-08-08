@@ -3,7 +3,7 @@ from django.http import HttpResponseForbidden
 
 class BlockUserAgentsMiddleware:
     # List of blocked user-agent strings
-    BLOCKED_USER_AGENTS = ["DotBot", "SemrushBot"]
+    BLOCKED_USER_AGENTS = ["DotBot", "SemrushBot", "crawler"]
 
     def __init__(self, get_response):
         self.get_response = get_response
