@@ -75,6 +75,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "website.middleware.BlockUserAgentsMiddleware",
 ]
 
 if DEBUG:
