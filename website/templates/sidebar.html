@@ -1,0 +1,84 @@
+{% load humanize %}
+<div class="sidebar">
+    <ul class="sidebar-links">
+        <li><a href="" target="_blank"><i class="fa fa-coffee"></i> Donate BCH</a></li>
+        <li>
+            <a href="/profiles" class="{% if request.path == '/profiles/' %}active{% endif %}">
+                <i class="fa fa-users"></i> Profiles
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'company_list' %}" class="{% if request.path == '/companies' %}active{% endif %}">
+                <i class="fa fa-building"></i> Companies
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'model-counts' %}" class="{% if request.path == '/stats' %}active{% endif %}">
+                <i class="fa fa-chart-bar"></i> Stats
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'source-list' %}" class="{% if request.path == '/sources/' %}active{% endif %}">
+                <i class="fa fa-book"></i> Sources <span class="badge">{{ sources|length }}</span>
+            </a>
+        </li>
+        <li><a href="https://github.com/pingojo/website"><i class="fab fa-github"></i> Github</a></li>
+        <li><a href="https://discord.gg/jQyDmZDREs" target="_blank"><i class="fab fa-discord"></i> Discord</a></li>
+        <li><a href="https://x.com/pingojo" target="_blank"><i class="fa fa-x"></i> X</a></li>
+        <li>
+            <a href="{% url 'privacy_policy' %}" class="{% if request.path == '/privacy' %}active{% endif %}">
+                <i class="fa fa-user-secret"></i> Privacy
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'terms_of_service' %}" class="{% if request.path == '/terms' %}active{% endif %}">
+                <i class="fa fa-file-contract"></i> Terms
+            </a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+        <p>&copy; Pingojo</p>
+        {% if sessions_count %}<p>Sessions: {{ sessions_count|intcomma }}</p>{% endif %}
+        <p>v1.1.7</p>
+        <p id="load-time"></p>
+    </div>
+</div>
+
+<style>
+    .sidebar {
+        width: 180px;
+        position: fixed;
+        top: 100;
+        left: 0;
+        height: 100%;
+        padding-top: 10px;
+    }
+    .sidebar-links {
+        list-style-type: none;
+        padding: 0;
+    }
+    .sidebar-links li {
+        margin: 15px 0;
+    }
+    .sidebar-links li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 16px;
+        display: block;
+        padding: 10px 20px;
+    }
+    .sidebar-links li a:hover {
+        background-color: #ddd;
+        border-radius: 5px;
+    }
+    .sidebar-links li a.active {
+        background-color: #007BFF;
+        color: #fff;
+        border-radius: 5px;
+    }
+    .sidebar-footer {
+        bottom: 20px;
+        width: 100%;
+        text-align: center;
+    }
+</style>
