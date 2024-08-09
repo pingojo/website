@@ -1,59 +1,86 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
+<div class="content-with-sidebar">
+    {% include 'sidebar.html' %}
+
+    <div class="main-content">
+        <!-- Include Font Awesome CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+        <style>
+            .source-list {
+                display: flex;
+                flex-wrap: wrap;
+                padding: 20px;
+                gap: 15px; /* Added space between items */
+            }
+            .source-item {
+                display: flex;
+                align-items: center;
+                background-color: #f9f9f9;
+                padding: 5px 10px;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .source-item img {
+                vertical-align: middle;
+                background-color: white;
+                border-radius: 5px;
+                margin-right: 8px;
+                width: 20px;
+                height: 20px;
+            }
+            .source-item a {
+                text-decoration: none;
+                color: #333;
+                font-weight: bold;
+                position: relative; /* Enable tooltip positioning */
+                white-space: nowrap; /* Prevent line breaks */
+            }
+            .source-item a[data-tooltip]:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                background-color: #333;
+                color: #fff;
+                padding: 5px;
+                border-radius: 5px;
+                top: -30px;
+                left: 0;
+                transform: translateX(0);
+                white-space: nowrap;
+                font-size: 12px;
+                z-index: 1000; /* Ensure tooltip appears on top */
+            }
+            h1 {
+                text-align: center;
+            }
+        </style>
+
+        <div class="source-list">
+            {% for source in sources %}
+            <div class="source-item">
+                <img src="https://www.google.com/s2/favicons?domain={{ source.website }}" alt="favicon">
+                <a href="{{ source.website }}" target="_blank" data-tooltip="{{ source.focus }} | Google Results: {{ source.google_result_count }}">
+                    {{ source.name }} ({{ source.job_count }})
+                </a>
+            </div>
+            {% empty %}
+            <div>No sources available.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 
 <style>
-    table {
-        width: 500px;
-        border-collapse: collapse;
+    .content-with-sidebar {
+        display: flex;
     }
-    th, td {
-        border: 1px solid black;
-        padding: 15px;
-        text-align: left;
-    }
-    .sorted-asc::after {
-        content: '▲';
-    }
-    .sorted-desc::after {
-        content: '▼';
-    }
-    .table-container {
-        padding: 30px;
-    }
-    h1 {
-        padding-left: 30px;
+    .main-content {
+        margin-left: 180px; /* Make room for the sidebar */
+        padding: 20px;
     }
 </style>
-<center>
-
-<h1>Job Sources</h1>
-<div class="table-container">
-    <table>
-        <tr>
-            <th><a href="?sort=name{% if current_sort == 'name' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'name' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Name</a></th>
-            <th><a href="?sort=focus{% if current_sort == 'focus' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'focus' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Focus</a></th>
-            <th><a href="?sort=website{% if current_sort == 'website' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'website' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Website</a></th>            
-            <th><a href="?sort=job_count{% if current_sort == 'job_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'job_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Count</a></th> 
-            <th><a href="?sort=google_result_count{% if current_sort == 'google_result_count' and current_direction != 'desc' %}&direction=desc{% endif %}" class="{% if current_sort == 'google_result_count' %}sorted-{{ current_direction|default:'asc' }}{% endif %}">Google#</a></th> 
-        
-        </tr>
-        {% for source in sources %}
-        <tr>
-            <td nowrap>
-                <img src="https://www.google.com/s2/favicons?domain={{ source.website }}" style="vertical-align: middle; background-color:white; border-radius: 5px; margin-right: 5px; padding-bottom:2px;">
-                <a href="{{ source.website }}" target="_blank">{{ source.name }}</a></td>
-            <td nowrap>({{ source.focus }})</td>
-            <td><a href="{{ source.website }}" target="_blank">{{ source.website }}</a></td>
-            <td>{{ source.job_count }}</td> 
-            <td><a href="https://www.google.com/search?q=site:{{source.get_domain}}" target="_new">{{ source.google_result_count }}</a></td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="6">No sources available.</td>
-        </tr>
-        {% endfor %}
-    </table>
-</div>
-</center>
+{% block footer %}{% endblock footer %}
 {% endblock %}
