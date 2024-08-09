@@ -286,6 +286,7 @@ footer i {
 
 </style>
 
+{% block footer %}
 <footer>
   &copy; Pingojo
   <a href="{% url 'privacy_policy' %}"><i class="fa fa-user-secret"></i>Privacy</a> 
@@ -297,9 +298,10 @@ footer i {
   <a href="/profiles"><i class="fa fa-users"></i>Profiles</a> 
   <a href="https://x.com/pingojo" target="_blank"><i class="fa fa-x"></i></a>
   v1.1.7 {% if sessions_count %}({{sessions_count|intcomma}}){% endif %} <span id="load-time"></span> 
-  <a href="https://github.com/pingojo/.github/blob/main/profile/DONATE.md" target="_blank"><i class="fa fa-coffee"></i>Donate BCH</a>
+  <a href="" target="_blank"><i class="fa fa-coffee"></i>Donate BCH</a>
   <a href="{% url 'model-counts' %}">Stats</a>
 </footer>
+{% endblock footer %}
 
 
   <script>
