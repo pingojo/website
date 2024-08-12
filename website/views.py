@@ -1601,7 +1601,6 @@ def resume_view(request, slug):
         # Validate the slug to check if it matches the pattern YYYYMMDD-#
         is_slug_valid = re.match(r"^\d{8}-\d+$", slug)
         if is_slug_valid:
-            # Retrieve the profile with the matching resume_key
             try:
                 if not request.GET.get("e"):
                     raise Http404
@@ -1609,18 +1608,18 @@ def resume_view(request, slug):
                 is_email_valid = re.match(r"[^@]+@[^@]+\.[^@]+", request.GET.get("e"))
                 if is_email_valid:
                     company = Company.objects.get(email=request.GET.get("e"))
-                    # find applications by user to that company
+                    # Find applications by user to that company
                     applications = Application.objects.filter(
                         user=profile.user, company=company
                     )
-                    # if status = passed, then show 404
+                    # If status = passed, then show 404
                     if applications.filter(stage__name="Passed").exists():
                         raise Http404
 
                     if not applications:
                         raise Http404
                                         
-                    # log the request to the Request table
+                    # Log the request to the Request table
                     RequestLog.objects.create(
                         profile=profile,
                         company=company,
@@ -1630,10 +1629,10 @@ def resume_view(request, slug):
                         user_agent=request.META.get("HTTP_USER_AGENT"),
                         referer=request.META.get("HTTP_REFERER"),
                     )
-
                 else:
                     if profile.user != request.user:
                         raise Http404
+
                 user_email = profile.user.email
                 html_resume = profile.html_resume
 
@@ -1646,7 +1645,6 @@ def resume_view(request, slug):
 
                 # Remove inline event handlers
                 for tag in soup.find_all(True):
-                    # Remove attributes that start with "on" (e.g., onclick, onload)
                     for attr in list(tag.attrs):
                         if attr.startswith("on"):
                             del tag.attrs[attr]
@@ -1658,10 +1656,8 @@ def resume_view(request, slug):
 
                 if not soup.body:
                     if soup.html:
-                        # Add a body tag if missing
                         soup.html.append(soup.new_tag('body'))
                     else:
-                        # Create a full HTML structure if missing
                         soup = BeautifulSoup('<html><body></body></html>', 'html.parser')
                         soup.body.append(BeautifulSoup(str(soup), 'html.parser'))
 
@@ -1672,7 +1668,6 @@ def resume_view(request, slug):
                 # Add a centered sticky div at the bottom for interview options
                 sticky_div = soup.new_tag('div', style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: #f9f9f9; padding: 20px; border: 2px solid #ccc; box-shadow: 0px 0px 15px rgba(0,0,0,0.1); z-index: 1001; text-align: center; border-radius: 10px; width: auto; max-width: 90%;")
 
-                # Add the content inside the sticky div
                 prompt = soup.new_tag('p', style="margin: 0 0 10px; font-size: 1.2em;")
                 prompt.string = f"Would you like to interview {profile.user.first_name}?"
                 sticky_div.append(prompt)
@@ -1734,7 +1729,6 @@ def resume_view(request, slug):
                     profile_link.string = "Edit Profile"
                     sticky_div.append(profile_link)
 
-                # Append the sticky div to the body
                 soup.body.append(sticky_div)
 
                 # Add padding to the body to account for the sticky footer height
@@ -1747,6 +1741,7 @@ def resume_view(request, slug):
                     application_id = applications.first().id 
                 except:
                     application_id = 0
+
                 script.string = f"""
                 document.addEventListener('keydown', function(event) {{
                     if ((event.ctrlKey || event.metaKey) && (event.key === 'c' || event.key === 'a')) {{
@@ -1784,14 +1779,14 @@ def resume_view(request, slug):
 
                 document.getElementById('submitReasonButton').addEventListener('click', function() {{
                     const reason = document.getElementById('reasonText').value;
-                    const applicationId = '{application_id}';  // Inject the application ID here
+                    const applicationId = '{application_id}';
 
                     if (reason.trim() !== '') {{
                         fetch('/mark-application-as-passed/', {{
                             method: 'POST',
                             headers: {{
                                 'Content-Type': 'application/x-www-form-urlencoded',
-                                'X-CSRFToken': getCookie('csrftoken')  // Ensure you handle CSRF protection
+                                'X-CSRFToken': getCookie('csrftoken')
                             }},
                             body: `application_id=${{applicationId}}&reason=${{encodeURIComponent(reason)}}`
                         }})
@@ -1827,17 +1822,23 @@ def resume_view(request, slug):
                     document.getElementById('interviewOptions').style.display = 'none';
                     document.getElementById('reasonField').style.display = 'none';
                     document.getElementById('reasonText').value = '';
+
+                    window._mfq = window._mfq || [];
+                    (function() {{
+                        var mf = document.createElement('script');
+                        mf.type = 'text/javascript'; mf.defer = true;
+                        mf.src = '//cdn.mouseflow.com/projects/75696671-ed61-4656-9ca3-1a503dc1d0b1.js';
+                        document.getElementsByTagName("head")[0].appendChild(mf);
+                    }})();
                 }});
                 """
+
                 soup.body.append(script)
 
-                # Render the fixed and secured resume HTML directly
                 return HttpResponse(str(soup))
             except Profile.DoesNotExist:
-                # If no profile matches the slug, raise a 404 error
                 raise Http404("Resume not found")
         else:
-            # If slug is invalid, raise a 404 error
             raise Http404(f"Invalid slug {slug}")
 
 
