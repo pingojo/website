@@ -1596,6 +1596,8 @@ def resume_view(request, slug):
         if is_slug_valid:
             # Retrieve the profile with the matching resume_key
             try:
+                if not request.GET.get("e"):
+                    raise Http404
                 profile = Profile.objects.get(resume_key=slug)
                 is_email_valid = re.match(r"[^@]+@[^@]+\.[^@]+", request.GET.get("e"))
                 if is_email_valid:
