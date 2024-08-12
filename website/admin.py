@@ -17,12 +17,14 @@ from .models import (
     Job,
     Link,
     Profile,
+    RequestLog,
     Role,
     Search,
     Skill,
     Source,
     Stage,
 )
+
 
 
 class CompanyAdmin(admin.ModelAdmin):
