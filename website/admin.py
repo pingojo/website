@@ -262,6 +262,16 @@ class ProfileAdmin(admin.ModelAdmin):
 class LinkAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Link._meta.get_fields()]
 
+@admin.register(RequestLog)
+class RequestLogAdmin(admin.ModelAdmin):
+    list_display = [
+        "email",
+        "applications",
+        "ip_address",
+        "user_agent",
+        "referer",
+        "created",
+    ]
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)

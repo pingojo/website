@@ -150,7 +150,7 @@ class RequestLog(BaseModel):
     applications = models.PositiveIntegerField()
     ip_address = models.GenericIPAddressField()
     user_agent = models.CharField(max_length=255)
-    referer = models.URLField()
+    referer = models.URLField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
