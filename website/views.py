@@ -1588,6 +1588,13 @@ import re
 from bs4 import BeautifulSoup  # To parse and correct HTML
 from django.http import Http404, HttpResponse
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 def resume_view(request, slug):
     if request.method == "GET":
@@ -1619,7 +1626,7 @@ def resume_view(request, slug):
                         company=company,
                         email=request.GET.get("e"),
                         applications=applications.count(),
-                        ip_address=request.META.get("REMOTE_ADDR"),
+                        ip_address=get_client_ip(request),
                         user_agent=request.META.get("HTTP_USER_AGENT"),
                         referer=request.META.get("HTTP_REFERER"),
                     )
