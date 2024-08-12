@@ -1607,19 +1607,21 @@ def resume_view(request, slug):
                     # if status = passed, then show 404
                     if applications.filter(stage__name="Passed").exists():
                         raise Http404
-                    
+
+                    if not applications:
+                        raise Http404
+                                        
                     # log the request to the Request table
                     RequestLog.objects.create(
                         profile=profile,
                         company=company,
                         email=request.GET.get("e"),
-                        applications=applications,
+                        applications=applications.count(),
                         ip_address=request.META.get("REMOTE_ADDR"),
                         user_agent=request.META.get("HTTP_USER_AGENT"),
                         referer=request.META.get("HTTP_REFERER"),
                     )
-                    if not applications:
-                        raise Http404
+
                 else:
                     if profile.user != request.user:
                         raise Http404
