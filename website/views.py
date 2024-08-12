@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.core.mail import send_mail
 from django.db import models
 from django.db.models import Count, ExpressionWrapper, F, Max, Min, Q, Value
 from django.db.models.functions import Coalesce, TruncDay
@@ -50,6 +51,7 @@ from .models import (
     Link,
     Profile,
     Prompt,
+    RequestLog,
     Role,
     Search,
     Skill,
@@ -1581,7 +1583,287 @@ def update_company_email(request):
         messages.error(request, "No email address provided.")
         return redirect("company_list")
 
+import re
 
+from bs4 import BeautifulSoup  # To parse and correct HTML
+from django.http import Http404, HttpResponse
+
+
+def resume_view(request, slug):
+    if request.method == "GET":
+        # Validate the slug to check if it matches the pattern YYYYMMDD-#
+        is_slug_valid = re.match(r"^\d{8}-\d+$", slug)
+        if is_slug_valid:
+            # Retrieve the profile with the matching resume_key
+            try:
+                profile = Profile.objects.get(resume_key=slug)
+                is_email_valid = re.match(r"[^@]+@[^@]+\.[^@]+", request.GET.get("e"))
+                if is_email_valid:
+                    company = Company.objects.get(email=request.GET.get("e"))
+                    # find applications by user to that company
+                    applications = Application.objects.filter(
+                        user=profile.user, company=company
+                    )
+                    # if status = passed, then show 404
+                    if applications.filter(stage__name="Passed").exists():
+                        raise Http404
+                    
+                    # log the request to the Request table
+                    RequestLog.objects.create(
+                        profile=profile,
+                        company=company,
+                        email=request.GET.get("e"),
+                        applications=applications,
+                        ip_address=request.META.get("REMOTE_ADDR"),
+                        user_agent=request.META.get("HTTP_USER_AGENT"),
+                        referer=request.META.get("HTTP_REFERER"),
+                    )
+                    if not applications:
+                        raise Http404
+                else:
+                    if profile.user != request.user:
+                        raise Http404
+                user_email = profile.user.email
+                html_resume = profile.html_resume
+
+                # Use BeautifulSoup to ensure the HTML is valid and well-formed
+                soup = BeautifulSoup(html_resume, 'html.parser')
+
+                # Remove <script> tags
+                for script in soup(["script"]):
+                    script.extract()
+
+                # Remove inline event handlers
+                for tag in soup.find_all(True):
+                    # Remove attributes that start with "on" (e.g., onclick, onload)
+                    for attr in list(tag.attrs):
+                        if attr.startswith("on"):
+                            del tag.attrs[attr]
+
+                # Add target="_blank" to all <a> tags and increase z-index
+                for a_tag in soup.find_all('a'):
+                    a_tag['target'] = '_blank'
+                    a_tag['style'] = 'z-index: 1002; position: relative;'  # Higher z-index than the overlay
+
+                if not soup.body:
+                    if soup.html:
+                        # Add a body tag if missing
+                        soup.html.append(soup.new_tag('body'))
+                    else:
+                        # Create a full HTML structure if missing
+                        soup = BeautifulSoup('<html><body></body></html>', 'html.parser')
+                        soup.body.append(BeautifulSoup(str(soup), 'html.parser'))
+
+                # Add an overlay to prevent right-clicking and copying
+                overlay = soup.new_tag('div', style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0); z-index: 1000;")
+                soup.body.append(overlay)
+
+                # Add a centered sticky div at the bottom for interview options
+                sticky_div = soup.new_tag('div', style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: #f9f9f9; padding: 20px; border: 2px solid #ccc; box-shadow: 0px 0px 15px rgba(0,0,0,0.1); z-index: 1001; text-align: center; border-radius: 10px; width: auto; max-width: 90%;")
+
+                # Add the content inside the sticky div
+                prompt = soup.new_tag('p', style="margin: 0 0 10px; font-size: 1.2em;")
+                prompt.string = f"Would you like to interview {profile.user.first_name}?"
+                sticky_div.append(prompt)
+
+                button_style = "margin: 0 10px; padding: 10px 20px; background-color: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
+
+                yes_button = soup.new_tag('button', id="yesButton", style=button_style)
+                yes_button.string = "Yes"
+                sticky_div.append(yes_button)
+
+                no_button = soup.new_tag('button', id="noButton", style=button_style)
+                no_button.string = "No"
+                sticky_div.append(no_button)
+
+                # Reason field (initially hidden)
+                reason_div = soup.new_tag('div', id="reasonField", style="display:none; margin-top: 10px;")
+                reason_prompt = soup.new_tag('p', style="margin: 0 0 10px; font-size: 1em;")
+                reason_prompt.string = "Please provide a reason:"
+                reason_div.append(reason_prompt)
+                reason_textarea = soup.new_tag('textarea', id="reasonText", rows="3", cols="50", placeholder="Enter reason here...", style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;")
+                reason_div.append(reason_textarea)
+
+                submit_reason_button = soup.new_tag('button', id="submitReasonButton", style=button_style)
+                submit_reason_button.string = "Submit Reason"
+                reason_div.append(submit_reason_button)
+
+                close_button = soup.new_tag('button', id="closeButton", style=button_style)
+                close_button.string = "Close"
+                reason_div.append(close_button)
+
+                sticky_div.append(reason_div)
+
+                # Interview options (initially hidden)
+                interview_options = soup.new_tag('div', id="interviewOptions", style="display:none; margin-top: 10px;")
+                options_prompt = soup.new_tag('p', style="margin: 0 0 10px; font-size: 1em;")
+                options_prompt.string = "Choose an action:"
+                interview_options.append(options_prompt)
+
+                option_button_style = "margin: 5px 10px; padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
+
+                # Create email link
+                email_button = soup.new_tag('button', id="emailButton", style=option_button_style)
+                email_button.string = "Email"
+                email_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={user_email}&su=Interview Request"
+                email_button['data-email-link'] = email_link
+                interview_options.append(email_button)
+
+                calendar_button = soup.new_tag('button', id="calendarButton", style=option_button_style)
+                calendar_button.string = "Create Calendar Event"
+                calendar_link = f"https://calendar.google.com/calendar/u/0/r/eventedit?add={user_email}"
+                calendar_button['data-calendar-link'] = calendar_link
+                interview_options.append(calendar_button)
+
+                sticky_div.append(interview_options)
+
+                # Add a link to /accounts/profile/ on the bottom of the sticky div only if the user is the owner of the profile
+                if profile.user == request.user:
+                    profile_link = soup.new_tag('a', href="/accounts/profile/", style="color: #1a73e8; font-size: 0.8em; text-decoration: none;")
+                    profile_link.string = "Edit Profile"
+                    sticky_div.append(profile_link)
+
+                # Append the sticky div to the body
+                soup.body.append(sticky_div)
+
+                # Add padding to the body to account for the sticky footer height
+                padding_div = soup.new_tag('div', style="padding-bottom: 120px;")
+                soup.body.append(padding_div)
+
+                # Add JavaScript for disabling copy-paste and button functionality
+                script = soup.new_tag('script')
+                try:
+                    application_id = applications.first().id 
+                except:
+                    application_id = 0
+                script.string = f"""
+                document.addEventListener('keydown', function(event) {{
+                    if ((event.ctrlKey || event.metaKey) && (event.key === 'c' || event.key === 'a')) {{
+                        event.preventDefault();
+                    }}
+                }});
+
+                document.addEventListener('contextmenu', function(event) {{
+                    event.preventDefault();
+                }});
+
+                document.addEventListener('selectstart', function(event) {{
+                    event.preventDefault();
+                }});
+
+                document.getElementById('yesButton').addEventListener('click', function() {{
+                    document.getElementById('interviewOptions').style.display = 'block';
+                    document.getElementById('reasonField').style.display = 'none';
+                }});
+
+                document.getElementById('noButton').addEventListener('click', function() {{
+                    document.getElementById('reasonField').style.display = 'block';
+                    document.getElementById('interviewOptions').style.display = 'none';
+                }});
+
+                document.getElementById('emailButton').addEventListener('click', function() {{
+                    const emailLink = document.getElementById('emailButton').getAttribute('data-email-link');
+                    window.open(emailLink, '_blank');
+                }});
+
+                document.getElementById('calendarButton').addEventListener('click', function() {{
+                    const calendarLink = document.getElementById('calendarButton').getAttribute('data-calendar-link');
+                    window.open(calendarLink, '_blank');
+                }});
+
+                document.getElementById('submitReasonButton').addEventListener('click', function() {{
+                    const reason = document.getElementById('reasonText').value;
+                    const applicationId = '{application_id}';  // Inject the application ID here
+
+                    if (reason.trim() !== '') {{
+                        fetch('/mark-application-as-passed/', {{
+                            method: 'POST',
+                            headers: {{
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-CSRFToken': getCookie('csrftoken')  // Ensure you handle CSRF protection
+                            }},
+                            body: `application_id=${{applicationId}}&reason=${{encodeURIComponent(reason)}}`
+                        }})
+                        .then(response => response.json())
+                        .then(data => {{
+                            if (data.success) {{
+                                alert('Application marked as passed with reason.');
+                            }} else {{
+                                alert('Error: ' + (data.error || 'Unknown error occurred.'));
+                            }}
+                        }});
+                    }} else {{
+                        alert('Please provide a reason before submitting.');
+                    }}
+                }});
+
+                function getCookie(name) {{
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {{
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {{
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {{
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }}
+                        }}
+                    }}
+                    return cookieValue;
+                }}
+
+                document.getElementById('closeButton').addEventListener('click', function() {{
+                    document.getElementById('interviewOptions').style.display = 'none';
+                    document.getElementById('reasonField').style.display = 'none';
+                    document.getElementById('reasonText').value = '';
+                }});
+                """
+                soup.body.append(script)
+
+                # Render the fixed and secured resume HTML directly
+                return HttpResponse(str(soup))
+            except Profile.DoesNotExist:
+                # If no profile matches the slug, raise a 404 error
+                raise Http404("Resume not found")
+        else:
+            # If slug is invalid, raise a 404 error
+            raise Http404(f"Invalid slug {slug}")
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+from .models import Application
+
+
+@csrf_exempt  
+@require_POST
+def mark_application_as_passed(request):
+    application_id = request.POST.get('application_id')
+    reason = request.POST.get('reason')
+
+    if not application_id or not reason:
+        return JsonResponse({'error': 'Application ID and reason are required.'}, status=400)
+
+    try:
+        application = Application.objects.get(id=application_id)
+        application.stage.name = "Passed"
+        application.reason = reason  # Assuming `reason` is a field in the `Application` model
+        application.save()
+        # email the user 
+        send_mail(
+            'Application marked as passed',
+            f'Your application for the role of {application.job.role.title} at {application.company.name} has been marked as passed. Reason: {reason}',
+            [settings.EMAIL_HOST_USER],
+            [application.user.email],
+            fail_silently=False,
+        )
+
+
+        return JsonResponse({'success': True})
+    except Application.DoesNotExist:
+        return JsonResponse({'error': 'Application not found.'}, status=404)
 
 
 def model_counts_view(request):

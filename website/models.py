@@ -50,6 +50,8 @@ class Profile(BaseModel):
     resume_download_count = models.PositiveIntegerField(default=0)
     resume_download_limit = models.PositiveIntegerField(default=0)
     is_public = models.BooleanField(default=True)
+    html_resume = models.TextField(blank=True, null=True)
+    resume_key = models.URLField(blank=True, null=True)
 
     # location = models.CharField(max_length=255, blank=True, null=True)
     # website = models.URLField(blank=True, null=True)
@@ -63,6 +65,13 @@ class Profile(BaseModel):
     # portfolio_url_status_updated = models.DateTimeField(null=True, blank=True)
     # email = models.EmailField(blank=True, null=True)
     # phone = models.CharField(max_length=255,blank=True, null=True)
+
+    # when saving the profile, if there is html_resume content and no resume_key then generate a new resume_key using YYYYMMDD-X where X is the number of resumes the system has generated that day
+    def save(self, *args, **kwargs):
+        if not self.resume_key and self.html_resume:
+            today = timezone.now().strftime("%Y%m%d")
+            self.resume_key = f"{today}-{Profile.objects.filter(created__date=today).count() + 1}"
+        super().save(*args, **kwargs)
 
 
 class Prompt(BaseModel):
@@ -134,6 +143,18 @@ class Company(BaseModel):
         super().save(*args, **kwargs)
 
 
+class RequestLog(BaseModel):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    email = models.EmailField()
+    applications = models.PositiveIntegerField()
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.CharField(max_length=255)
+    referer = models.URLField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.profile.user.username} - {self.company.name}"
 class BouncedEmail(BaseModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     email = models.EmailField()

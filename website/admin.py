@@ -242,6 +242,7 @@ class ProfileAdmin(admin.ModelAdmin):
         "resume_download_limit",
         "is_public",
     ]
+    # to speed things up keep certain fields out
     fields = (
         "user",
         "resume",
@@ -252,6 +253,8 @@ class ProfileAdmin(admin.ModelAdmin):
         "resume_download_count",
         "resume_download_limit",
         "is_public",
+        "html_resume",
+        "resume_key",
     )
 
 

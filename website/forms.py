@@ -5,14 +5,26 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
-from .models import (Application, Company, Email, Job, Link, Profile, Prompt,
-                     Role, Search, Skill, Source, Stage)
+from .models import (
+    Application,
+    Company,
+    Email,
+    Job,
+    Link,
+    Profile,
+    Prompt,
+    Role,
+    Search,
+    Skill,
+    Source,
+    Stage,
+)
 
 
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['bio', 'is_public']
+        fields = ['profile_picture', 'bio', 'is_public', 'html_resume']
 
     is_public = forms.BooleanField(
         label='Make Profile Public',
