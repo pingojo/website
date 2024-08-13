@@ -189,10 +189,11 @@
             {% endif %}
             <div class="row">
                 <div class="col-md-8">
-                    <h2>{{ job.title }}
-                    {% if request.user.is_superuser %}
-                        <a href="{% url 'admin:website_job_change' job.id %}">edit</a>
-                    {% endif %}
+                    <h2>
+                        {{ job.title }}
+                        {% if request.user.is_superuser %}
+                            <a href="{% url 'admin:website_job_change' job.id %}">edit</a>
+                        {% endif %}
                     </h2>
                     <h4>
                         Company: <a href="{% url 'company_detail' slug=job.company.slug %}">{{ job.company.name }}</a>
@@ -208,6 +209,9 @@
                             Company Email: <a href="mailto:{{ job.company.email }}" target="_blank">{{ job.company.email }}</a>
                         </p>
                     {% endif %}
+                    <p>
+                    {% if job.link %}Job Link: <a href="{{ job.link }}" class="btn btn-primary" target="_blank">{{ job.link }}</a> ({{job.link_status_code}}) {% endif %}
+                </p>
                     <div class="col-md-4">
                         <div class="card">
                             <div class="card-body">
