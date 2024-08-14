@@ -87,17 +87,7 @@
         }
     </style>
 
-    <!-- Timeline section -->
-    <div class="timeline-container">
-        {% for day in application_days %}
-            <div class="timeline-button">
-                <strong>{{ day.date|date:"m/d/Y" }}</strong><br>
-                Applications: {{ day.count }}<br>
-                Clicks: {{ day.clicks_percent }}%<br>
-                Bounces: {{ day.bounces_percent }}%
-            </div>
-        {% endfor %}
-    </div>
+
     <div class="stage-container">
         <a href="/"
            class="stage new active"
@@ -136,6 +126,18 @@
             Passed <span class="number">{{ stages.3.count|default:0 }}</span>
         </a>
     </div>
+        <!-- Timeline section -->
+        <div class="timeline-container">
+            {% for day in application_days %}
+                <div class="timeline-button">
+                    <strong>{{ day.date|date:"m/d" }}</strong><br>
+                    A: {{ day.count }}<br>
+                    B: {{ day.bounces_percent }}% | 
+                    C: {{ day.clicks_percent }}%
+                    
+                </div>
+            {% endfor %}
+        </div>
     <style>
       .pagination {
     display: flex;

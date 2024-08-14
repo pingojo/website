@@ -1353,7 +1353,7 @@ class DashboardView(LoginRequiredMixin, ListView):
             }
             for day in applications_by_day
         ]
-        context["application_days"] = application_days
+        context["application_days"] = application_days[:10]
 
         # Handling chart data if needed
         min_max_dates = Application.objects.filter(user=self.request.user).aggregate(
