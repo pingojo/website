@@ -63,16 +63,15 @@ from .models import (
 from .parse_resume import parse_resume
 
 
-@csrf_exempt
 @require_http_methods(["POST", "OPTIONS"])
 def report_bounce(request):
     if request.method == "OPTIONS":
-        # Handle the preflight request
         response = JsonResponse({"message": "CORS preflight request successful"})
         response["Access-Control-Allow-Origin"] = "https://mail.google.com"
         response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
         response["Access-Control-Allow-Credentials"] = "true"
+        response["Access-Control-Max-Age"] = "86400"  # Cache the response for 1 day
         return response
 
     if request.method == "POST":
