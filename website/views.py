@@ -21,6 +21,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+from django.utils.timezone import make_aware
 from django.views import View, generic
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
@@ -1291,12 +1292,14 @@ class DashboardView(LoginRequiredMixin, ListView):
         selected_date = self.request.GET.get("date")
         if selected_date:
             try:
-                # Parse the selected date and make it timezone aware
-                parsed_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
-                applications = applications.filter(date_applied__date=parsed_date)
+                # Parse the selected date string into a date object
+                parsed_date = datetime.strptime(selected_date, "%Y-%m-%d")
+                parsed_date = make_aware(parsed_date)
+                logger.debug(f"Filtering applications by date: {parsed_date}")
+                applications = applications.filter(date_applied__date=parsed_date.date())
+                logger.debug(f"Applications found: {applications.count()}")
             except ValueError:
-                # If date parsing fails, don't filter by date
-                pass
+                logger.error(f"Invalid date format: {selected_date}")
 
 
         # Apply sorting
