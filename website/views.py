@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import Count, ExpressionWrapper, F, Max, Min, Q, Value
+from django.db.models import Count, ExpressionWrapper, F, Max, Min, Q, Sum, Value
 from django.db.models.functions import Coalesce, TruncDay
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1263,10 +1263,9 @@ from django.views.generic import ListView
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = "dashboard.html"
     context_object_name = "applications"
-    paginate_by = 50
+    paginate_by = 200
 
     def get_queryset(self):
-        # Get stage and sorting parameters
         stage = self.request.GET.get("stage", "Applied")
         stage_obj = get_object_or_404(Stage, name=stage)
 
@@ -1288,27 +1287,25 @@ class DashboardView(LoginRequiredMixin, ListView):
             .prefetch_related(
                 "company", "stage", "job", "job__company", "job__role", "email_set"
             )
+            .annotate(
+                resume_views=Count(
+                    'company__requestlog',
+                    filter=Q(company__requestlog__profile__user=self.request.user)
+                )
+            )
             .order_by("-stage__order", "-date_applied")
         )
 
-        # Filter by the selected date, if any
         selected_date = self.request.GET.get("date")
         if selected_date:
             try:
-                # Parse the selected date string into a date object
                 parsed_date = datetime.strptime(selected_date, "%Y-%m-%d")
-
-                # Convert the parsed date to timezone-aware if needed
                 if is_naive(parsed_date):
                     parsed_date = make_aware(parsed_date)
-
-                # Filter applications by the date part of date_applied
                 applications = applications.filter(date_applied__date=parsed_date.date())
             except ValueError:
-                # If the date is not valid, skip filtering
                 pass
 
-        # Apply sorting
         if sort_by in sort_fields:
             applications = applications.order_by(f"{order_prefix}{sort_fields[sort_by]}")
         elif sort_by == "days":
@@ -1329,6 +1326,7 @@ class DashboardView(LoginRequiredMixin, ListView):
             )
 
         return applications
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -242,6 +242,7 @@
                             <a href="?stage={{ stage }}&sort_by=email{% if sort_by == 'email' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Email</a>
                         </th>
                         <th>Stage</th>
+                        <th>Resume Views</th> <!-- New column for resume views -->
                         <th>actions</th>
                         <th>link</th>
                         <th>email</th>
@@ -250,7 +251,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="11" class="grouper" data-stage="{{ stage }}">
+                        <td colspan="12" class="grouper" data-stage="{{ stage }}">
                             <strong>{{ stage }}</strong>
                         </td>
                     </tr>
@@ -352,6 +353,7 @@
                                     </select>
                                 </form>
                             </td>
+                            <td>{{ application.resume_views }}</td> <!-- New column displaying resume views -->
                             <td>
                                 {% if application.job.slug %}
                                     <a href="{% url 'job_detail' application.job.slug %}">
