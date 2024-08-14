@@ -23,6 +23,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.timezone import is_naive, make_aware
 from django.views import View, generic
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from requests.exceptions import RequestException
@@ -62,11 +63,21 @@ from .models import (
 from .parse_resume import parse_resume
 
 
+@csrf_exempt
+@require_http_methods(["POST", "OPTIONS"])
 def report_bounce(request):
+    if request.method == "OPTIONS":
+        # Handle the preflight request
+        response = JsonResponse({"message": "CORS preflight request successful"})
+        response["Access-Control-Allow-Origin"] = "https://mail.google.com"
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
+
     if request.method == "POST":
         email = request.POST.get("email")
         reason = request.POST.get("reason")
-        # get the
 
         if not email:
             return JsonResponse({"error": "Email is required"}, status=400)
@@ -74,7 +85,7 @@ def report_bounce(request):
         if not reason:
             return JsonResponse({"error": "Reason is required"}, status=400)
 
-        # also get the company
+        # Get the company associated with the email
         company = Company.objects.filter(email=email).first()
 
         bounced_email, created = BouncedEmail.objects.get_or_create(
@@ -85,13 +96,19 @@ def report_bounce(request):
             return JsonResponse(
                 {"error": "Bounced email already exists"}, status=400
             )
-        # remove the email from the company
-        company.email = ""
-        company.save()
+        
+        # Remove the email from the company
+        if company:
+            company.email = ""
+            company.save()
 
-        return JsonResponse({"success": "Bounced email reported"}, status=201)
+        response = JsonResponse({"success": "Bounced email reported"}, status=201)
+        response["Access-Control-Allow-Origin"] = "https://mail.google.com"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
 class GetCompanyEmailView(View):
     def get(self, request):
         company_name = request.GET.get("company_name")
