@@ -1249,6 +1249,8 @@ def scrape_job(request):
     return JsonResponse({"job_title": job_title, "company_name": company_name})
 
 
+from datetime import datetime
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Q, Value
 from django.db.models.functions import Coalesce, TruncDay
@@ -1288,19 +1290,17 @@ class DashboardView(LoginRequiredMixin, ListView):
             )
             .order_by("-stage__order", "-date_applied")
         )
+
         # Filter by the selected date, if any
         selected_date = self.request.GET.get("date")
         if selected_date:
             try:
-                # Parse the selected date string into a date object
-                parsed_date = datetime.strptime(selected_date, "%Y-%m-%d")
-                parsed_date = make_aware(parsed_date)
-                logger.debug(f"Filtering applications by date: {parsed_date}")
-                applications = applications.filter(date_applied__date=parsed_date.date())
-                logger.debug(f"Applications found: {applications.count()}")
+                # Directly filter by the date part of the datetime field
+                parsed_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+                applications = applications.filter(date_applied__date=parsed_date)
             except ValueError:
-                logger.error(f"Invalid date format: {selected_date}")
-
+                # If the date is not valid, skip filtering
+                pass
 
         # Apply sorting
         if sort_by in sort_fields:
@@ -1377,6 +1377,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
+
 
 
 
