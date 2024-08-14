@@ -1,38 +1,40 @@
 {% load humanize %}
 <div class="sidebar">
     <ul class="sidebar-links">
-        <li><a href="" target="_blank"><i class="fa fa-coffee"></i> Donate BCH</a></li>
+        <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">🏠 Home</a></li>
+        <li><a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">📊 Pipeline / Dashboard</a></li>
+        <li><a href="" target="_blank">☕ Donate BCH</a></li>
         <li>
             <a href="/profiles" class="{% if request.path == '/profiles/' %}active{% endif %}">
-                <i class="fa fa-users"></i> Profiles
+                👥 Profiles
             </a>
         </li>
         <li>
             <a href="{% url 'company_list' %}" class="{% if request.path == '/companies' %}active{% endif %}">
-                <i class="fa fa-building"></i> Companies
+                🏢 Companies
             </a>
         </li>
         <li>
             <a href="{% url 'model-counts' %}" class="{% if request.path == '/stats' %}active{% endif %}">
-                <i class="fa fa-chart-bar"></i> Stats
+                📈 Stats
             </a>
         </li>
         <li>
             <a href="{% url 'source-list' %}" class="{% if request.path == '/sources/' %}active{% endif %}">
-                <i class="fa fa-book"></i> Sources <span class="badge">{{ sources|length }}</span>
+                📚 Sources <span class="badge">{{ sources|length }}</span>
             </a>
         </li>
-        <li><a href="https://github.com/pingojo/website"><i class="fab fa-github"></i> Github</a></li>
-        <li><a href="https://discord.gg/jQyDmZDREs" target="_blank"><i class="fab fa-discord"></i> Discord</a></li>
-        <li><a href="https://x.com/pingojo" target="_blank"><i class="fa fa-x"></i> X</a></li>
+        <li><a href="https://github.com/pingojo/website">🐙 Github</a></li>
+        <li><a href="https://discord.gg/jQyDmZDREs" target="_blank">💬 Discord</a></li>
+        <li><a href="https://x.com/pingojo" target="_blank">❌ X</a></li>
         <li>
             <a href="{% url 'privacy_policy' %}" class="{% if request.path == '/privacy' %}active{% endif %}">
-                <i class="fa fa-user-secret"></i> Privacy
+                🕶️ Privacy
             </a>
         </li>
         <li>
             <a href="{% url 'terms_of_service' %}" class="{% if request.path == '/terms' %}active{% endif %}">
-                <i class="fa fa-file-contract"></i> Terms
+                📄 Terms
             </a>
         </li>
     </ul>
@@ -46,7 +48,7 @@
 
 <style>
     .sidebar {
-        width: 180px;
+        width: 150px; /* Reduced width for a more compact sidebar */
         position: fixed;
         top: 100;
         left: 0;
@@ -58,14 +60,14 @@
         padding: 0;
     }
     .sidebar-links li {
-        margin: 15px 0;
+        margin: 10px 0; /* Reduced margin for compactness */
     }
     .sidebar-links li a {
         color: #333;
         text-decoration: none;
-        font-size: 16px;
+        font-size: 14px; /* Reduced font size for a more compact look */
         display: block;
-        padding: 10px 20px;
+        padding: 8px 15px; /* Reduced padding for a tighter layout */
     }
     .sidebar-links li a:hover {
         background-color: #ddd;

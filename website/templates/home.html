@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="content-with-sidebar">
+    {% include 'sidebar.html' %}
+
+    <div class="main-content">
+        <header>
+            <h1>Welcome to Pingojo - Your Job Platform</h1>
+            <p>Your gateway to exciting career opportunities</p>
+        </header>
+
+        <div class="container">
+            <!-- Featured Jobs Section -->
+            <div class="section">
+                <h2>🚀 Featured Jobs</h2>
+                <div class="job-list">
+                    <div class="job">
+                        <h3>Software Engineer at XYZ Corp</h3>
+                        <p>Build cutting-edge applications in a dynamic environment.</p>
+                        <a href="#" class="cta-button">Apply Now</a>
+                    </div>
+                    <div class="job">
+                        <h3>Marketing Specialist at ABC Inc.</h3>
+                        <p>Join our team to drive innovative marketing campaigns.</p>
+                        <a href="#" class="cta-button">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features Section -->
+            <div class="section">
+                <h2>✨ Key Features</h2>
+                <div class="feature-list">
+                    <div class="feature">
+                        <h3>Resume Click Tracker</h3>
+                        <p>Track who views your resume and take control of your job search.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>GPT-Powered Cover Letter Builder</h3>
+                        <p>Create compelling cover letters with AI assistance.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Email Finder & Company Highlighter</h3>
+                        <p>Find company emails and highlight key information.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Integrated Social Feed</h3>
+                        <p>Engage with other professionals and stay updated with the latest trends.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Engagement Section -->
+            <div class="section">
+                <h2>👥 Stay Engaged</h2>
+                <p>Sign up for our engagement emails and never miss an opportunity!</p>
+                <a href="#" class="cta-button">Sign Up for Emails</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .content-with-sidebar {
+        display: flex;
+    }
+    .main-content {
+        margin-left: 180px; /* Make room for the sidebar */
+        padding: 20px;
+    }
+    .container {
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .section {
+        margin-bottom: 40px;
+    }
+    .section h2 {
+        color: #333;
+    }
+    .job-list, .feature-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .job, .feature {
+        background-color: #e7e7e7;
+        padding: 15px;
+        margin: 10px 0;
+        width: 48%;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    .cta-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #0073e6;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+</style>
+
+{% block footer %}{% endblock footer %}
+{% endblock %}

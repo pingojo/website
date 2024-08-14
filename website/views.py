@@ -1248,6 +1248,15 @@ def scrape_job(request):
     return JsonResponse({"job_title": job_title, "company_name": company_name})
 
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Q, Value
+from django.db.models.functions import Coalesce, TruncDay
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.timezone import timedelta
+from django.views.generic import ListView
+
+
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = "dashboard.html"
     context_object_name = "applications"
@@ -1278,7 +1287,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         applications = (
             Application.objects.filter(user=self.request.user, stage=stage_obj)
             .prefetch_related(
-                "company", "stage", "job", "job__company", "job__role", "email_set"
+                "company", "stage", "job", "job__company", "job__role", "email"
             )
             .order_by("-stage__order", "-date_applied")
         )
@@ -1293,7 +1302,7 @@ class DashboardView(LoginRequiredMixin, ListView):
                 applications.annotate(
                     days_since_last_email=ExpressionWrapper(
                         Value(today) - Coalesce(F("date_of_last_email"), Value(today)),
-                        output_field=CustomDurationField(),
+                        output_field=DecimalField(),
                     )
                 )
                 .extra(select={"days_int": 'EXTRACT(DAY FROM "date_of_last_email")'})
@@ -1311,8 +1320,42 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stages"] = Stage.objects.annotate(
             count=Count("application", filter=Q(application__user=self.request.user))
         ).order_by("-order")
-        total_jobs = Job.objects.count()  # Use count() on the object list
+        total_jobs = Job.objects.count()
         context["total_jobs"] = total_jobs
+
+        # Calculate application_days
+        applications_by_day = (
+            Application.objects.filter(user=self.request.user)
+            .annotate(date=TruncDay("date_applied"))
+            .values("date")
+            .annotate(
+                application_count=Count("id"),
+                clicks_percent=ExpressionWrapper(
+                    (Count("email") * 100.0) / Count("id"),
+                    output_field=DecimalField()
+                ),
+                bounces_percent=ExpressionWrapper(
+                    Count(
+                        "company__bouncedemail", filter=Q(company__bouncedemail__created__date=F("date"))
+                    ) * 100.0 / Count("id"),
+                    output_field=DecimalField()
+                ),
+            )
+            .order_by("-date")
+        )
+
+        application_days = [
+            {
+                "date": day["date"],
+                "count": day["application_count"],
+                "clicks_percent": round(day["clicks_percent"], 2) if day["application_count"] > 0 else 0,
+                "bounces_percent": round(day["bounces_percent"], 2) if day["application_count"] > 0 else 0,
+            }
+            for day in applications_by_day
+        ]
+        context["application_days"] = application_days
+
+        # Handling chart data if needed
         min_max_dates = Application.objects.filter(user=self.request.user).aggregate(
             Min("created"), Max("created")
         )
@@ -1374,6 +1417,8 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
+
+
 
 
 # @method_decorator(vary_on_cookie, name='dispatch')
@@ -1588,6 +1633,7 @@ import re
 from bs4 import BeautifulSoup  # To parse and correct HTML
 from django.http import Http404, HttpResponse
 
+
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -1595,6 +1641,9 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+def home_view(request):
+    return render(request, "home.html")
 
 def resume_view(request, slug):
     if request.method == "GET":

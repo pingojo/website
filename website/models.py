@@ -205,6 +205,7 @@ class Job(BaseModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     link = models.URLField()
     link_status_code = models.IntegerField(null=True, blank=True, default=200)
+    link_status_code_updated = models.DateTimeField(null=True, blank=True)
     location = models.CharField(max_length=255, blank=True, null=True)
     equity_min = models.DecimalField(
         max_digits=5, decimal_places=2, blank=True, null=True

@@ -35,6 +35,7 @@ urlpatterns = [
     path(
         "company/<slug:slug>/", views.CompanyDetailView.as_view(), name="company_detail"
     ),
+    path("home/", views.home_view, name="home"),
     path("resume/<slug:slug>/", views.resume_view, name="resume"),
     path("mark-application-as-passed/", views.mark_application_as_passed, name="mark_application_as_passed"),
     path('model-counts/', views.model_counts_view, name='model-counts'),

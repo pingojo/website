@@ -8,62 +8,96 @@
 {% endblock %}
 {% block content %}
     <style>
-.stage-container {
-    width: 100%;
-    background-color: white;
-    border-top: 1px solid rgb(209, 209, 209);
-    border-bottom: 1px solid rgb(209, 209, 209);
-    display: flex;
-    justify-content: space-between;
-}
+        .stage-container {
+            width: 100%;
+            background-color: white;
+            border-top: 1px solid rgb(209, 209, 209);
+            border-bottom: 1px solid rgb(209, 209, 209);
+            display: flex;
+            justify-content: space-between;
+        }
 
-.stage {
-    flex-grow: 1;
-    padding: 10px 0;
-    text-align: center;
-    color: white;
-    position: relative;
-    overflow: hidden;
-    font-weight:bold;
-}
+        .stage {
+            flex-grow: 1;
+            padding: 10px 0;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+        }
 
-/* Default style for ::after pseudo-element */
-.stage::after {
-    content: '';
-    position: absolute;
-    left: 0px;
-    top: 50%;
-    border: solid transparent;
-    border-width: 20px;
-    transform: translateY(-50%);
-}
-.active{
-  text-decoration: underline;
-}
+        .stage::after {
+            content: '';
+            position: absolute;
+            left: 0px;
+            top: 50%;
+            border: solid transparent;
+            border-width: 20px;
+            transform: translateY(-50%);
+        }
 
-/* Separate selectors for each stage combination */
-.new + .applied::after { border-left-color: white; }
-.applied + .scheduled::after { border-left-color: green; }
-.scheduled + .next::after { border-left-color: dodgerblue; }
-.next + .offer::after { border-left-color: orange; }
-.offer + .passed::after { border-left-color: purple; }
+        .new + .applied::after { border-left-color: white; }
+        .applied + .scheduled::after { border-left-color: green; }
+        .scheduled + .next::after { border-left-color: dodgerblue; }
+        .next + .offer::after { border-left-color: orange; }
+        .offer + .passed::after { border-left-color: purple; }
 
-.new { background-color: white; color:black; }
-.applied { background-color: green; }
-.scheduled { background-color: dodgerblue; }
-.next { background-color: orange; }
-.offer { background-color: purple; /* Light Blue */ }
-.passed { background-color: red; }
+        .new { background-color: white; color:black; }
+        .applied { background-color: green; }
+        .scheduled { background-color: dodgerblue; }
+        .next { background-color: orange; }
+        .offer { background-color: purple; }
+        .passed { background-color: red; }
 
-.hover-visible-link{
-  display: none;
+        .hover-visible-link {
+            display: none;
+        }
 
-}
+        .job-card-header:hover .hover-visible-link {
+            display: inline;
+        }
 
-.job-card-header:hover .hover-visible-link {
-    display: inline; /* Or 'block', depending on your layout */
-  }
+        .timeline-container {
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .timeline-button {
+            margin-right: 10px;
+            padding: 5px 10px;
+            font-size: 12px;
+            text-align: center;
+            background-color: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #000;
+        }
+
+        .timeline-button:hover {
+            background-color: #e2e6ea;
+        }
+
+        .timeline-button.active {
+            background-color: #007bff;
+            color: #fff;
+        }
     </style>
+
+    <!-- Timeline section -->
+    <div class="timeline-container">
+        {% for day in application_days %}
+            <div class="timeline-button">
+                <strong>{{ day.date|date:"m/d/Y" }}</strong><br>
+                Applications: {{ day.count }}<br>
+                Clicks: {{ day.clicks_percent }}%<br>
+                Bounces: {{ day.bounces_percent }}%
+            </div>
+        {% endfor %}
+    </div>
     <div class="stage-container">
         <a href="/"
            class="stage new active"
