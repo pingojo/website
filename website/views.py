@@ -1287,7 +1287,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         applications = (
             Application.objects.filter(user=self.request.user, stage=stage_obj)
             .prefetch_related(
-                "company", "stage", "job", "job__company", "job__role", "email"
+                "company", "stage", "job", "job__company", "job__role", "email_set"
             )
             .order_by("-stage__order", "-date_applied")
         )
