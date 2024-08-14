@@ -1267,7 +1267,7 @@ class DashboardView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Get stage and sorting parameters
-        stage = self.request.GET.get("stage", "Scheduled")
+        stage = self.request.GET.get("stage", "Applied")
         stage_obj = get_object_or_404(Stage, name=stage)
 
         sort_by = self.request.GET.get("sort_by", "last_email")

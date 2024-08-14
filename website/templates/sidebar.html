@@ -2,7 +2,7 @@
 <div class="sidebar">
     <ul class="sidebar-links">
         <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">🏠 Home</a></li>
-        <li><a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">📊 Pipeline / Dashboard</a></li>
+        <li><a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">📊 Pipeline</a></li>
         <li><a href="" target="_blank">☕ Donate BCH</a></li>
         <li>
             <a href="/profiles" class="{% if request.path == '/profiles/' %}active{% endif %}">
@@ -60,15 +60,15 @@
         padding: 0;
     }
     .sidebar-links li {
-        margin: 10px 0; /* Reduced margin for compactness */
+        margin: 7px 0; /* Reduced margin for compactness */
     }
     .sidebar-links li a {
         color: #333;
         text-decoration: none;
         font-size: 14px; /* Reduced font size for a more compact look */
         display: block;
-        padding: 8px 15px; /* Reduced padding for a tighter layout */
-    }
+        padding: 7px 15px; /* explain this padding: 8px 15px; it's the padding for the top and bottom of the link */
+
     .sidebar-links li a:hover {
         background-color: #ddd;
         border-radius: 5px;
