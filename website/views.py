@@ -1263,16 +1263,12 @@ class DashboardView(LoginRequiredMixin, ListView):
     paginate_by = 50
 
     def get_queryset(self):
+        # Get stage and sorting parameters
         stage = self.request.GET.get("stage", "Scheduled")
         stage_obj = get_object_or_404(Stage, name=stage)
 
         sort_by = self.request.GET.get("sort_by", "last_email")
-        if "-" in sort_by:
-            sort_by = sort_by[1:]
-            sort_order = "desc"
-        else:
-            sort_order = self.request.GET.get("sort_order", "asc")
-
+        sort_order = "asc" if "-" not in sort_by else "desc"
         order_prefix = "" if sort_order == "asc" else "-"
 
         sort_fields = {
@@ -1291,11 +1287,14 @@ class DashboardView(LoginRequiredMixin, ListView):
             )
             .order_by("-stage__order", "-date_applied")
         )
+        # Filter by the selected date, if any
+        selected_date = self.request.GET.get("date")
+        if selected_date:
+            applications = applications.filter(date_applied__date=selected_date)
 
+        # Apply sorting
         if sort_by in sort_fields:
-            applications = applications.order_by(
-                f"{order_prefix}{sort_fields[sort_by]}"
-            )
+            applications = applications.order_by(f"{order_prefix}{sort_fields[sort_by]}")
         elif sort_by == "days":
             today = timezone.now().date()
             applications = (
@@ -1323,7 +1322,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         total_jobs = Job.objects.count()
         context["total_jobs"] = total_jobs
 
-        # Calculate application_days
+        # Calculate application_days as before
         applications_by_day = (
             Application.objects.filter(user=self.request.user)
             .annotate(date=TruncDay("date_applied"))
@@ -1355,61 +1354,12 @@ class DashboardView(LoginRequiredMixin, ListView):
         ]
         context["application_days"] = application_days[:10]
 
-        # Handling chart data if needed
-        min_max_dates = Application.objects.filter(user=self.request.user).aggregate(
-            Min("created"), Max("created")
-        )
-
-        start_date = min_max_dates["created__min"]
-        end_date = min_max_dates["created__max"]
-
-        if start_date and end_date:
-            # Normalize start and end dates to start of day
-            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-
-            # Fetch applications count per day
-            applications_by_day = (
-                Application.objects.all()
-                .filter(user=self.request.user)
-                .annotate(date=TruncDay("created"))
-                .values("date")
-                .annotate(application_count=Count("pk"))
-                .order_by("date")
-            )
-
-            # Create a dictionary from applications_by_day with date as the key
-            application_dict = {
-                entry["date"].date(): entry["application_count"]
-                for entry in applications_by_day
-            }
-
-            # Generate all dates between start and end dates
-            all_dates = [
-                start_date + timedelta(days=i)
-                for i in range((end_date - start_date).days + 1)
-            ]
-
-            # Generate labels and application_counts
-            labels = [date.strftime("%m/%d/%Y") for date in all_dates]
-            application_counts = [
-                application_dict.get(date.date(), 0) for date in all_dates
-            ]
-
-            data_chart1 = {
-                "labels": labels,
-                "datasets": [
-                    {
-                        "label": "Applications",
-                        "data": application_counts,
-                        "backgroundColor": "rgba(255, 99, 132, 0.2)",
-                        "borderColor": "rgba(255, 99, 132, 1)",
-                        "borderWidth": 1,
-                    }
-                ],
-            }
-            context["data_chart1"] = data_chart1
-
+        # Include other context as before
+        context["stages"] = Stage.objects.annotate(
+            count=Count("application", filter=Q(application__user=self.request.user))
+        ).order_by("-order")
+        
+        context["total_jobs"] = Job.objects.count()
         sort_by = self.request.GET.get("sort_by", "applied")
         sort_order = self.request.GET.get("sort_order", "desc")
         context["sort_by"] = sort_by
@@ -1417,6 +1367,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
+
 
 
 
