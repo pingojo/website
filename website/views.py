@@ -1290,7 +1290,14 @@ class DashboardView(LoginRequiredMixin, ListView):
         # Filter by the selected date, if any
         selected_date = self.request.GET.get("date")
         if selected_date:
-            applications = applications.filter(date_applied__date=selected_date)
+            try:
+                # Parse the selected date and make it timezone aware
+                parsed_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+                applications = applications.filter(date_applied__date=parsed_date)
+            except ValueError:
+                # If date parsing fails, don't filter by date
+                pass
+
 
         # Apply sorting
         if sort_by in sort_fields:
