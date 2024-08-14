@@ -62,6 +62,36 @@ from .models import (
 from .parse_resume import parse_resume
 
 
+def report_bounce(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        reason = request.POST.get("reason")
+        # get the
+
+        if not email:
+            return JsonResponse({"error": "Email is required"}, status=400)
+
+        if not reason:
+            return JsonResponse({"error": "Reason is required"}, status=400)
+
+        # also get the company
+        company = Company.objects.filter(email=email).first()
+
+        bounced_email, created = BouncedEmail.objects.get_or_create(
+            email=email, company=company, defaults={"reason": reason}
+        )
+
+        if not created:
+            return JsonResponse(
+                {"error": "Bounced email already exists"}, status=400
+            )
+        # remove the email from the company
+        company.email = ""
+        company.save()
+
+        return JsonResponse({"success": "Bounced email reported"}, status=201)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 class GetCompanyEmailView(View):
     def get(self, request):
         company_name = request.GET.get("company_name")
