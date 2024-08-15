@@ -375,13 +375,13 @@
                             <td>
                                 {% if not application.resume_views %}
                                     {% if application.company.email %}
-                                    <a href="#"
-                                    hx-post="/api/bounced_email/"
-                                    hx-trigger="click"
-                                    hx-target="this"
-                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                    onclick="handleBounceReport(this, event, '{{ application.company.email|urlencode }}')"
-                                    title="Report Email Bounce">🚫</a>
+                                        <a href="#"
+                                        hx-post="/api/bounced_email/"
+                                        hx-trigger="click"
+                                        hx-target="this"
+                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                        onclick="handleBounceReport(this, event, '{{ application.company.email|urlencode }}')"
+                                        title="Report Email Bounce">🚫</a>
                                     {% endif %}
                                 {% endif %}
                             </td>
@@ -439,15 +439,17 @@
 </br>
 <script>
     function handleBounceReport(element, event, email) {
+        console.log("Email:", email);  // Debugging: check if email is defined
         let reason = prompt('Please provide a reason for reporting this email as bounced:');
-        if (reason) {
+        console.log("Reason:", reason);  // Debugging: check if reason is defined
+
+        if (email && reason) {
             element.setAttribute('hx-params', `email=${email}&reason=${encodeURIComponent(reason)}`);
         } else {
+            alert("Email or reason is undefined or empty."); // Provide feedback if undefined
             event.preventDefault(); // Prevents the form from submitting if no reason is provided
         }
     }
-
-
 
 
 function copyLink(icon) {
