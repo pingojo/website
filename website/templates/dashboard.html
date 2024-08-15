@@ -60,7 +60,7 @@
 
         .timeline-container {
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
             flex-wrap: wrap;
             margin-bottom: 20px;
         }
@@ -124,19 +124,18 @@
             Passed <span class="number">{{ stages.3.count|default:0 }}</span>
         </a>
     </div>
-    <!-- Timeline section -->
-     <center>
+
         <br>
-    <div class="timeline-container">
-        {% for day in application_days %}
-            <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button">
-                <strong>{{ day.date|date:"m/d" }}</strong>
-                <br>
-                A: {{ day.count }}
-            </a>
-        {% endfor %}
-    </div>
-</center>
+        <div class="timeline-container">
+            {% for day in application_days %}
+                <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button">
+                    <strong>{{ day.date|date:"m/d" }}</strong>
+                    <br>
+                    A: {{ day.count }}
+                </a>
+            {% endfor %}
+        </div>
+
     <style>
       .pagination {
     display: flex;
@@ -311,7 +310,9 @@
                                              display: inline-block;
                                              vertical-align: middle">
                                     {% for email in application.email_set.all %}
-                                        <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}" target="_blank" title="{{ email.date|date:'m/d/y' }}">{{ forloop.counter }}</a>
+                                        <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
+                                           target="_blank"
+                                           title="{{ email.date|date:'m/d/y' }}">{{ forloop.counter }}</a>
                                     {% empty %}
                                         0
                                     {% endfor %}
@@ -322,13 +323,13 @@
                                     <a href='https://mail.google.com/mail/u/0/#search/"{{ application.company.name }}"'
                                        target="_blank"
                                        style="margin:0px;
-                                              padding:0px" title="Search Gmail for '{{ application.company.name }}'">
+                                              padding:0px"
+                                       title="Search Gmail for '{{ application.company.name }}'">
                                         <img src="{% static 'svg/search-mail.svg' %}"
                                              alt="email"
                                              width="20"
                                              height="20">
                                     </a>
-                                   
                                 </div>
                             </td>
                             <td>
@@ -369,16 +370,16 @@
                             <td nowrap>{% include 'partials/link.html' %}</td>
                             <td>{% include 'partials/email.html' %}</td>
                             <td>
-                                <!-- Report Email Bounce with HTMX integration -->
-                                <a href="#" 
-                                   hx-post="/api/report_bounce/"
+                                {% if application.company.email %}
+                                <a href="#"
+                                   hx-post="/api/bounced_email/"
                                    hx-prompt="Server response:"
                                    hx-params="email={{ application.company.email|urlencode }}&reason=Email%20bounced"
                                    hx-trigger="click"
                                    hx-target="this"
-                                   title="Report Email Bounce">
-                                    🚫
-                                </a>
+                                   hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                   title="Report Email Bounce">🚫</a>
+                            {% endif %}
                             </td>
                             {% if application.company.email and application.job.role %}
                                 <td nowrap>

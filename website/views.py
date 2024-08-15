@@ -63,55 +63,6 @@ from .models import (
 from .parse_resume import parse_resume
 
 
-#@require_http_methods(["POST", "OPTIONS"])
-def report_bounce(request):
-    # if request.method == "OPTIONS":
-    #     response = JsonResponse({"message": "CORS preflight request successful"})
-    #     response["Access-Control-Allow-Origin"] = "https://mail.google.com"
-    #     response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-    #     response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
-    #     response["Access-Control-Allow-Credentials"] = "true"
-    #     response["Access-Control-Max-Age"] = "86400"  # Cache the response for 1 day
-    #     return response
-
-    if request.method == "POST":
-        email = request.POST.get("email")
-        reason = request.POST.get("reason")
-
-        if not email:
-            return JsonResponse({"error": "Email is required"}, status=400)
-
-        if not reason:
-            return JsonResponse({"error": "Reason is required"}, status=400)
-
-        # Get the company associated with the email
-        # check if email is a valid email
-        email_is_valid = re.match(r"[^@]+@[^@]+\.[^@]+", email)
-        if not email_is_valid:
-            return JsonResponse({"error": "Invalid email address"}, status=400)
-        company = Company.objects.filter(email=email).first()
-
-        bounced_email, created = BouncedEmail.objects.get_or_create(
-            email=email, company=company, defaults={"reason": reason}
-        )
-
-        if not created:
-            return JsonResponse(
-                {"error": "Bounced email already exists"}, status=400
-            )
-        
-        # Remove the email from the company
-        if company:
-            company.email = ""
-            company.save()
-
-        response = JsonResponse({"success": "Bounced email reported"}, status=201)
-        response["Access-Control-Allow-Origin"] = "https://mail.google.com"
-        response["Access-Control-Allow-Credentials"] = "true"
-        return response
-
-    return JsonResponse({"error": "Invalid request method"}, status=405)
-
 class GetCompanyEmailView(View):
     def get(self, request):
         company_name = request.GET.get("company_name")
@@ -142,6 +93,9 @@ class BouncedEmailAPI(APIView):
             raise ValidationError({"email": "This field is required."})
         if not reason:
             raise ValidationError({"reason": "This field is required."})
+        #check if email is valid
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            raise ValidationError({"email": "Invalid email address."})
 
         # Check for an active application to the company with the given email
         application = Application.objects.filter(

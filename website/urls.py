@@ -53,8 +53,7 @@ urlpatterns = [
     path("api/application/", ApplicationView.as_view(), name="application_view"),
     path("api/add_job/", AddJobLink.as_view(), name="add_job_view"),
     path("display_resume/", DisplayResumeView.as_view(), name="display_resume"),
-    #api/report_bounce
-    path("api/report_bounce/", views.report_bounce, name="report_bounce"),
+
     path("upload_resume/", ResumeUploadView.as_view(), name="upload_resume"),
     path(
         "update_application_stage/",
