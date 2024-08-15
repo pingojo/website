@@ -85,15 +85,15 @@ class BouncedEmailAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        # Extract email and reason from the request
-        email = request.data.get("email")
-        reason = request.data.get("reason")
+        # Extract email and reason from the request.POST (form data)
+        email = request.POST.get("email")
+        reason = request.POST.get("reason")
 
         if not email:
             raise ValidationError({"email": "This field is required."})
         if not reason:
             raise ValidationError({"reason": "This field is required."})
-        #check if email is valid
+        # Check if email is valid
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             raise ValidationError({"email": "Invalid email address."})
 
@@ -127,7 +127,7 @@ class BouncedEmailAPI(APIView):
 
         return JsonResponse(
             {
-                "detail": "Bounced email processed successfully. You can delete this full thread."
+                "detail": "Bounced email processed successfully."
             },
             status=status.HTTP_201_CREATED,
         )
