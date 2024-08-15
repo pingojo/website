@@ -12,6 +12,7 @@ from django.urls import path
 from .admin_actions import merge_companies_action
 from .models import (
     Application,
+    BouncedEmail,
     Company,
     Email,
     Job,
@@ -281,7 +282,13 @@ class PromptAdmin(admin.ModelAdmin):
         "content",
         "created",
     ]
-
+@admin.register(BouncedEmail)
+class BounceAdmin(admin.ModelAdmin):
+    list_display = [
+        "email",
+        "reason",
+        "created",
+    ]
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 

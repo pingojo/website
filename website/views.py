@@ -95,9 +95,13 @@ class BouncedEmailAPI(APIView):
     parser_classes = [FormParser, MultiPartParser, JSONParser]
 
     def post(self, request, *args, **kwargs):
-        # Use request.data to get the POST data
-        email = request.data.get("email")
-        reason = request.data.get("reason")
+
+        data = request.data
+
+        email = data.get("email", "").strip()
+        reason = data.get("reason", "").strip()
+
+
 
         if not email:
             raise ValidationError({"email": "This field is required."})

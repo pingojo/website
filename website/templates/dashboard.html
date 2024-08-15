@@ -375,13 +375,13 @@
                             <td>
                                 {% if not application.resume_views %}
                                     {% if application.company.email %}
-                                        <a href="#"
-                                        hx-post="/api/bounced_email/"
-                                        hx-trigger="click"
-                                        hx-target="this"
-                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                        onclick="handleBounceReport(this, event, '{{ application.company.email|urlencode }}')"
-                                        title="Report Email Bounce">🚫</a>
+                                    <a href="#"
+                                    hx-post="/api/bounced_email/"
+                                    hx-trigger="click"
+                                    hx-target="this"
+                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                    onclick="handleBounceReport(this, event, '{{ application.company.email }}')"
+                                    title="Report Email Bounce">🚫</a>
                                     {% endif %}
                                 {% endif %}
                             </td>
@@ -440,24 +440,24 @@
 <script>
 function handleBounceReport(element, event, email) {
     console.log("Email:", email);  // Debugging: check if email is defined
+
+    // Show a prompt to the user to enter the reason
     let reason = prompt('Please provide a reason for reporting this email as bounced:');
     console.log("Reason:", reason);  // Debugging: check if reason is defined
 
-    if (email && reason) {
+    // Trim and validate email and reason
+    if (email && email.trim() !== "" && reason && reason.trim() !== "") {
         // Encode email and reason to avoid any issues with special characters
-        const encodedEmail = encodeURIComponent(email);
-        const encodedReason = encodeURIComponent(reason);
+        const encodedEmail = email.trim();
+        const encodedReason = reason.trim();
 
-        const params = `email=${encodedEmail}&reason=${encodedReason}`;
-        console.log("hx-params:", params);  // Debugging: check the final hx-params string
-        element.setAttribute('hx-params', params);
+        // Update hx-vals attribute with the correct reason
+        element.setAttribute('hx-vals', JSON.stringify({ email: encodedEmail, reason: encodedReason }));
     } else {
         alert("Email or reason is undefined or empty."); // Provide feedback if undefined
         event.preventDefault(); // Prevents the form from submitting if no reason is provided
     }
 }
-
-
     
 function copyLink(icon) {
             icon.style.color = "yellow";
