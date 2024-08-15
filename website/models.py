@@ -101,6 +101,7 @@ class Skill(models.Model):
 
 
 class Company(BaseModel):
+    #added_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
     logo = models.ImageField(upload_to="company_logos", blank=True, null=True)

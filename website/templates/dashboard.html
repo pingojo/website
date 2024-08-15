@@ -86,8 +86,6 @@
             color: #fff;
         }
     </style>
-
-
     <div class="stage-container">
         <a href="/"
            class="stage new active"
@@ -126,17 +124,19 @@
             Passed <span class="number">{{ stages.3.count|default:0 }}</span>
         </a>
     </div>
-        <!-- Timeline section -->
-        <div class="timeline-container">
-            {% for day in application_days %}
-                <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button">
-                    <strong>{{ day.date|date:"m/d" }}</strong><br>
-                    A: {{ day.count }}<br>
-                    B: {{ day.bounces_percent }}% | 
-                    C: {{ day.clicks_percent }}%
-                </a>
-            {% endfor %}
-        </div>
+    <!-- Timeline section -->
+    <div class="timeline-container">
+        {% for day in application_days %}
+            <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button">
+                <strong>{{ day.date|date:"m/d" }}</strong>
+                <br>
+                A: {{ day.count }}
+                <br>
+                B: {{ day.bounces_percent }}% |
+                C: {{ day.clicks_percent }}%
+            </a>
+        {% endfor %}
+    </div>
     <style>
       .pagination {
     display: flex;
@@ -242,11 +242,11 @@
                             <a href="?stage={{ stage }}&sort_by=email{% if sort_by == 'email' and sort_order == 'asc' %}&sort_order=desc{% else %}&sort_order=asc{% endif %}">Email</a>
                         </th>
                         <th>Stage</th>
-                        <th>Resume Views</th> <!-- New column for resume views -->
+                        <th>CV Hits</th>
                         <th>actions</th>
                         <th>link</th>
                         <th>email</th>
-                        <td>g</td>
+                        <td>ping</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -261,7 +261,8 @@
                                 {% if application.company.website %}
                                     <img src="https://www.google.com/s2/favicons?domain={{ application.company.website }}"
                                          alt="{{ application.company.name }} Logo"
-                                         height="15px;">
+                                         height="15px;"
+                                         width="15px">
                                 {% endif %}
                                 <a href="{% url 'company_detail' slug=application.company.slug %}"
                                    target="_blank">{{ application.company.name }}</a>
@@ -307,30 +308,26 @@
                                 <span style="padding-bottom: 3px;
                                              margin-left: 5px;
                                              display: inline-block;
-                                             vertical-align: middle">{{ application.email_set.count }}</span>
+                                             vertical-align: middle">
+                                    {% for email in application.email_set.all %}
+                                        <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}" target="_blank" title="{{ email.date|date:'m/d/y' }}">{{ forloop.counter }}</a>
+                                    {% empty %}
+                                        0
+                                    {% endfor %}
+                                </span>
                                 <div class="email-hover"
                                      style="display: inline-block;
                                             vertical-align: middle">
                                     <a href='https://mail.google.com/mail/u/0/#search/"{{ application.company.name }}"'
                                        target="_blank"
                                        style="margin:0px;
-                                              padding:0px">
+                                              padding:0px" title="Search Gmail for '{{ application.company.name }}'">
                                         <img src="{% static 'svg/search-mail.svg' %}"
                                              alt="email"
                                              width="20"
                                              height="20">
                                     </a>
-                                    <div class="hover-box">
-                                        {% for email in application.email_set.all %}
-                                            <p>
-                                                <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
-                                                   target="_blank">{{ email }}</a>
-                                                <span>{{ email.date|date:"m/d/y" }}</span>
-                                            </p>
-                                        {% empty %}
-                                            <p>No emails found.</p>
-                                        {% endfor %}
-                                    </div>
+                                   
                                 </div>
                             </td>
                             <td>
@@ -353,7 +350,7 @@
                                     </select>
                                 </form>
                             </td>
-                            <td>{{ application.resume_views }}</td> <!-- New column displaying resume views -->
+                            <td>{{ application.resume_views }}</td>
                             <td>
                                 {% if application.job.slug %}
                                     <a href="{% url 'job_detail' application.job.slug %}">
