@@ -63,16 +63,16 @@ from .models import (
 from .parse_resume import parse_resume
 
 
-@require_http_methods(["POST", "OPTIONS"])
+#@require_http_methods(["POST", "OPTIONS"])
 def report_bounce(request):
-    if request.method == "OPTIONS":
-        response = JsonResponse({"message": "CORS preflight request successful"})
-        response["Access-Control-Allow-Origin"] = "https://mail.google.com"
-        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
-        response["Access-Control-Allow-Credentials"] = "true"
-        response["Access-Control-Max-Age"] = "86400"  # Cache the response for 1 day
-        return response
+    # if request.method == "OPTIONS":
+    #     response = JsonResponse({"message": "CORS preflight request successful"})
+    #     response["Access-Control-Allow-Origin"] = "https://mail.google.com"
+    #     response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    #     response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
+    #     response["Access-Control-Allow-Credentials"] = "true"
+    #     response["Access-Control-Max-Age"] = "86400"  # Cache the response for 1 day
+    #     return response
 
     if request.method == "POST":
         email = request.POST.get("email")
@@ -85,6 +85,10 @@ def report_bounce(request):
             return JsonResponse({"error": "Reason is required"}, status=400)
 
         # Get the company associated with the email
+        # check if email is a valid email
+        email_is_valid = re.match(r"[^@]+@[^@]+\.[^@]+", email)
+        if not email_is_valid:
+            return JsonResponse({"error": "Invalid email address"}, status=400)
         company = Company.objects.filter(email=email).first()
 
         bounced_email, created = BouncedEmail.objects.get_or_create(

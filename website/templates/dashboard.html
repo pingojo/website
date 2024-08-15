@@ -471,13 +471,14 @@ function updateForm(email, applicationId) {
             }
         }
     });
-
-        var chart1Data = {{ data_chart1|safe }};
+    {% if data_chart1 %}
+    var chart1Data = {{ data_chart1|safe }};
     var chart1Ctx = document.getElementById('chart1').getContext('2d');
     var chart1 = new Chart(chart1Ctx, {
       type: 'bar',
       data: chart1Data,
     });
+    {% endif %}
 </script>
 {% block extra_js %}
     <script src="{% static 'js/dashboard.js' %}"></script>
