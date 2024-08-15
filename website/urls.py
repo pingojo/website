@@ -82,7 +82,7 @@ urlpatterns = [
     path("update_job/<int:job_id>", views.update_job, name="update_job"),
     # path('generage_follow_up_email/<int:application_id>', views.generage_follow_up_email, name='generage_follow_up_email'),
     path("api/is_authenticated", views.is_authenticated, name="is_authenticated"),
-    path("api/bounced_email", BouncedEmailAPI.as_view(), name="bounced_email"),
+    path("api/bounced_email/", BouncedEmailAPI.as_view(), name="bounced_email"),
     path("accounts/profile/", views.profile_view, name="profile"),
     path(
         "accounts/profile/<int:prompt_id>/",

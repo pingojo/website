@@ -127,8 +127,9 @@
 
         <br>
         <div class="timeline-container">
+            
             {% for day in application_days %}
-                <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button">
+                <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button {% if request.GET.date == day.date|date:'Y-m-d' %}active{% endif %}">
                     <strong>{{ day.date|date:"m/d" }}</strong>
                     <br>
                     A: {{ day.count }}
@@ -178,6 +179,10 @@
   a.visited {
     color: #ccc;
   }
+  .active {
+    background-color: #007bff;
+    color: white;
+    }
   
 
     table {
