@@ -438,20 +438,23 @@
 </br>
 </br>
 <script>
-    function handleBounceReport(element, event, email) {
-        console.log("Email:", email);  // Debugging: check if email is defined
-        let reason = prompt('Please provide a reason for reporting this email as bounced:');
-        console.log("Reason:", reason);  // Debugging: check if reason is defined
+function handleBounceReport(element, event, email) {
+    console.log("Email:", email);  // Debugging: check if email is defined
+    let reason = prompt('Please provide a reason for reporting this email as bounced:');
+    console.log("Reason:", reason);  // Debugging: check if reason is defined
 
-        if (email && reason) {
-            element.setAttribute('hx-params', `email=${email}&reason=${encodeURIComponent(reason)}`);
-        } else {
-            alert("Email or reason is undefined or empty."); // Provide feedback if undefined
-            event.preventDefault(); // Prevents the form from submitting if no reason is provided
-        }
+    if (email && reason) {
+        const params = `email=${encodeURIComponent(email)}&reason=${encodeURIComponent(reason)}`;
+        console.log("hx-params:", params);  // Debugging: check the final hx-params string
+        element.setAttribute('hx-params', params);
+    } else {
+        alert("Email or reason is undefined or empty."); // Provide feedback if undefined
+        event.preventDefault(); // Prevents the form from submitting if no reason is provided
     }
+}
 
 
+    
 function copyLink(icon) {
             icon.style.color = "yellow";
 }
