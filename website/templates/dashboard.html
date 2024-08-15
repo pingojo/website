@@ -125,18 +125,18 @@
         </a>
     </div>
     <!-- Timeline section -->
+     <center>
+        <br>
     <div class="timeline-container">
         {% for day in application_days %}
             <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button">
                 <strong>{{ day.date|date:"m/d" }}</strong>
                 <br>
                 A: {{ day.count }}
-                <br>
-                B: {{ day.bounces_percent }}% |
-                C: {{ day.clicks_percent }}%
             </a>
         {% endfor %}
     </div>
+</center>
     <style>
       .pagination {
     display: flex;
@@ -251,7 +251,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="12" class="grouper" data-stage="{{ stage }}">
+                        <td colspan="13" class="grouper" data-stage="{{ stage }}">
                             <strong>{{ stage }}</strong>
                         </td>
                     </tr>

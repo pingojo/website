@@ -8,11 +8,14 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
-from django.db import models
+from django.db import connection, models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
+from website.models import Job
 from website.utils import h_encode
 
 
@@ -79,7 +82,7 @@ class Prompt(BaseModel):
     content = models.TextField()
 
 
-class Skill(models.Model):
+class Skill(BaseModel):
     companies = models.ManyToManyField("Company", related_name="skills")
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="skills")
     name = models.CharField(max_length=255)
@@ -227,11 +230,6 @@ class Job(BaseModel):
         indexes = [GinIndex(fields=["search_vector"])]
 
 
-from django.db import connection
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-from website.models import Job
 
 
 @receiver(post_save, sender=Job)

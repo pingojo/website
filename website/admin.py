@@ -17,6 +17,7 @@ from .models import (
     Job,
     Link,
     Profile,
+    Prompt,
     RequestLog,
     Role,
     Search,
@@ -24,7 +25,6 @@ from .models import (
     Source,
     Stage,
 )
-
 
 
 class CompanyAdmin(admin.ModelAdmin):
@@ -272,6 +272,13 @@ class RequestLogAdmin(admin.ModelAdmin):
         "ip_address",
         "user_agent",
         "referer",
+        "created",
+    ]
+@admin.register(Prompt)
+class PromptAdmin(admin.ModelAdmin):
+    list_display = [
+        "user",
+        "content",
         "created",
     ]
 
