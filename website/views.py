@@ -82,19 +82,27 @@ class ProfileListView(ListView):
         return Profile.objects.filter(is_public=True).order_by("-web_views")
 
 
+import re
+
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+
 class BouncedEmailAPI(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, *args, **kwargs):
-        # Extract email and reason from the request.POST (form data)
-        email = request.POST.get("email")
-        reason = request.POST.get("reason")
+        # Use request.data to get the POST data
+        email = request.data.get("email")
+        reason = request.data.get("reason")
 
         if not email:
             raise ValidationError({"email": "This field is required."})
         if not reason:
             raise ValidationError({"reason": "This field is required."})
+        
         # Check if email is valid
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             raise ValidationError({"email": "Invalid email address."})
@@ -106,7 +114,7 @@ class BouncedEmailAPI(APIView):
         ).first()
 
         if not application:
-            return JsonResponse(
+            return Response(
                 {"detail": "No active application found for this company."},
                 status=status.HTTP_404_NOT_FOUND,
             )
@@ -117,7 +125,7 @@ class BouncedEmailAPI(APIView):
         )
 
         if not created:
-            return JsonResponse(
+            return Response(
                 {"detail": "Bounced email entry already exists."},
                 status=status.HTTP_409_CONFLICT,
             )
@@ -127,12 +135,11 @@ class BouncedEmailAPI(APIView):
         company.email = ""
         company.save()
 
-        return JsonResponse(
-            {
-                "detail": "Bounced email processed successfully."
-            },
+        return Response(
+            {"detail": "Bounced email processed successfully."},
             status=status.HTTP_201_CREATED,
         )
+
 
 
 @login_required
