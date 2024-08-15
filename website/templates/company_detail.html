@@ -119,6 +119,17 @@
             </form>
             {% endif %}
 
+            {% if company.bouncedemail_set.all %}
+            <p><strong>Bounced Emails:</strong></br>
+                {% for bounced_email in company.bouncedemail_set.all %}
+                <i class="fas fa-skull" style="color: grey;"></i>
+                <span style="color:grey">{{ bounced_email.email }} | {{bounced_email.created|date:"m/d/Y"}}</span></br>
+                {% endfor %}
+            </p>
+            {% endif %}
+
+   
+
 
 
             {% if company.twitter_url %}

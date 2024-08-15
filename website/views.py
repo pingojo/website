@@ -1896,7 +1896,7 @@ def mark_application_as_passed(request):
     try:
         application = Application.objects.get(id=application_id)
         application.stage.name = "Passed"
-        application.reason = reason  # Assuming `reason` is a field in the `Application` model
+        application.reason = reason + " (marked as passed from company)"
         application.save()
         # email the user 
         send_mail(

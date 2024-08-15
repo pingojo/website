@@ -285,6 +285,7 @@ class PromptAdmin(admin.ModelAdmin):
 @admin.register(BouncedEmail)
 class BounceAdmin(admin.ModelAdmin):
     list_display = [
+        "company",
         "email",
         "reason",
         "created",
