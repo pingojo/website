@@ -1308,7 +1308,7 @@ class DashboardView(LoginRequiredMixin, ListView):
                 parsed_date = datetime.strptime(selected_date, "%Y-%m-%d")
                 if is_naive(parsed_date):
                     parsed_date = make_aware(parsed_date)
-                applications = applications.filter(date_applied__date=parsed_date.date()).order_by("-date_applied")
+                applications = applications.filter(date_applied__date=parsed_date.date()).order_by("-created")
             except ValueError:
                 pass
 

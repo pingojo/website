@@ -124,21 +124,17 @@
             Passed <span class="number">{{ stages.3.count|default:0 }}</span>
         </a>
     </div>
-
-        <br>
-        <div class="timeline-container">
-            
-            {% for day in application_days %}
-                <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button {% if request.GET.date == day.date|date:'Y-m-d' %}active-day{% endif %}">
-                    <strong>{{ day.date|date:"m/d" }}</strong>
-                    <br>
-                     <span style="font-size: 20px;">
-                    {{ day.count }}
-                    </span>
-                </a>
-            {% endfor %}
-        </div>
-
+    <br>
+    <div class="timeline-container">
+        {% for day in application_days %}
+            <a href="?date={{ day.date|date:'Y-m-d' }}"
+               class="timeline-button {% if request.GET.date == day.date|date:'Y-m-d' %}active-day{% endif %}">
+                <strong>{{ day.date|date:"m/d" }}</strong>
+                <br>
+                <span style="font-size: 20px;">{{ day.count }}</span>
+            </a>
+        {% endfor %}
+    </div>
     <style>
       .pagination {
     display: flex;
@@ -377,23 +373,17 @@
                             <td nowrap>{% include 'partials/link.html' %}</td>
                             <td>{% include 'partials/email.html' %}</td>
                             <td>
-                                {% if application.company.email %}
-                                <a href="#"
-                                   hx-post="/api/bounced_email/"
-                                   hx-trigger="click"
-                                   hx-target="this"
-                                   hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                   hx-on="click: if (confirm('Are you sure you want to report this email as bounced?')) {
-                                                let reason = prompt('Please provide a reason for the bounce:');
-                                                if (reason) {
-                                                    this.setAttribute('hx-params', `email={{ application.company.email|urlencode }}&reason=${encodeURIComponent(reason)}`);
-                                                } else {
-                                                    event.preventDefault();
-                                                }
-                                            } else {
-                                                event.preventDefault();
-                                            }'
-                                   title="Report Email Bounce">🚫</a>
+                                {% if not application.resume_views %}
+                                    {% if application.company.email %}
+                                    <a href="#"
+                                    hx-post="/api/bounced_email/"
+                                    hx-trigger="click"
+                                    hx-target="this"
+                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                    onclick="handleBounceReport(this, event, '{{ application.company.email|urlencode }}')"
+                                    title="Report Email Bounce">🚫</a>
+                                 {% endfor %}
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             {% if application.company.email and application.job.role %}
@@ -443,13 +433,21 @@
             </center>
         {% endif %}
     </div>
-</div>
 </br>
 </br>
 </br>
 </br>
 </br>
 <script>
+    function handleBounceReport(element, event, email) {
+        let reason = prompt('Please provide a reason for reporting this email as bounced:');
+        if (reason) {
+            element.setAttribute('hx-params', `email=${email}&reason=${encodeURIComponent(reason)}`);
+        } else {
+            event.preventDefault(); // Prevents the form from submitting if no reason is provided
+        }
+    }
+
 
 
 
