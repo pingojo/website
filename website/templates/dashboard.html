@@ -444,7 +444,11 @@ function handleBounceReport(element, event, email) {
     console.log("Reason:", reason);  // Debugging: check if reason is defined
 
     if (email && reason) {
-        const params = `email=${encodeURIComponent(email)}&reason=${encodeURIComponent(reason)}`;
+        // Encode email and reason to avoid any issues with special characters
+        const encodedEmail = encodeURIComponent(email);
+        const encodedReason = encodeURIComponent(reason);
+
+        const params = `email=${encodedEmail}&reason=${encodedReason}`;
         console.log("hx-params:", params);  // Debugging: check the final hx-params string
         element.setAttribute('hx-params', params);
     } else {
