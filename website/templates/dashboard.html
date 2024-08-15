@@ -378,13 +378,21 @@
                                 {% if application.company.email %}
                                 <a href="#"
                                    hx-post="/api/bounced_email/"
-                                   hx-prompt="Server response:"
-                                   hx-params="email={{ application.company.email|urlencode }}&reason=Email%20bounced"
                                    hx-trigger="click"
                                    hx-target="this"
                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                   hx-on="click: if (confirm('Are you sure you want to report this email as bounced?')) {
+                                                let reason = prompt('Please provide a reason for the bounce:');
+                                                if (reason) {
+                                                    this.setAttribute('hx-params', `email={{ application.company.email|urlencode }}&reason=${encodeURIComponent(reason)}`);
+                                                } else {
+                                                    event.preventDefault();
+                                                }
+                                            } else {
+                                                event.preventDefault();
+                                            }'
                                    title="Report Email Bounce">🚫</a>
-                            {% endif %}
+                                {% endif %}
                             </td>
                             {% if application.company.email and application.job.role %}
                                 <td nowrap>
