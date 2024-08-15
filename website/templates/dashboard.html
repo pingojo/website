@@ -132,7 +132,9 @@
                 <a href="?date={{ day.date|date:'Y-m-d' }}" class="timeline-button {% if request.GET.date == day.date|date:'Y-m-d' %}active-day{% endif %}">
                     <strong>{{ day.date|date:"m/d" }}</strong>
                     <br>
-                    A: {{ day.count }}
+                     <span style="font-size: 20px;">
+                    {{ day.count }}
+                    </span>
                 </a>
             {% endfor %}
         </div>
