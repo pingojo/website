@@ -29,7 +29,7 @@ from django.views.generic import DetailView, ListView
 from requests.exceptions import RequestException
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -92,6 +92,7 @@ from rest_framework.views import APIView
 
 class BouncedEmailAPI(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [FormParser, MultiPartParser, JSONParser]
 
     def post(self, request, *args, **kwargs):
         # Use request.data to get the POST data
