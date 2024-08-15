@@ -285,17 +285,7 @@ class AddJobLinkTestCase(TestCase):
             f"{new_job.role.slug}-at-{new_job.company.slug}", response.json()["job_url"]
         )
 
-    def test_add_bounced_email(self):
-        data = {
-            "email": "test+bounce@pingojo.com",
-            "reason": "5.1.1 - Bad destination mailbox address",
-        }
-        response = self.client.post(reverse("bounced_email"), data, format="json")
-        self.assertEqual(response.status_code, 201)
-        self.assertTrue(BouncedEmail.objects.filter(email=data["email"]).exists())
-        company = Company.objects.get(name=self.company.name)
-        self.assertEqual(company.email, "")
-
+ 
 
 @override_settings(CAPTCHA_TEST_MODE=True)
 class SignUpTest(TestCase):
@@ -331,3 +321,53 @@ class SignUpTest(TestCase):
 
         user = User.objects.get(email=signup_data["email2"])
         self.assertTrue(user.emailaddress_set.get(email=user.email).verified)
+
+from django.contrib.auth.models import User
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from .models import Application, BouncedEmail, Company
+
+
+class BouncedEmailAPITest(APITestCase):
+
+    def setUp(self):
+        # Create a user and log them in
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.client.login(username='testuser', password='testpass')
+        
+        # Create a company and application
+        self.company = Company.objects.create(name='Test Company', email='test+bounce@pingojo.com')
+        self.job = Job.objects.create(company=self.company, role=Role.objects.create(title='Software Developer'))
+        self.application = Application.objects.create(
+            company=self.company,
+            user=self.user,
+            job=self.job,
+        )
+
+    def test_add_bounced_email(self):
+        # Data for the bounced email
+        data = {
+            "email": "test+bounce@pingojo.com",
+            "reason": "5.1.1 - Bad destination mailbox address",
+        }
+
+        # Make a POST request to report the bounced email with form-encoded data
+        response = self.client.post(
+            reverse("bounced_email"), 
+            data,  # This sends the data as form-encoded by default
+            HTTP_HX_REQUEST="true",  # Simulate an HTMX request if necessary
+        )
+
+        # Check if the response status code is 201 Created
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify that the BouncedEmail object was created in the database
+        self.assertTrue(BouncedEmail.objects.filter(email=data["email"]).exists())
+
+        # Retrieve the company from the database
+        company = Company.objects.get(name=self.company.name)
+
+        # Check that the company's email has been set to an empty string
+        self.assertEqual(company.email, "")
