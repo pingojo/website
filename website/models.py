@@ -159,7 +159,7 @@ class RequestLog(BaseModel):
 class BouncedEmail(BaseModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     email = models.EmailField()
-    reason = models.CharField(max_length=255, blank=True, null=True)
+    reason = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
