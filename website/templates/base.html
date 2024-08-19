@@ -166,7 +166,7 @@ header {
         <a  href="https://chrome.google.com/webstore/detail/pingojo-extension/ihocmimgkfmbonmbdjbicbhlhffaheef" class="login-btn" id="chrome_extension_button" style="background-color: orange;">Chrome Extension</a>
         {% endif %}
         <!-- add a button to view today's applications the url is /dashboard/?date=2024-08-19 make sure to add the date 2024-08-19  -->
-        <a href="{% url 'dashboard' %}?date={% now|date:'Y-m-d' %}" class="login-btn" style="background-color: blue;">Today's Applications</a>
+        <a href="{% url 'dashboard' %}?date={% now 'Y-m-d' %}" class="login-btn" style="background-color: blue;">Today's Applications</a>
 
         <a id="login-logout" href="" class="login-btn" style="background-color: red;">Logout</a>
         <a id="profileIcon" href="#" style="display: none; font-size:35px; margin-right:30px; color:dodgerblue;">
