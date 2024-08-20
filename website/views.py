@@ -1903,7 +1903,7 @@ def mark_application_as_passed(request):
         send_mail(
             'Application marked as passed',
             f'Your application for the role of {application.job.role.title} at {application.company.name} has been marked as passed. Reason: {reason}',
-            [settings.EMAIL_HOST_USER],
+            [settings.DEFAULT_FROM_EMAIL],
             [application.user.email],
             fail_silently=False,
         )
