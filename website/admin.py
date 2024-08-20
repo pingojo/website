@@ -46,7 +46,7 @@ class CompanyAdmin(admin.ModelAdmin):
         "ceo",
         "ceo_twitter",
     )
-    search_fields = ("name", "city", "state", "country", "ceo")
+    search_fields = ("name", "city", "state", "country", "ceo", "email")
     prepopulated_fields = {"slug": ("name",)}
 
     def get_urls(self):
