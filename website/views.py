@@ -545,7 +545,7 @@ def update_company(request, company_id):
 #         form = JobForm()
 #     return render(request, 'job_add.html', {'form': form})
 
-
+@login_required
 def update_email(request):
     if request.method == "POST":
         application = get_object_or_404(
@@ -1088,7 +1088,7 @@ class ApplicationView(APIView):
             slug=slugify(company_name),
             defaults={"name": company_name, "email": to_email},
         )
-        if to_email and company.email != to_email:
+        if to_email != "" and company.email != to_email:
             company.email = to_email
             company.save()
 
