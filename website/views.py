@@ -1569,7 +1569,7 @@ def normalize_domain(url):
 
     return domain
 
-
+@login_required
 def update_company_email(request):
     email = request.GET.get("email")
     if email:

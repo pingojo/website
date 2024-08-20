@@ -31,6 +31,7 @@ from .models import (
 class CompanyAdmin(admin.ModelAdmin):
     actions = [merge_companies_action]
     list_display = (
+        "id",
         "name",
         "slug",
         "twitter_url",
