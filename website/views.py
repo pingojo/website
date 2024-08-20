@@ -1642,7 +1642,8 @@ def resume_view(request, slug):
                         raise Http404
                 is_email_valid = re.match(r"[^@]+@[^@]+\.[^@]+", request.GET.get("e"))
                 if is_email_valid:
-                    company = Company.objects.get(email=request.GET.get("e"))
+                    email = request.GET.get("e")
+                    company = Company.objects.filter(email=email).order_by('-modified').first()
                     # Find applications by user to that company
                     applications = Application.objects.filter(
                         user=profile.user, company=company
