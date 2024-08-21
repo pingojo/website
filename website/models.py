@@ -144,15 +144,15 @@ class Company(BaseModel):
         if not self.slug:
             self.slug = slugify(self.name[:50])
         cache_key = f"company_{self.slug}"
-        website_status_cache_key = f"website_status_{self.id}"
-        company_list_cache_key = "companies_queryset"
+        #website_status_cache_key = f"website_status_{self.id}"
+        #company_list_cache_key = "companies_queryset"
 
         # Save the object
         super().save(*args, **kwargs)
 
         # Invalidate the cache
         cache.delete(cache_key)
-        cache.delete(website_status_cache_key)
+        #cache.delete(website_status_cache_key)
 
         # Re-cache the company object
         cache.set(cache_key, self, timeout=60 * 60 * 24)  # Cache for 24 hours
