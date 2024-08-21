@@ -143,7 +143,7 @@ class Company(BaseModel):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name[:50])
-        cache_key = f"company_{self.slug}"
+        cache_key = f"cache_company_{self.slug}"
         #website_status_cache_key = f"website_status_{self.id}"
         #company_list_cache_key = "companies_queryset"
 
@@ -166,8 +166,8 @@ class Company(BaseModel):
 
     def delete(self, *args, **kwargs):
         # Cache keys
-        cache_key = f"company_{self.slug}"
-        next_company_cache_key = f"company_{self.id + 1}"
+        cache_key = f"cache_company_{self.slug}"
+        next_company_cache_key = f"cache_company_{self.id + 1}"
         website_status_cache_key = f"website_status_{self.id}"
 
         # Invalidate the cache

@@ -1453,7 +1453,7 @@ class CompanyDetailView(generic.DetailView):
 
     def get(self, request, *args, **kwargs):
         slug = self.kwargs["slug"]
-        cache_key = f"company_{slug}"
+        cache_key = f"cache_company_{slug}"
         company = cache.get(cache_key)
 
         if not company:
@@ -1463,7 +1463,7 @@ class CompanyDetailView(generic.DetailView):
         self.object = company
 
         # Fetch and cache next company using the same cache key pattern
-        next_company_cache_key = f"company_{company.id + 1}"
+        next_company_cache_key = f"cache_company_{company.id + 1}"
         next_company = cache.get(next_company_cache_key)
 
         if not next_company:
@@ -2004,6 +2004,7 @@ def model_counts_view(request):
     total_searches = Search.objects.count()
     total_sources = Source.objects.count()
     total_emails = Email.objects.count()
+    total_bounces = BouncedEmail.objects.count()
 
     user_data = {}
 
@@ -2041,6 +2042,7 @@ def model_counts_view(request):
         "total_searches": total_searches,
         "total_sources": total_sources,
         "total_emails": total_emails,
+        "total_bounces": total_bounces,
         "user_data": user_data,
     }
 
