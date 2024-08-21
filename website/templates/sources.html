@@ -5,66 +5,75 @@
     {% include 'sidebar.html' %}
 
     <div class="main-content">
-        <!-- Include Font Awesome CSS -->
+        <!-- Include Font Awesome CSS for emoji -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
         <style>
+            .role-input {
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+            }
+            .role-input label {
+                margin-right: 8px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            .role-input input[type="text"] {
+                padding: 6px;
+                width: 250px;
+                font-size: 14px;
+            }
             .source-list {
                 display: flex;
                 flex-wrap: wrap;
-                padding: 20px;
-                gap: 15px; /* Added space between items */
+                gap: 8px;
             }
             .source-item {
                 display: flex;
                 align-items: center;
                 background-color: #f9f9f9;
-                padding: 5px 10px;
-                border-radius: 5px;
+                padding: 4px 8px;
+                border-radius: 4px;
                 border: 1px solid #ddd;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                box-sizing: border-box;
             }
             .source-item img {
                 vertical-align: middle;
-                background-color: white;
-                border-radius: 5px;
-                margin-right: 8px;
-                width: 20px;
-                height: 20px;
+                margin-right: 6px;
+                width: 18px;
+                height: 18px;
             }
             .source-item a {
                 text-decoration: none;
                 color: #333;
                 font-weight: bold;
-                position: relative; /* Enable tooltip positioning */
-                white-space: nowrap; /* Prevent line breaks */
+                font-size: 14px;
+                margin-right: auto;
             }
-            .source-item a[data-tooltip]:hover::after {
-                content: attr(data-tooltip);
-                position: absolute;
-                background-color: #333;
-                color: #fff;
-                padding: 5px;
-                border-radius: 5px;
-                top: -30px;
-                left: 0;
-                transform: translateX(0);
-                white-space: nowrap;
-                font-size: 12px;
-                z-index: 1000; /* Ensure tooltip appears on top */
-            }
-            h1 {
-                text-align: center;
+            .source-item .search-icon {
+                font-size: 14px;
+                color: #4CAF50;
+                margin-left: 8px;
             }
         </style>
+
+        <div class="role-input">
+            <label for="role">Enter Role:</label>
+            <input type="text" id="role" placeholder="role..." />
+        </div>
 
         <div class="source-list">
             {% for source in sources %}
             <div class="source-item">
                 <img src="https://www.google.com/s2/favicons?domain={{ source.website }}" alt="favicon">
-                <a href="{{ source.website }}" target="_blank" data-tooltip="{{ source.focus }} | Google Results: {{ source.google_result_count }}">
-                    {{ source.name }} ({{ source.job_count }})
-                </a>
+                <a href="{{ source.website }}" target="_blank">{{ source.name }} ({{ source.job_count }})</a>
+                {% if source.search_url %}
+                <a href="javascript:void(0);" onclick="window.open('{{ source.search_url|escapejs }}'.replace('search_term', encodeURIComponent(document.getElementById('role').value)), '_blank')" class="search-icon">🔍</a>
+                {% else %}
+                <a href="javascript:void(0);" onclick="window.open('https://www.google.com/search?q=site:' + encodeURIComponent('{{ source.website }}') + ' ' + encodeURIComponent(document.getElementById('role').value), '_blank')" class="search-icon">🔍</a>
+                {% endif %}
             </div>
             {% empty %}
             <div>No sources available.</div>
@@ -78,8 +87,8 @@
         display: flex;
     }
     .main-content {
-        margin-left: 180px; /* Make room for the sidebar */
-        padding: 20px;
+        margin-left: 160px;
+        padding: 15px;
     }
 </style>
 {% block footer %}{% endblock footer %}
