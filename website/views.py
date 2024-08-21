@@ -931,7 +931,11 @@ class AddJobLink(APIView):
         CompanySalary = data.get("companySalary", " ").strip()
         if not salaryRange and CompanySalary:
             salaryRange = CompanySalary
-        location = data.get("location", " ").strip()
+
+        if data.get("location") is not None:
+            location = data.get("location", " ").strip()
+        else:
+            location = " "
         website = data.get("website", " ").strip()
         country = data.get("companyAddress", " ").strip()
         if country and not location:
