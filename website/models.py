@@ -157,12 +157,12 @@ class Company(BaseModel):
         # Re-cache the company object
         cache.set(cache_key, self, timeout=60 * 60 * 24)  # Cache for 24 hours
 
-        # Invalidate and re-cache the company list
-        cache.delete(company_list_cache_key)
-        companies_queryset = Company.objects.prefetch_related("application_set")
-        cache.set(
-            company_list_cache_key, companies_queryset, 60 * 60 * 24
-        )  # Cache for 24 hours
+        # # Invalidate and re-cache the company list
+        # cache.delete(company_list_cache_key)
+        # companies_queryset = Company.objects.prefetch_related("application_set")
+        # cache.set(
+        #     company_list_cache_key, companies_queryset, 60 * 60 * 24
+        # )  # Cache for 24 hours
 
     def delete(self, *args, **kwargs):
         # Cache keys
