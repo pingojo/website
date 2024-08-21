@@ -1771,109 +1771,111 @@ def resume_view(request, slug):
                 )
                 soup.body.append(overlay)
 
-                # Add a centered sticky div at the bottom for interview options
-                sticky_div = soup.new_tag(
-                    "div",
-                    style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: #f9f9f9; padding: 20px; border: 2px solid #ccc; box-shadow: 0px 0px 15px rgba(0,0,0,0.1); z-index: 1001; text-align: center; border-radius: 10px; width: auto; max-width: 90%;",
-                )
+                if applications.filter(~Q(stage__name="Applied")).exists():
 
-                prompt = soup.new_tag("p", style="margin: 0 0 10px; font-size: 1.2em;")
-                prompt.string = (
-                    f"Would you like to interview {profile.user.first_name}?"
-                )
-                sticky_div.append(prompt)
-
-                button_style = "margin: 0 10px; padding: 10px 20px; background-color: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
-
-                yes_button = soup.new_tag("button", id="yesButton", style=button_style)
-                yes_button.string = "Yes"
-                sticky_div.append(yes_button)
-
-                no_button = soup.new_tag("button", id="noButton", style=button_style)
-                no_button.string = "No"
-                sticky_div.append(no_button)
-
-                # Reason field (initially hidden)
-                reason_div = soup.new_tag(
-                    "div", id="reasonField", style="display:none; margin-top: 10px;"
-                )
-                reason_prompt = soup.new_tag(
-                    "p", style="margin: 0 0 10px; font-size: 1em;"
-                )
-                reason_prompt.string = "Please provide a reason:"
-                reason_div.append(reason_prompt)
-                reason_textarea = soup.new_tag(
-                    "textarea",
-                    id="reasonText",
-                    rows="3",
-                    cols="50",
-                    placeholder="Enter reason here...",
-                    style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;",
-                )
-                reason_div.append(reason_textarea)
-
-                submit_reason_button = soup.new_tag(
-                    "button", id="submitReasonButton", style=button_style
-                )
-                submit_reason_button.string = "Submit Reason"
-                reason_div.append(submit_reason_button)
-
-                close_button = soup.new_tag(
-                    "button", id="closeButton", style=button_style
-                )
-                close_button.string = "Close"
-                reason_div.append(close_button)
-
-                sticky_div.append(reason_div)
-
-                # Interview options (initially hidden)
-                interview_options = soup.new_tag(
-                    "div",
-                    id="interviewOptions",
-                    style="display:none; margin-top: 10px;",
-                )
-                options_prompt = soup.new_tag(
-                    "p", style="margin: 0 0 10px; font-size: 1em;"
-                )
-                options_prompt.string = "Choose an action:"
-                interview_options.append(options_prompt)
-
-                option_button_style = "margin: 5px 10px; padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
-
-                # Create email link
-                email_button = soup.new_tag(
-                    "button", id="emailButton", style=option_button_style
-                )
-                email_button.string = "Email"
-                email_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={user_email}&su=Interview Request"
-                email_button["data-email-link"] = email_link
-                interview_options.append(email_button)
-
-                calendar_button = soup.new_tag(
-                    "button", id="calendarButton", style=option_button_style
-                )
-                calendar_button.string = "Create Calendar Event"
-                calendar_link = f"https://calendar.google.com/calendar/u/0/r/eventedit?add={user_email}"
-                calendar_button["data-calendar-link"] = calendar_link
-                interview_options.append(calendar_button)
-
-                sticky_div.append(interview_options)
-
-                # Add a link to /accounts/profile/ on the bottom of the sticky div only if the user is the owner of the profile
-                if profile.user == request.user:
-                    profile_link = soup.new_tag(
-                        "a",
-                        href="/accounts/profile/",
-                        style="color: #1a73e8; font-size: 0.8em; text-decoration: none;",
+                    # Add a centered sticky div at the bottom for interview options
+                    sticky_div = soup.new_tag(
+                        "div",
+                        style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: #f9f9f9; padding: 20px; border: 2px solid #ccc; box-shadow: 0px 0px 15px rgba(0,0,0,0.1); z-index: 1001; text-align: center; border-radius: 10px; width: auto; max-width: 90%;",
                     )
-                    profile_link.string = "Edit Profile"
-                    sticky_div.append(profile_link)
 
-                soup.body.append(sticky_div)
+                    prompt = soup.new_tag("p", style="margin: 0 0 10px; font-size: 1.2em;")
+                    prompt.string = (
+                        f"Would you like to interview {profile.user.first_name}?"
+                    )
+                    sticky_div.append(prompt)
 
-                # Add padding to the body to account for the sticky footer height
-                padding_div = soup.new_tag("div", style="padding-bottom: 120px;")
-                soup.body.append(padding_div)
+                    button_style = "margin: 0 10px; padding: 10px 20px; background-color: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
+
+                    yes_button = soup.new_tag("button", id="yesButton", style=button_style)
+                    yes_button.string = "Yes"
+                    sticky_div.append(yes_button)
+
+                    no_button = soup.new_tag("button", id="noButton", style=button_style)
+                    no_button.string = "No"
+                    sticky_div.append(no_button)
+
+                    # Reason field (initially hidden)
+                    reason_div = soup.new_tag(
+                        "div", id="reasonField", style="display:none; margin-top: 10px;"
+                    )
+                    reason_prompt = soup.new_tag(
+                        "p", style="margin: 0 0 10px; font-size: 1em;"
+                    )
+                    reason_prompt.string = "Please provide a reason:"
+                    reason_div.append(reason_prompt)
+                    reason_textarea = soup.new_tag(
+                        "textarea",
+                        id="reasonText",
+                        rows="3",
+                        cols="50",
+                        placeholder="Enter reason here...",
+                        style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;",
+                    )
+                    reason_div.append(reason_textarea)
+
+                    submit_reason_button = soup.new_tag(
+                        "button", id="submitReasonButton", style=button_style
+                    )
+                    submit_reason_button.string = "Submit Reason"
+                    reason_div.append(submit_reason_button)
+
+                    close_button = soup.new_tag(
+                        "button", id="closeButton", style=button_style
+                    )
+                    close_button.string = "Close"
+                    reason_div.append(close_button)
+
+                    sticky_div.append(reason_div)
+
+                    # Interview options (initially hidden)
+                    interview_options = soup.new_tag(
+                        "div",
+                        id="interviewOptions",
+                        style="display:none; margin-top: 10px;",
+                    )
+                    options_prompt = soup.new_tag(
+                        "p", style="margin: 0 0 10px; font-size: 1em;"
+                    )
+                    options_prompt.string = "Choose an action:"
+                    interview_options.append(options_prompt)
+
+                    option_button_style = "margin: 5px 10px; padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
+
+                    # Create email link
+                    email_button = soup.new_tag(
+                        "button", id="emailButton", style=option_button_style
+                    )
+                    email_button.string = "Email"
+                    email_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={user_email}&su=Interview Request"
+                    email_button["data-email-link"] = email_link
+                    interview_options.append(email_button)
+
+                    calendar_button = soup.new_tag(
+                        "button", id="calendarButton", style=option_button_style
+                    )
+                    calendar_button.string = "Create Calendar Event"
+                    calendar_link = f"https://calendar.google.com/calendar/u/0/r/eventedit?add={user_email}"
+                    calendar_button["data-calendar-link"] = calendar_link
+                    interview_options.append(calendar_button)
+
+                    sticky_div.append(interview_options)
+
+                    # Add a link to /accounts/profile/ on the bottom of the sticky div only if the user is the owner of the profile
+                    if profile.user == request.user:
+                        profile_link = soup.new_tag(
+                            "a",
+                            href="/accounts/profile/",
+                            style="color: #1a73e8; font-size: 0.8em; text-decoration: none;",
+                        )
+                        profile_link.string = "Edit Profile"
+                        sticky_div.append(profile_link)
+
+                    soup.body.append(sticky_div)
+
+                    # Add padding to the body to account for the sticky footer height
+                    padding_div = soup.new_tag("div", style="padding-bottom: 120px;")
+                    soup.body.append(padding_div)
 
                 # Add JavaScript for disabling copy-paste and button functionality
                 script = soup.new_tag("script")
