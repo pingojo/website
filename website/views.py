@@ -832,6 +832,7 @@ def update_application_link(request):
             )
 
 
+@login_required
 def update_application_stage(request):
     if request.method == "POST":
         application_id = request.POST.get("application_id")
@@ -845,6 +846,23 @@ def update_application_stage(request):
 
         application.stage = stage
         application.save()
+
+        # Invalidate cache for JobDetailView related to this application
+        job_id = application.job.id
+        user_id = request.user.id
+        cache_key = f'job_detail_{job_id}_user_{user_id}'
+        cache.delete(cache_key)
+
+        # Recreate and cache the context data
+        context_data = {}
+        applications = Application.objects.filter(job=application.job, user=request.user)
+        context_data["applications"] = applications
+        context_data["stages"] = Stage.objects.annotate(
+            count=Count("application")
+        ).order_by("-order")
+
+        # Set the new cache
+        cache.set(cache_key, context_data, 60 * 60 * 24 * 30)  # Cache for 30 days
 
         messages.success(request, "Application stage updated successfully.")
 
@@ -1234,7 +1252,7 @@ class JobDetailView(DetailView):
                 count=Count("application")
             ).order_by("-order")
 
-            cache.set(cache_key, context_data, 60 * 60 * 24 * 30)
+            cache.set(cache_key, context_data, 60 * 60 * 24 * 30) # Cache for 30 days
 
         context.update(context_data)
         return context
