@@ -119,6 +119,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://boards.greenhouse.io",
+    "https://job-boards.greenhouse.io",
     "https://boards.eu.greenhouse.io",
     "https://wellfound.com",
     "https://pythoncodingjobs.com",
