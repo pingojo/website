@@ -1,5 +1,4 @@
 import re
-from functools import lru_cache
 from urllib.parse import urlparse
 
 import requests
@@ -8,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
+from django.core.cache import cache
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -70,7 +70,9 @@ class Profile(BaseModel):
     def save(self, *args, **kwargs):
         if not self.resume_key and self.html_resume:
             today = timezone.now().strftime("%Y%m%d")
-            self.resume_key = f"{today}-{Profile.objects.filter(created__date=today).count() + 1}"
+            self.resume_key = (
+                f"{today}-{Profile.objects.filter(created__date=today).count() + 1}"
+            )
         super().save(*args, **kwargs)
 
 
@@ -101,7 +103,7 @@ class Skill(BaseModel):
 
 
 class Company(BaseModel):
-    #added_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    # added_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
     logo = models.ImageField(upload_to="company_logos", blank=True, null=True)
@@ -141,7 +143,40 @@ class Company(BaseModel):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name[:50])
+        cache_key = f"company_{self.slug}"
+        website_status_cache_key = f"website_status_{self.id}"
+        company_list_cache_key = "companies_queryset"
+
+        # Save the object
         super().save(*args, **kwargs)
+
+        # Invalidate the cache
+        cache.delete(cache_key)
+        cache.delete(website_status_cache_key)
+
+        # Re-cache the company object
+        cache.set(cache_key, self, timeout=60 * 60 * 24)  # Cache for 24 hours
+
+        # Invalidate and re-cache the company list
+        cache.delete(company_list_cache_key)
+        companies_queryset = Company.objects.prefetch_related("application_set")
+        cache.set(
+            company_list_cache_key, companies_queryset, 60 * 60 * 24
+        )  # Cache for 24 hours
+
+    def delete(self, *args, **kwargs):
+        # Cache keys
+        cache_key = f"company_{self.slug}"
+        next_company_cache_key = f"company_{self.id + 1}"
+        website_status_cache_key = f"website_status_{self.id}"
+
+        # Invalidate the cache
+        cache.delete(cache_key)
+        cache.delete(next_company_cache_key)
+        cache.delete(website_status_cache_key)
+
+        # Delete the object
+        super().delete(*args, **kwargs)
 
 
 class RequestLog(BaseModel):
@@ -156,6 +191,8 @@ class RequestLog(BaseModel):
 
     def __str__(self):
         return f"{self.profile.user.username} - {self.company.name}"
+
+
 class BouncedEmail(BaseModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     email = models.EmailField()
@@ -230,8 +267,6 @@ class Job(BaseModel):
 from django.db import connection
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-from website.models import Job
 
 
 @receiver(post_save, sender=Job)

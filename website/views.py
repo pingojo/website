@@ -1,4 +1,5 @@
 import os
+import re
 import tempfile
 from datetime import datetime, time, timedelta
 
@@ -11,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models import Count, ExpressionWrapper, F, Max, Min, Q, Sum, Value
@@ -24,7 +26,7 @@ from django.utils.text import slugify
 from django.utils.timezone import is_naive, make_aware
 from django.views import View, generic
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.views.generic import DetailView, ListView
 from requests.exceptions import RequestException
 from rest_framework import status
@@ -82,32 +84,21 @@ class ProfileListView(ListView):
         return Profile.objects.filter(is_public=True).order_by("-web_views")
 
 
-import re
-
-from rest_framework import status
-from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-
 class BouncedEmailAPI(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [FormParser, MultiPartParser, JSONParser]
 
     def post(self, request, *args, **kwargs):
-
         data = request.data
 
         email = data.get("email", "").strip()
         reason = data.get("reason", "").strip()
 
-
-
         if not email:
             raise ValidationError({"email": "This field is required."})
         if not reason:
             raise ValidationError({"reason": "This field is required."})
-        
+
         # Check if email is valid
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             raise ValidationError({"email": "Invalid email address."})
@@ -144,7 +135,6 @@ class BouncedEmailAPI(APIView):
             {"detail": "Bounced email processed successfully."},
             status=status.HTTP_201_CREATED,
         )
-
 
 
 @login_required
@@ -545,6 +535,7 @@ def update_company(request, company_id):
 #         form = JobForm()
 #     return render(request, 'job_add.html', {'form': form})
 
+
 @login_required
 def update_email(request):
     if request.method == "POST":
@@ -728,31 +719,31 @@ class CompanyListView(ListView):
         companies = cache.get("companies_queryset")
         if not companies:
             companies = Company.objects.prefetch_related("application_set")
-            cache.set("companies_queryset", companies, 60 * 60)  # Cache for 1 hour
+            cache.set("companies_queryset", companies, 60 * 60 * 24)
 
         if order:
             companies = companies.order_by(order)
 
         return companies
 
-    def post(self, request, *args, **kwargs):
-        company_id = request.POST.get("company_id")
-        company = get_object_or_404(Company, id=company_id)
-        form = CompanyUpdateForm(request.POST, instance=company)
+    # def post(self, request, *args, **kwargs):
+    #     company_id = request.POST.get("company_id")
+    #     company = get_object_or_404(Company, id=company_id)
+    #     form = CompanyUpdateForm(request.POST, instance=company)
 
-        if form.is_valid():
-            form.save()
+    #     if form.is_valid():
+    #         form.save()
 
-        order = request.POST.get("order")
-        page = request.POST.get("page")
+    #     order = request.POST.get("order")
+    #     page = request.POST.get("page")
 
-        redirect_url = reverse("company_list") + "?"
-        if order:
-            redirect_url += f"order={order}&"
-        if page:
-            redirect_url += f"page={page}"
+    #     redirect_url = reverse("company_list") + "?"
+    #     if order:
+    #         redirect_url += f"order={order}&"
+    #     if page:
+    #         redirect_url += f"page={page}"
 
-        return HttpResponseRedirect(redirect_url)
+    #     return HttpResponseRedirect(redirect_url)
 
 
 def autocomplete(request, model):
@@ -1198,13 +1189,14 @@ class ApplicationView(APIView):
 
         now_et = now_server + et_offset
 
-        start_time_et = datetime.combine(now_et.date(), time.min).replace(tzinfo=timezone.utc)
+        start_time_et = datetime.combine(now_et.date(), time.min).replace(
+            tzinfo=timezone.utc
+        )
 
         start_time_server = start_time_et - et_offset
 
         today_count = Application.objects.filter(
-            user=request.user,
-            created__gte=start_time_server
+            user=request.user, created__gte=start_time_server
         ).count()
 
         data = {"email": email_data, "counts": stage_counts, "today_count": today_count}
@@ -1307,8 +1299,8 @@ class DashboardView(LoginRequiredMixin, ListView):
             )
             .annotate(
                 resume_views=Count(
-                    'company__requestlog',
-                    filter=Q(company__requestlog__profile__user=self.request.user)
+                    "company__requestlog",
+                    filter=Q(company__requestlog__profile__user=self.request.user),
                 )
             )
             .order_by("-stage__order", "-date_applied")
@@ -1320,13 +1312,17 @@ class DashboardView(LoginRequiredMixin, ListView):
                 parsed_date = datetime.strptime(selected_date, "%Y-%m-%d")
                 if is_naive(parsed_date):
                     parsed_date = make_aware(parsed_date)
-                applications = applications.filter(date_applied__date=parsed_date.date())
+                applications = applications.filter(
+                    date_applied__date=parsed_date.date()
+                )
                 sort_by = "-date_applied"
             except ValueError:
                 pass
 
         if sort_by in sort_fields:
-            applications = applications.order_by(f"{order_prefix}{sort_fields[sort_by]}")
+            applications = applications.order_by(
+                f"{order_prefix}{sort_fields[sort_by]}"
+            )
         elif sort_by == "days":
             today = timezone.now().date()
             applications = (
@@ -1346,7 +1342,6 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         return applications
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["stages"] = Stage.objects.annotate(
@@ -1363,14 +1358,16 @@ class DashboardView(LoginRequiredMixin, ListView):
             .annotate(
                 application_count=Count("id"),
                 clicks_percent=ExpressionWrapper(
-                    (Count("email") * 100.0) / Count("id"),
-                    output_field=DecimalField()
+                    (Count("email") * 100.0) / Count("id"), output_field=DecimalField()
                 ),
                 bounces_percent=ExpressionWrapper(
                     Count(
-                        "company__bouncedemail", filter=Q(company__bouncedemail__created__date=F("date"))
-                    ) * 100.0 / Count("id"),
-                    output_field=DecimalField()
+                        "company__bouncedemail",
+                        filter=Q(company__bouncedemail__created__date=F("date")),
+                    )
+                    * 100.0
+                    / Count("id"),
+                    output_field=DecimalField(),
                 ),
             )
             .order_by("-date")
@@ -1380,8 +1377,12 @@ class DashboardView(LoginRequiredMixin, ListView):
             {
                 "date": day["date"],
                 "count": day["application_count"],
-                "clicks_percent": round(day["clicks_percent"], 2) if day["application_count"] > 0 else 0,
-                "bounces_percent": round(day["bounces_percent"], 2) if day["application_count"] > 0 else 0,
+                "clicks_percent": round(day["clicks_percent"], 2)
+                if day["application_count"] > 0
+                else 0,
+                "bounces_percent": round(day["bounces_percent"], 2)
+                if day["application_count"] > 0
+                else 0,
             }
             for day in applications_by_day
         ]
@@ -1391,7 +1392,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stages"] = Stage.objects.annotate(
             count=Count("application", filter=Q(application__user=self.request.user))
         ).order_by("-order")
-        
+
         context["total_jobs"] = Job.objects.count()
         sort_by = self.request.GET.get("sort_by", "applied")
         sort_order = self.request.GET.get("sort_order", "desc")
@@ -1400,10 +1401,6 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
-
-
-
-
 
 
 # @method_decorator(vary_on_cookie, name='dispatch')
@@ -1450,53 +1447,89 @@ class DashboardView(LoginRequiredMixin, ListView):
 #         return context
 
 
-from .models import Company
-
-
 class CompanyDetailView(generic.DetailView):
     model = Company
     template_name = "company_detail.html"
 
     def get(self, request, *args, **kwargs):
-        company = get_object_or_404(self.get_queryset(), slug=self.kwargs["slug"])
+        slug = self.kwargs["slug"]
+        cache_key = f"company_{slug}"
+        company = cache.get(cache_key)
+
+        if not company:
+            company = get_object_or_404(self.get_queryset().select_related(), slug=slug)
+            cache.set(cache_key, company, timeout=60 * 60 * 24)  # Cache for 24 hours
+
         self.object = company
 
-        context = self.get_context_data(object=company)
-        try:
-            context["next_company"] = Company.objects.get(id=company.id + 1)
-        except:
-            context["next_company"] = Company.objects.all().order_by("?").first()
+        # Fetch and cache next company using the same cache key pattern
+        next_company_cache_key = f"company_{company.id + 1}"
+        next_company = cache.get(next_company_cache_key)
 
-        if (
-            not company.website_status_updated
-            or (datetime.now(timezone.utc) - company.website_status_updated).days >= 7
-        ):
-            website = (
-                company.website if company.website else f"https://{company.slug}.com"
+        if not next_company:
+            next_company = (
+                Company.objects.filter(id__gt=company.id).first()
+                or Company.objects.all().order_by("?").first()
             )
+            if next_company:
+                cache.set(
+                    next_company_cache_key, next_company, timeout=60 * 60 * 24
+                )  # Cache for 24 hours
 
-            try:
-                response = requests.get(website, timeout=10)
-            except RequestException as e:
-                company.website_status = 500
-                company.website_status_updated = timezone.now()
-                company.save()
+        context = self.get_context_data(object=company)
+        context["next_company"] = next_company
 
-                # You may want to log the exception here or handle it in some way
-                # For now, let's just ignore it and return the existing context
+        # Fetch and cache website status
+        website_status_cache_key = f"website_status_{company.id}"
+        website_status_info = cache.get(website_status_cache_key)
 
-                return self.render_to_response(context)
+        if not website_status_info:
+            if (
+                not company.website_status_updated
+                or (datetime.now(timezone.utc) - company.website_status_updated).days
+                >= 7
+            ):
+                website = (
+                    company.website
+                    if company.website
+                    else f"https://{company.slug}.com"
+                )
+                try:
+                    response = requests.get(website, timeout=10)
+                    company.website_status_updated = timezone.now()
 
-            company.website_status_updated = timezone.now()
-
-            if not company.website and company.name.lower() in response.text.lower():
-                company.website = response.url
-            company.website_status = response.status_code
-            company.save()
+                    if (
+                        not company.website
+                        and company.name.lower() in response.text.lower()
+                    ):
+                        company.website = response.url
+                    company.website_status = response.status_code
+                except RequestException:
+                    company.website_status = 500
+                    company.website_status_updated = timezone.now()
+                finally:
+                    company.save(
+                        update_fields=[
+                            "website",
+                            "website_status",
+                            "website_status_updated",
+                        ]
+                    )
+                    website_status_info = {
+                        "website_status": company.website_status,
+                        "website_status_updated": company.website_status_updated,
+                        "website": company.website,
+                    }
+                    cache.set(
+                        website_status_cache_key,
+                        website_status_info,
+                        timeout=60 * 60 * 24,
+                    )  # Cache for 24 hours
 
         if not company.website and company.email:
             company.website = f"https://{company.email.split('@')[1]}"
-            company.save()
+            company.save(update_fields=["website"])
+
         return self.render_to_response(context)
 
         # disable screenshot code until we can get it working on render
@@ -1569,6 +1602,7 @@ def normalize_domain(url):
 
     return domain
 
+
 @login_required
 def update_company_email(request):
     email = request.GET.get("email")
@@ -1613,6 +1647,7 @@ def update_company_email(request):
         messages.error(request, "No email address provided.")
         return redirect("company_list")
 
+
 import re
 
 from bs4 import BeautifulSoup  # To parse and correct HTML
@@ -1620,15 +1655,17 @@ from django.http import Http404, HttpResponse
 
 
 def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
+        ip = x_forwarded_for.split(",")[0].strip()
     else:
-        ip = request.META.get('REMOTE_ADDR')
+        ip = request.META.get("REMOTE_ADDR")
     return ip
+
 
 def home_view(request):
     return render(request, "home.html")
+
 
 def resume_view(request, slug):
     if request.method == "GET":
@@ -1643,7 +1680,11 @@ def resume_view(request, slug):
                 is_email_valid = re.match(r"[^@]+@[^@]+\.[^@]+", request.GET.get("e"))
                 if is_email_valid:
                     email = request.GET.get("e")
-                    company = Company.objects.filter(email=email).order_by('-modified').first()
+                    company = (
+                        Company.objects.filter(email=email)
+                        .order_by("-modified")
+                        .first()
+                    )
                     # Find applications by user to that company
                     applications = Application.objects.filter(
                         user=profile.user, company=company
@@ -1654,7 +1695,7 @@ def resume_view(request, slug):
 
                     if not applications:
                         raise Http404
-                                        
+
                     # Log the request to the Request table
                     RequestLog.objects.create(
                         profile=profile,
@@ -1673,7 +1714,7 @@ def resume_view(request, slug):
                 html_resume = profile.html_resume
 
                 # Use BeautifulSoup to ensure the HTML is valid and well-formed
-                soup = BeautifulSoup(html_resume, 'html.parser')
+                soup = BeautifulSoup(html_resume, "html.parser")
 
                 # Remove <script> tags
                 for script in soup(["script"]):
@@ -1686,95 +1727,136 @@ def resume_view(request, slug):
                             del tag.attrs[attr]
 
                 # Add target="_blank" to all <a> tags and increase z-index
-                for a_tag in soup.find_all('a'):
-                    a_tag['target'] = '_blank'
-                    a_tag['style'] = 'z-index: 1002; position: relative;'  # Higher z-index than the overlay
+                for a_tag in soup.find_all("a"):
+                    a_tag["target"] = "_blank"
+                    a_tag["style"] = (
+                        "z-index: 1002; position: relative;"  # Higher z-index than the overlay
+                    )
 
                 if not soup.body:
                     if soup.html:
-                        soup.html.append(soup.new_tag('body'))
+                        soup.html.append(soup.new_tag("body"))
                     else:
-                        soup = BeautifulSoup('<html><body></body></html>', 'html.parser')
-                        soup.body.append(BeautifulSoup(str(soup), 'html.parser'))
+                        soup = BeautifulSoup(
+                            "<html><body></body></html>", "html.parser"
+                        )
+                        soup.body.append(BeautifulSoup(str(soup), "html.parser"))
 
                 # Add an overlay to prevent right-clicking and copying
-                overlay = soup.new_tag('div', style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0); z-index: 1000;")
+                overlay = soup.new_tag(
+                    "div",
+                    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0); z-index: 1000;",
+                )
                 soup.body.append(overlay)
 
                 # Add a centered sticky div at the bottom for interview options
-                sticky_div = soup.new_tag('div', style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: #f9f9f9; padding: 20px; border: 2px solid #ccc; box-shadow: 0px 0px 15px rgba(0,0,0,0.1); z-index: 1001; text-align: center; border-radius: 10px; width: auto; max-width: 90%;")
+                sticky_div = soup.new_tag(
+                    "div",
+                    style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: #f9f9f9; padding: 20px; border: 2px solid #ccc; box-shadow: 0px 0px 15px rgba(0,0,0,0.1); z-index: 1001; text-align: center; border-radius: 10px; width: auto; max-width: 90%;",
+                )
 
-                prompt = soup.new_tag('p', style="margin: 0 0 10px; font-size: 1.2em;")
-                prompt.string = f"Would you like to interview {profile.user.first_name}?"
+                prompt = soup.new_tag("p", style="margin: 0 0 10px; font-size: 1.2em;")
+                prompt.string = (
+                    f"Would you like to interview {profile.user.first_name}?"
+                )
                 sticky_div.append(prompt)
 
                 button_style = "margin: 0 10px; padding: 10px 20px; background-color: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
 
-                yes_button = soup.new_tag('button', id="yesButton", style=button_style)
+                yes_button = soup.new_tag("button", id="yesButton", style=button_style)
                 yes_button.string = "Yes"
                 sticky_div.append(yes_button)
 
-                no_button = soup.new_tag('button', id="noButton", style=button_style)
+                no_button = soup.new_tag("button", id="noButton", style=button_style)
                 no_button.string = "No"
                 sticky_div.append(no_button)
 
                 # Reason field (initially hidden)
-                reason_div = soup.new_tag('div', id="reasonField", style="display:none; margin-top: 10px;")
-                reason_prompt = soup.new_tag('p', style="margin: 0 0 10px; font-size: 1em;")
+                reason_div = soup.new_tag(
+                    "div", id="reasonField", style="display:none; margin-top: 10px;"
+                )
+                reason_prompt = soup.new_tag(
+                    "p", style="margin: 0 0 10px; font-size: 1em;"
+                )
                 reason_prompt.string = "Please provide a reason:"
                 reason_div.append(reason_prompt)
-                reason_textarea = soup.new_tag('textarea', id="reasonText", rows="3", cols="50", placeholder="Enter reason here...", style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;")
+                reason_textarea = soup.new_tag(
+                    "textarea",
+                    id="reasonText",
+                    rows="3",
+                    cols="50",
+                    placeholder="Enter reason here...",
+                    style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;",
+                )
                 reason_div.append(reason_textarea)
 
-                submit_reason_button = soup.new_tag('button', id="submitReasonButton", style=button_style)
+                submit_reason_button = soup.new_tag(
+                    "button", id="submitReasonButton", style=button_style
+                )
                 submit_reason_button.string = "Submit Reason"
                 reason_div.append(submit_reason_button)
 
-                close_button = soup.new_tag('button', id="closeButton", style=button_style)
+                close_button = soup.new_tag(
+                    "button", id="closeButton", style=button_style
+                )
                 close_button.string = "Close"
                 reason_div.append(close_button)
 
                 sticky_div.append(reason_div)
 
                 # Interview options (initially hidden)
-                interview_options = soup.new_tag('div', id="interviewOptions", style="display:none; margin-top: 10px;")
-                options_prompt = soup.new_tag('p', style="margin: 0 0 10px; font-size: 1em;")
+                interview_options = soup.new_tag(
+                    "div",
+                    id="interviewOptions",
+                    style="display:none; margin-top: 10px;",
+                )
+                options_prompt = soup.new_tag(
+                    "p", style="margin: 0 0 10px; font-size: 1em;"
+                )
                 options_prompt.string = "Choose an action:"
                 interview_options.append(options_prompt)
 
                 option_button_style = "margin: 5px 10px; padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
 
                 # Create email link
-                email_button = soup.new_tag('button', id="emailButton", style=option_button_style)
+                email_button = soup.new_tag(
+                    "button", id="emailButton", style=option_button_style
+                )
                 email_button.string = "Email"
                 email_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={user_email}&su=Interview Request"
-                email_button['data-email-link'] = email_link
+                email_button["data-email-link"] = email_link
                 interview_options.append(email_button)
 
-                calendar_button = soup.new_tag('button', id="calendarButton", style=option_button_style)
+                calendar_button = soup.new_tag(
+                    "button", id="calendarButton", style=option_button_style
+                )
                 calendar_button.string = "Create Calendar Event"
                 calendar_link = f"https://calendar.google.com/calendar/u/0/r/eventedit?add={user_email}"
-                calendar_button['data-calendar-link'] = calendar_link
+                calendar_button["data-calendar-link"] = calendar_link
                 interview_options.append(calendar_button)
 
                 sticky_div.append(interview_options)
 
                 # Add a link to /accounts/profile/ on the bottom of the sticky div only if the user is the owner of the profile
                 if profile.user == request.user:
-                    profile_link = soup.new_tag('a', href="/accounts/profile/", style="color: #1a73e8; font-size: 0.8em; text-decoration: none;")
+                    profile_link = soup.new_tag(
+                        "a",
+                        href="/accounts/profile/",
+                        style="color: #1a73e8; font-size: 0.8em; text-decoration: none;",
+                    )
                     profile_link.string = "Edit Profile"
                     sticky_div.append(profile_link)
 
                 soup.body.append(sticky_div)
 
                 # Add padding to the body to account for the sticky footer height
-                padding_div = soup.new_tag('div', style="padding-bottom: 120px;")
+                padding_div = soup.new_tag("div", style="padding-bottom: 120px;")
                 soup.body.append(padding_div)
 
                 # Add JavaScript for disabling copy-paste and button functionality
-                script = soup.new_tag('script')
+                script = soup.new_tag("script")
                 try:
-                    application_id = applications.first().id 
+                    application_id = applications.first().id
                 except:
                     application_id = 0
 
@@ -1878,40 +1960,34 @@ def resume_view(request, slug):
             raise Http404(f"Invalid slug {slug}")
 
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-
-from .models import Application
-
-
-@csrf_exempt  
+@csrf_exempt
 @require_POST
 def mark_application_as_passed(request):
-    application_id = request.POST.get('application_id')
-    reason = request.POST.get('reason')
+    application_id = request.POST.get("application_id")
+    reason = request.POST.get("reason")
 
     if not application_id or not reason:
-        return JsonResponse({'error': 'Application ID and reason are required.'}, status=400)
+        return JsonResponse(
+            {"error": "Application ID and reason are required."}, status=400
+        )
 
     try:
         application = Application.objects.get(id=application_id)
         application.stage.name = "Passed"
         application.reason = reason + " (marked as passed from company)"
         application.save()
-        # email the user 
+        # email the user
         send_mail(
-            'Application marked as passed',
-            f'Your application for the role of {application.job.role.title} at {application.company.name} has been marked as passed. Reason: {reason}',
+            "Application marked as passed",
+            f"Your application for the role of {application.job.role.title} at {application.company.name} has been marked as passed. Reason: {reason}",
             [settings.DEFAULT_FROM_EMAIL],
             [application.user.email],
             fail_silently=False,
         )
 
-
-        return JsonResponse({'success': True})
+        return JsonResponse({"success": True})
     except Application.DoesNotExist:
-        return JsonResponse({'error': 'Application not found.'}, status=404)
+        return JsonResponse({"error": "Application not found."}, status=404)
 
 
 def model_counts_view(request):
@@ -1933,27 +2009,39 @@ def model_counts_view(request):
 
     # Check if the user is logged in
     if request.user.is_authenticated:
-        user_data['user_prompts'] = Prompt.objects.filter(user=request.user).count()
-        user_data['user_applications'] = Application.objects.filter(user=request.user).count()
-        user_data['user_skills'] = request.user.skills.count()
-        user_data['user_links'] = Profile.objects.get(user=request.user).links.count() if Profile.objects.filter(user=request.user).exists() else 0
-        user_data['user_roles'] = Profile.objects.get(user=request.user).roles.count() if Profile.objects.filter(user=request.user).exists() else 0
-        user_data['user_emails'] = Email.objects.filter(application__user=request.user).count()
+        user_data["user_prompts"] = Prompt.objects.filter(user=request.user).count()
+        user_data["user_applications"] = Application.objects.filter(
+            user=request.user
+        ).count()
+        user_data["user_skills"] = request.user.skills.count()
+        user_data["user_links"] = (
+            Profile.objects.get(user=request.user).links.count()
+            if Profile.objects.filter(user=request.user).exists()
+            else 0
+        )
+        user_data["user_roles"] = (
+            Profile.objects.get(user=request.user).roles.count()
+            if Profile.objects.filter(user=request.user).exists()
+            else 0
+        )
+        user_data["user_emails"] = Email.objects.filter(
+            application__user=request.user
+        ).count()
 
     context = {
-        'total_users': total_users,
-        'total_profiles': total_profiles,
-        'total_links': total_links,
-        'total_prompts': total_prompts,
-        'total_skills': total_skills,
-        'total_companies': total_companies,
-        'total_roles': total_roles,
-        'total_jobs': total_jobs,
-        'total_applications': total_applications,
-        'total_searches': total_searches,
-        'total_sources': total_sources,
-        'total_emails': total_emails,
-        'user_data': user_data,
+        "total_users": total_users,
+        "total_profiles": total_profiles,
+        "total_links": total_links,
+        "total_prompts": total_prompts,
+        "total_skills": total_skills,
+        "total_companies": total_companies,
+        "total_roles": total_roles,
+        "total_jobs": total_jobs,
+        "total_applications": total_applications,
+        "total_searches": total_searches,
+        "total_sources": total_sources,
+        "total_emails": total_emails,
+        "user_data": user_data,
     }
 
-    return render(request, 'model_counts.html', context)
+    return render(request, "model_counts.html", context)
