@@ -104,20 +104,25 @@
 
         <div style="width: 20%;">
             {% if company.email %}
-            <p><strong>Email:</strong> <a href="mailto:{{ company.email }}">{{ company.email }}</a> | 
-            <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ company.email|urlencode }}">
-                <i class="fas fa-envelope" style="color: #007bff;"></i>
-            </a>
+            <p>
+                <strong>Email:</strong> 
+                <a href="mailto:{{ company.email }}">{{ company.email }}</a> | 
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ company.email|urlencode }}">
+                    <i class="fas fa-envelope" style="color: #007bff;"></i>
+                </a> |
+                <a href="#" onclick="copyToClipboard('{{ company.email }}'); return false;" title="Copy to clipboard">
+                    📋
+                </a> |
+                <a href="#"
+                    hx-post="/api/bounced_email/"
+                    hx-trigger="click"
+                    hx-target="this"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    onclick="handleBounceReport(this, event, '{{ company.email }}')"
+                    title="Report Email Bounce">
+                    🚫
+                </a>
             </p>
-
-            
-            <a href="#"
-            hx-post="/api/bounced_email/"
-            hx-trigger="click"
-            hx-target="this"
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-            onclick="handleBounceReport(this, event, '{{ application.company.email }}')"
-            title="Report Email Bounce">🚫</a>
 
 
             
@@ -302,6 +307,15 @@
     </div>
 
     <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                
+            }, function(err) {
+                alert('Could not copy text: ', err);
+            });
+        }
+    
+
         function handleBounceReport(element, event, email) {
             console.log("Email:", email);  // Debugging: check if email is defined
         
