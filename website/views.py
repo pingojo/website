@@ -954,6 +954,8 @@ class AddJobLink(APIView):
             application.stage = Stage.objects.get(name="Passed")
             application.notes = "Link is 410"
             application.save()
+            company = job.company
+
         else:
 
             company_name = data.get("company", "").strip()
