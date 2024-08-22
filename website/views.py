@@ -1360,7 +1360,7 @@ class DashboardView(LoginRequiredMixin, ListView):
             )
             # applications = applications.order_by(stage_order, "-date_applied")
             if sort_by in sort_fields:
-                applications = applications.order_by(f"{order_prefix}{sort_fields[sort_by]}", stage_order)
+                applications = applications.order_by(stage_order, f"{order_prefix}{sort_fields[sort_by]}")
         else:
             stage = self.request.GET.get("stage", "Applied")
             stage_obj = get_object_or_404(Stage, name=stage)
