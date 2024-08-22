@@ -27,7 +27,7 @@ from django.db.models import (
     Sum,
     Value,
 )
-from django.db.models.functions import Coalesce, TruncDay
+from django.db.models.functions import Coalesce, ExtractDay, TruncDay
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -1408,18 +1408,17 @@ class DashboardView(LoginRequiredMixin, ListView):
                 )
             elif sort_by == "days":
                 today = timezone.now().date()
+
                 applications = (
                     applications.annotate(
                         days_since_last_email=ExpressionWrapper(
-                            Value(today) - Coalesce(F("date_of_last_email"), Value(today)),
+                            Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
                             output_field=DurationField(),
                         )
                     )
                     .annotate(
-                        days_int=ExpressionWrapper(
-                            F("days_since_last_email").days,
-                            output_field=IntegerField(),
-                        )
+                        days_int=ExtractDay(F("days_since_last_email")),
+                        output_field=IntegerField(),
                     )
                     .order_by(f"{order_prefix}days_int")
                 )
