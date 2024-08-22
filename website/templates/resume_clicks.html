@@ -8,9 +8,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Profile</th>
-                    <th>Email</th>
-                    <th>Applications</th>
+
                     <th>IP Address</th>
                     <th>User Agent</th>
                     <th>Referer</th>
@@ -20,13 +18,10 @@
             <tbody>
                 {% for click in resume_clicks %}
                     <tr>
-                        <td>{{ click.profile.user.username }}</td>
-                        <td>{{ click.email }}</td>
-                        <td>{{ click.applications }}</td>
                         <td>{{ click.ip_address }}</td>
                         <td>{{ click.user_agent }}</td>
                         <td>{{ click.referer }}</td>
-                        <td>{{ click.created|date:"m/d/Y H:i" }}</td>
+                        <td nowrap>{{ click.created|date:"m/d/Y H:i T" }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
