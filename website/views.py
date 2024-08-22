@@ -933,91 +933,102 @@ class AddJobLink(APIView):
 
     def post(self, request):
         data = request.data
-
-        company_name = data.get("company", "").strip()
-        role_title = data.get("title", "").strip()
-
-        posted_date = data.get("datePosted")
-        salaryRange = data.get("salaryRange", " ").strip()
-        CompanySalary = data.get("companySalary", " ").strip()
-        if not salaryRange and CompanySalary:
-            salaryRange = CompanySalary
-
-        if data.get("location") is not None:
-            location = data.get("location", " ").strip()
+        link_is_410 = data.get("link_is_410", False)
+        if link_is_410:
+            job = Job.objects.get(link=data.get("link"))
+            job.link_status_code = 410
+            job.link_status_code_updated = timezone.now()
+            job.save()
+            application = Application.objects.get(job=job, user=request.user)
+            application.stage = Stage.objects.get(name="Passed")
+            application.notes = "Link is 410"
+            application.save()
         else:
-            location = " "
-        website = data.get("website", " ").strip()
-        country = data.get("companyAddress", " ").strip()
-        if country and not location:
-            location = country
-        job_type = data.get("companyStatus", " ").strip()
-        remote = data.get("companyRemote", " ").strip() == "Yes" or True
-        CompanyPhone = data.get("companyPhone", " ").strip()
-        CompanyEmail = data.get("companyEmail", " ").strip()
-        description = data.get("description", " ").strip()
 
-        link = data.get("link")
+            company_name = data.get("company", "").strip()
+            role_title = data.get("title", "").strip()
 
-        # Parse salary range
-        salary_min, salary_max = None, None
-        if salaryRange:
-            salary_values = re.findall(r"\$[\d,]+", salaryRange)
-            if len(salary_values) == 2:
-                salary_min = int(salary_values[0].replace("$", "").replace(",", ""))
-                salary_max = int(salary_values[1].replace("$", "").replace(",", ""))
+            posted_date = data.get("datePosted")
+            salaryRange = data.get("salaryRange", " ").strip()
+            CompanySalary = data.get("companySalary", " ").strip()
+            if not salaryRange and CompanySalary:
+                salaryRange = CompanySalary
 
-        if role_title:
-            role_slug = slugify(role_title[:50])
-            role, _ = Role.objects.get_or_create(
-                slug=role_slug, defaults={"title": role_title}
+            if data.get("location") is not None:
+                location = data.get("location", " ").strip()
+            else:
+                location = " "
+            website = data.get("website", " ").strip()
+            country = data.get("companyAddress", " ").strip()
+            if country and not location:
+                location = country
+            job_type = data.get("companyStatus", " ").strip()
+            remote = data.get("companyRemote", " ").strip() == "Yes" or True
+            CompanyPhone = data.get("companyPhone", " ").strip()
+            CompanyEmail = data.get("companyEmail", " ").strip()
+            description = data.get("description", " ").strip()
+
+            link = data.get("link")
+
+            # Parse salary range
+            salary_min, salary_max = None, None
+            if salaryRange:
+                salary_values = re.findall(r"\$[\d,]+", salaryRange)
+                if len(salary_values) == 2:
+                    salary_min = int(salary_values[0].replace("$", "").replace(",", ""))
+                    salary_max = int(salary_values[1].replace("$", "").replace(",", ""))
+
+            if role_title:
+                role_slug = slugify(role_title[:50])
+                role, _ = Role.objects.get_or_create(
+                    slug=role_slug, defaults={"title": role_title}
+                )
+            else:
+                role_slug = slugify(data.get("title", "").strip()[:50])
+                role, _ = Role.objects.get_or_create(
+                    slug=role_slug, defaults={"title": data.get("title", "").strip()[:50]}
+                )
+
+            company, _ = Company.objects.update_or_create(
+                slug=slugify(company_name).strip()[:50],
+                defaults={
+                    "name": company_name,
+                    "website": website,
+                    "country": country,
+                    "email": CompanyEmail,
+                    "phone": CompanyPhone,
+                },
             )
-        else:
-            role_slug = slugify(data.get("title", "").strip()[:50])
-            role, _ = Role.objects.get_or_create(
-                slug=role_slug, defaults={"title": data.get("title", "").strip()[:50]}
+
+            if description:
+                converter = html2text.HTML2Text()
+                converter.ignore_links = False
+
+                if "&lt;" in description:
+                    soup = BeautifulSoup(description, "html.parser")
+                    description = soup.get_text()
+
+                markdown = converter.handle(description)
+                description = markdown
+
+            job, _ = Job.objects.update_or_create(
+                company=company,
+                role=role,
+                slug=slugify(role.title + "-at-" + company.name),
+                defaults={
+                    "posted_date": posted_date,
+                    "salary_min": salary_min,
+                    "salary_max": salary_max,
+                    "link": link,
+                    "title": role.title,
+                    "location": location,
+                    "job_type": job_type,
+                    "remote": remote,
+                    "description_markdown": description,
+                },
             )
 
-        company, _ = Company.objects.update_or_create(
-            slug=slugify(company_name).strip()[:50],
-            defaults={
-                "name": company_name,
-                "website": website,
-                "country": country,
-                "email": CompanyEmail,
-                "phone": CompanyPhone,
-            },
-        )
-
-        if description:
-            converter = html2text.HTML2Text()
-            converter.ignore_links = False
-
-            if "&lt;" in description:
-                soup = BeautifulSoup(description, "html.parser")
-                description = soup.get_text()
-
-            markdown = converter.handle(description)
-            description = markdown
-
-        job, _ = Job.objects.update_or_create(
-            company=company,
-            role=role,
-            slug=slugify(role.title + "-at-" + company.name),
-            defaults={
-                "posted_date": posted_date,
-                "salary_min": salary_min,
-                "salary_max": salary_max,
-                "link": link,
-                "title": role.title,
-                "location": location,
-                "job_type": job_type,
-                "remote": remote,
-                "description_markdown": description,
-            },
-        )
-
-        settings.JOB_COUNT = Job.objects.count()
+            settings.JOB_COUNT = Job.objects.count()
 
         user_applications = Application.objects.filter(
             user=request.user, company=company
@@ -1309,8 +1320,31 @@ class DashboardView(LoginRequiredMixin, ListView):
     paginate_by = 200
 
     def get_queryset(self):
-        stage = self.request.GET.get("stage", "Applied")
-        stage_obj = get_object_or_404(Stage, name=stage)
+        # Check if 'view' parameter is set to 'resume_view'
+        if self.request.GET.get("view") == "resume_view":
+            applications = Application.objects.filter(user=self.request.user)
+        else:
+            stage = self.request.GET.get("stage", "Applied")
+            stage_obj = get_object_or_404(Stage, name=stage)
+
+            applications = (
+                Application.objects.filter(user=self.request.user, stage=stage_obj)
+                .prefetch_related(
+                    "company", "stage", "job", "job__company", "job__role", "email_set"
+                )
+            )
+
+        # Annotate applications with resume views count
+        applications = applications.annotate(
+            resume_views=Count(
+                "company__requestlog",
+                filter=Q(company__requestlog__profile__user=self.request.user),
+            )
+        )
+
+        # If 'view' is 'resume_view', filter applications to only include those with resume views
+        if self.request.GET.get("view") == "resume_view":
+            applications = applications.filter(resume_views__gt=0)
 
         sort_by = self.request.GET.get("sort_by", "last_email")
         sort_order = "asc" if "-" not in sort_by else "desc"
@@ -1324,20 +1358,6 @@ class DashboardView(LoginRequiredMixin, ListView):
             "applied": "created",
             "last_email": "date_of_last_email",
         }
-
-        applications = (
-            Application.objects.filter(user=self.request.user, stage=stage_obj)
-            .prefetch_related(
-                "company", "stage", "job", "job__company", "job__role", "email_set"
-            )
-            .annotate(
-                resume_views=Count(
-                    "company__requestlog",
-                    filter=Q(company__requestlog__profile__user=self.request.user),
-                )
-            )
-            .order_by("-stage__order", "-date_applied")
-        )
 
         selected_date = self.request.GET.get("date")
         if selected_date:
@@ -1367,8 +1387,8 @@ class DashboardView(LoginRequiredMixin, ListView):
                 )
                 .annotate(
                     days_int=ExpressionWrapper(
-                        F("days_since_last_email").days,  # Extract days from the timedelta
-                        output_field=IntegerField(),  # Use IntegerField to represent days as a number
+                        F("days_since_last_email").days,
+                        output_field=IntegerField(),
                     )
                 )
                 .order_by(f"{order_prefix}days_int")
