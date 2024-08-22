@@ -5,6 +5,10 @@
 <a href="{{ application.job.link }}" target="_blank">lever</a>
 {% elif "wellfound" in application.job.link %}
 <a href="{{ application.job.link }}" target="_blank">wellfound</a>
+{% elif "ycombinator" in application.job.link %}
+<a href="{{ application.job.link }}" target="_blank">ycombinator</a>
+{% elif "linkedin" in application.job.link %}
+<a href="{{ application.job.link }}" target="_blank">linkedin</a>
 {% elif application.job.link %}
 <a href="{{ application.job.link }}" target="_blank">link</a>
 {% else %}
@@ -15,8 +19,8 @@
         <input type="hidden" name="application_id" value="{{ application.id }}">
         <input type="text" name="link" class="link-input" placeholder="link"
             style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;">
-        <a href="https://www.google.com/search?q={{ application.job.company.name }} {{ application.job.title }}" target="_blank"
-            title="Search Google for {{ application.job.company.name }} {{ application.job.title }}"
+        <a href="https://www.google.com/search?q={{ application.job.company.name }} {{ application.job.role.title }}" target="_blank"
+            title="Search Google for {{ application.job.company.name }} {{ application.job.role.title }}"
             style="display: inline-block; vertical-align: middle; margin-left: 10px;">
             <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
         </a>
