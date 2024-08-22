@@ -111,6 +111,16 @@
             </p>
 
             
+            <a href="#"
+            hx-post="/api/bounced_email/"
+            hx-trigger="click"
+            hx-target="this"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            onclick="handleBounceReport(this, event, '{{ application.company.email }}')"
+            title="Report Email Bounce">🚫</a>
+
+
+            
             {% else %}
             <form hx-post="{% url 'update_company' company.id %}" hx-trigger="change"
                 hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#email" hx-swap="outerHTML">
@@ -213,7 +223,7 @@
 
         <div style="width: 50%;">
 
-            <div style="display: flex;">
+            <!-- <div style="display: flex;">
                 <span style="font-size: 20px; white-space: nowrap; margin-right:20px; margin-top:5px;">
                     Add Jobs at {{ company.name }}</span>
                 <form method="post" action="{% url 'add_job_link' company.slug %}" class="add-job-form"
@@ -224,7 +234,7 @@
                 </form>
 
 
-            </div>
+            </div> -->
 
 
             {% if company.job_set.all %}
@@ -277,7 +287,7 @@
 
 
             {% endif %}
-            <div style="margin-top: 10px; margin-bottom: 10px; display: flex; align-items: center;">
+            <!-- <div style="margin-top: 10px; margin-bottom: 10px; display: flex; align-items: center;">
                 <span style="margin-right: 10px;">Search for {{ company.name }} jobs at:</span>
                 <a href="https://wellfound.com/search?q={{ company.name }}&type=companies" target="_blank">
                     <img src="https://www.google.com/s2/favicons?domain=wellfound.com"
@@ -287,8 +297,30 @@
                     <img src="https://www.google.com/s2/favicons?domain=greenhouse.io"
                         style="height:20px; border: 1px solid #ccc; border-radius: 5px;">
                 </a>
-            </div>
+            </div> -->
         </div>
     </div>
 
+    <script>
+        function handleBounceReport(element, event, email) {
+            console.log("Email:", email);  // Debugging: check if email is defined
+        
+            // Show a prompt to the user to enter the reason
+            let reason = prompt('Please provide a reason for reporting this email as bounced:');
+            console.log("Reason:", reason);  // Debugging: check if reason is defined
+        
+            // Trim and validate email and reason
+            if (email && email.trim() !== "" && reason && reason.trim() !== "") {
+                // Encode email and reason to avoid any issues with special characters
+                const encodedEmail = email.trim();
+                const encodedReason = reason.trim();
+        
+                // Update hx-vals attribute with the correct reason
+                element.setAttribute('hx-vals', JSON.stringify({ email: encodedEmail, reason: encodedReason }));
+            } else {
+                alert("Email or reason is undefined or empty."); // Provide feedback if undefined
+                event.preventDefault(); // Prevents the form from submitting if no reason is provided
+            }
+        }
+    </script>
 {% endblock %}
