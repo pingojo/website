@@ -1349,11 +1349,6 @@ class DashboardView(LoginRequiredMixin, ListView):
                 "last_email": "date_of_last_email",
             }
 
-            if sort_by in sort_fields:
-                applications = applications.order_by(
-                    f"{order_prefix}{sort_fields[sort_by]}"
-                )
-
             # Custom order for stages: Next, Scheduled, Applied, Passed
             stage_order = Case(
                 When(stage__name="Next", then=Value(1)),
@@ -1363,7 +1358,9 @@ class DashboardView(LoginRequiredMixin, ListView):
                 default=Value(5),
                 output_field=IntegerField(),
             )
-            applications = applications.order_by(stage_order, "-date_applied")
+            # applications = applications.order_by(stage_order, "-date_applied")
+            if sort_by in sort_fields:
+                applications = applications.order_by(f"{order_prefix}{sort_fields[sort_by]}", stage_order)
         else:
             stage = self.request.GET.get("stage", "Applied")
             stage_obj = get_object_or_404(Stage, name=stage)
