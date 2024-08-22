@@ -78,6 +78,26 @@ from .parse_resume import parse_resume
 
 
 @login_required
+def view_resume_clicks(request, company_id):
+    company = get_object_or_404(Company, id=company_id)
+    
+    # Check if the user has applied to this company
+    user_applications = Application.objects.filter(user=request.user, company=company)
+    
+    if not user_applications.exists():
+        # Redirect or return an error if the user hasn't applied to this company
+        return redirect('dashboard')  # Redirect to the dashboard or any other page
+    
+    resume_clicks = RequestLog.objects.filter(company=company).order_by('-created')
+
+    context = {
+        'company': company,
+        'resume_clicks': resume_clicks,
+    }
+    
+    return render(request, 'resume_clicks.html', context)
+
+@login_required
 def edit_note_view(request, application_id):
     application = get_object_or_404(Application, id=application_id, user=request.user)
     if request.method == "POST":

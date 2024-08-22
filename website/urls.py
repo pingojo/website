@@ -84,6 +84,7 @@ urlpatterns = [
     path("api/is_authenticated", views.is_authenticated, name="is_authenticated"),
     path("api/bounced_email/", BouncedEmailAPI.as_view(), name="bounced_email"),
     path('edit-note/<int:application_id>/', views.edit_note_view, name='edit_note'),
+    path('resume_clicks/<int:company_id>/', views.view_resume_clicks, name='view_resume_clicks'),
     path("accounts/profile/", views.profile_view, name="profile"),
     path(
         "accounts/profile/<int:prompt_id>/",

@@ -236,14 +236,11 @@
 
   .note-icon {
     border: 2px solid currentColor; /* Border will inherit the color of the stage */
-    border-radius: 50%; /* Make the icon circular */
-    padding: 2px;
     cursor: pointer;
     display: inline-block;
     vertical-align: middle;
 }
 
-.stage-new .note-icon { border-color: black; }
 .stage-applied .note-icon { border-color: green; }
 .stage-scheduled .note-icon { border-color: dodgerblue; }
 .stage-next .note-icon { border-color: orange; }
@@ -436,6 +433,7 @@
                                 
                                 <span class="note-icon" title="{{ application.notes }}" 
                                 hx-get="{% url 'edit_note' application.id %}" 
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
                                 hx-target="#note-form-container-{{ application.id }}" 
                                 hx-swap="outerHTML">📝</span>
                                 
@@ -443,7 +441,11 @@
                           <div id="note-form-container-{{ application.id }}"></div>
 
                             </td>
-                            <td>{{ application.resume_views }}</td>
+                            <td>
+                                <a href="{% url 'view_resume_clicks' application.company.id %}">
+                                    {{ application.resume_views }}
+                                </a>
+                            </td>
                             <td>
                                 {% if application.job.slug %}
                                     <a href="{% url 'job_detail' application.job.slug %}">
