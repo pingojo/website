@@ -1346,57 +1346,68 @@ class DashboardView(LoginRequiredMixin, ListView):
         if self.request.GET.get("view") == "resume_view":
             applications = applications.filter(resume_views__gt=0)
 
-        sort_by = self.request.GET.get("sort_by", "last_email")
-        sort_order = "asc" if "-" not in sort_by else "desc"
-        order_prefix = "" if sort_order == "asc" else "-"
-
-        sort_fields = {
-            "company": "company__name",
-            "role": "job__title",
-            "salary_max": "job__salary_max",
-            "salary_min": "job__salary_min",
-            "applied": "created",
-            "last_email": "date_of_last_email",
-        }
-
-        selected_date = self.request.GET.get("date")
-        if selected_date:
-            try:
-                parsed_date = datetime.strptime(selected_date, "%Y-%m-%d")
-                if is_naive(parsed_date):
-                    parsed_date = make_aware(parsed_date)
-                applications = applications.filter(
-                    date_applied__date=parsed_date.date()
-                )
-                sort_by = "-date_applied"
-            except ValueError:
-                pass
-
-        if sort_by in sort_fields:
-            applications = applications.order_by(
-                f"{order_prefix}{sort_fields[sort_by]}"
+            # Custom order for stages: Next, Scheduled, Applied, Passed
+            stage_order = Case(
+                When(stage__name="Next", then=Value(1)),
+                When(stage__name="Scheduled", then=Value(2)),
+                When(stage__name="Applied", then=Value(3)),
+                When(stage__name="Passed", then=Value(4)),
+                default=Value(5),
+                output_field=IntegerField(),
             )
-        elif sort_by == "days":
-            today = timezone.now().date()
-            applications = (
-                applications.annotate(
-                    days_since_last_email=ExpressionWrapper(
-                        Value(today) - Coalesce(F("date_of_last_email"), Value(today)),
-                        output_field=DurationField(),
+            applications = applications.order_by(stage_order, "-date_applied")
+        else:
+            sort_by = self.request.GET.get("sort_by", "last_email")
+            sort_order = "asc" if "-" not in sort_by else "desc"
+            order_prefix = "" if sort_order == "asc" else "-"
+
+            sort_fields = {
+                "company": "company__name",
+                "role": "job__title",
+                "salary_max": "job__salary_max",
+                "salary_min": "job__salary_min",
+                "applied": "created",
+                "last_email": "date_of_last_email",
+            }
+
+            selected_date = self.request.GET.get("date")
+            if selected_date:
+                try:
+                    parsed_date = datetime.strptime(selected_date, "%Y-%m-%d")
+                    if is_naive(parsed_date):
+                        parsed_date = make_aware(parsed_date)
+                    applications = applications.filter(
+                        date_applied__date=parsed_date.date()
                     )
+                    sort_by = "-date_applied"
+                except ValueError:
+                    pass
+
+            if sort_by in sort_fields:
+                applications = applications.order_by(
+                    f"{order_prefix}{sort_fields[sort_by]}"
                 )
-                .annotate(
-                    days_int=ExpressionWrapper(
-                        F("days_since_last_email").days,
-                        output_field=IntegerField(),
+            elif sort_by == "days":
+                today = timezone.now().date()
+                applications = (
+                    applications.annotate(
+                        days_since_last_email=ExpressionWrapper(
+                            Value(today) - Coalesce(F("date_of_last_email"), Value(today)),
+                            output_field=DurationField(),
+                        )
                     )
+                    .annotate(
+                        days_int=ExpressionWrapper(
+                            F("days_since_last_email").days,
+                            output_field=IntegerField(),
+                        )
+                    )
+                    .order_by(f"{order_prefix}days_int")
                 )
-                .order_by(f"{order_prefix}days_int")
-            )
-        elif sort_by == "email":
-            applications = applications.annotate(email_count=Count("email")).order_by(
-                f"{order_prefix}email_count"
-            )
+            elif sort_by == "email":
+                applications = applications.annotate(email_count=Count("email")).order_by(
+                    f"{order_prefix}email_count"
+                )
 
         return applications
 
@@ -1459,6 +1470,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
+
 
 
 # @method_decorator(vary_on_cookie, name='dispatch')
