@@ -1323,28 +1323,36 @@ class DashboardView(LoginRequiredMixin, ListView):
         # Check if 'view' parameter is set to 'resume_view'
         if self.request.GET.get("view") == "resume_view":
             applications = Application.objects.filter(user=self.request.user)
-        else:
-            stage = self.request.GET.get("stage", "Applied")
-            stage_obj = get_object_or_404(Stage, name=stage)
 
-            applications = (
-                Application.objects.filter(user=self.request.user, stage=stage_obj)
-                .prefetch_related(
-                    "company", "stage", "job", "job__company", "job__role", "email_set"
+            # Annotate applications with resume views count
+            applications = applications.annotate(
+                resume_views=Count(
+                    "company__requestlog",
+                    filter=Q(company__requestlog__profile__user=self.request.user),
                 )
             )
 
-        # Annotate applications with resume views count
-        applications = applications.annotate(
-            resume_views=Count(
-                "company__requestlog",
-                filter=Q(company__requestlog__profile__user=self.request.user),
-            )
-        )
-
-        # If 'view' is 'resume_view', filter applications to only include those with resume views
-        if self.request.GET.get("view") == "resume_view":
+            # Filter applications to only include those with resume views
             applications = applications.filter(resume_views__gt=0)
+
+            # Apply sorting
+            sort_by = self.request.GET.get("sort_by", "last_email")
+            sort_order = "asc" if "-" not in sort_by else "desc"
+            order_prefix = "" if sort_order == "asc" else "-"
+
+            sort_fields = {
+                "company": "company__name",
+                "role": "job__title",
+                "salary_max": "job__salary_max",
+                "salary_min": "job__salary_min",
+                "applied": "created",
+                "last_email": "date_of_last_email",
+            }
+
+            if sort_by in sort_fields:
+                applications = applications.order_by(
+                    f"{order_prefix}{sort_fields[sort_by]}"
+                )
 
             # Custom order for stages: Next, Scheduled, Applied, Passed
             stage_order = Case(
@@ -1357,6 +1365,17 @@ class DashboardView(LoginRequiredMixin, ListView):
             )
             applications = applications.order_by(stage_order, "-date_applied")
         else:
+            stage = self.request.GET.get("stage", "Applied")
+            stage_obj = get_object_or_404(Stage, name=stage)
+
+            applications = (
+                Application.objects.filter(user=self.request.user, stage=stage_obj)
+                .prefetch_related(
+                    "company", "stage", "job", "job__company", "job__role", "email_set"
+                )
+            )
+
+            # Apply sorting
             sort_by = self.request.GET.get("sort_by", "last_email")
             sort_order = "asc" if "-" not in sort_by else "desc"
             order_prefix = "" if sort_order == "asc" else "-"
@@ -1470,6 +1489,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
+
 
 
 
