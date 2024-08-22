@@ -1374,7 +1374,12 @@ class DashboardView(LoginRequiredMixin, ListView):
                     "company", "stage", "job", "job__company", "job__role", "email_set"
                 )
             )
-
+            applications = applications.annotate(
+                resume_views=Count(
+                    "company__requestlog",
+                    filter=Q(company__requestlog__profile__user=self.request.user),
+                )
+            )
             # Apply sorting
             sort_by = self.request.GET.get("sort_by", "last_email")
             sort_order = "asc" if "-" not in sort_by else "desc"
