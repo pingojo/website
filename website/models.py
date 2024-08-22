@@ -141,18 +141,28 @@ class Company(BaseModel):
         return self.name
 
     def save(self, *args, **kwargs):
+        # Ensure the slug is generated if it doesn't already exist
         if not self.slug:
+            if not self.name:
+                raise ValueError("A company name is required to generate a slug.")
             self.slug = slugify(self.name[:50])
+        
+        # Check for uniqueness of the slug
+        original_slug = self.slug
+        queryset = Company.objects.all().exclude(pk=self.pk)
+        counter = 1
+        while queryset.filter(slug=self.slug).exists():
+            self.slug = f"{original_slug}-{counter}"
+            counter += 1
+
+        # Cache keys
         cache_key = f"cache_company_{self.slug}"
-        #website_status_cache_key = f"website_status_{self.id}"
-        #company_list_cache_key = "companies_queryset"
 
         # Save the object
         super().save(*args, **kwargs)
 
         # Invalidate the cache
         cache.delete(cache_key)
-        #cache.delete(website_status_cache_key)
 
         # Re-cache the company object
         cache.set(cache_key, self, timeout=60 * 60 * 24)  # Cache for 24 hours
