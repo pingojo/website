@@ -15,7 +15,18 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import Count, ExpressionWrapper, F, Max, Min, Q, Sum, Value
+from django.db.models import (
+    Count,
+    DurationField,
+    ExpressionWrapper,
+    F,
+    IntegerField,
+    Max,
+    Min,
+    Q,
+    Sum,
+    Value,
+)
 from django.db.models.functions import Coalesce, TruncDay
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1351,10 +1362,15 @@ class DashboardView(LoginRequiredMixin, ListView):
                 applications.annotate(
                     days_since_last_email=ExpressionWrapper(
                         Value(today) - Coalesce(F("date_of_last_email"), Value(today)),
-                        output_field=DecimalField(),
+                        output_field=DurationField(),
                     )
                 )
-                .extra(select={"days_int": 'EXTRACT(DAY FROM "date_of_last_email")'})
+                .annotate(
+                    days_int=ExpressionWrapper(
+                        F("days_since_last_email").days,  # Extract days from the timedelta
+                        output_field=IntegerField(),  # Use IntegerField to represent days as a number
+                    )
+                )
                 .order_by(f"{order_prefix}days_int")
             )
         elif sort_by == "email":
