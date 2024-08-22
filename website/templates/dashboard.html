@@ -85,6 +85,21 @@
             background-color: #007bff;
             color: #fff;
         }
+        .resume-view-button {
+            padding: 5px 15px;
+            font-size: 12px;
+            margin-left: 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .resume-view-button:hover {
+            background-color: #0056b3;
+        }
     </style>
     <div class="stage-container">
         <a href="/"
@@ -134,8 +149,9 @@
                 <span style="font-size: 20px;">{{ day.count }}</span>
             </a>
         {% endfor %}
+        <!-- Move the resume views button here -->
+        <a href="/dashboard/?view=resume_view" class="resume-view-button">View Resume Views</a>
     </div>
-    <a href="/dashboard/?view=resume_view" class="btn btn-primary">View Resume Views</a>
     <style>
       .pagination {
     display: flex;
