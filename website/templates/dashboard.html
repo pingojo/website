@@ -235,12 +235,20 @@
   }
 
   .note-icon {
+    border: 2px solid currentColor; /* Border will inherit the color of the stage */
+    border-radius: 50%; /* Make the icon circular */
+    padding: 2px;
     cursor: pointer;
-    margin-left: 5px;
-    position: relative;
     display: inline-block;
-    font-size: 1.2em;
+    vertical-align: middle;
 }
+
+.stage-new .note-icon { border-color: black; }
+.stage-applied .note-icon { border-color: green; }
+.stage-scheduled .note-icon { border-color: dodgerblue; }
+.stage-next .note-icon { border-color: orange; }
+.stage-offer .note-icon { border-color: purple; }
+.stage-passed .note-icon { border-color: red; }
 
 .note-icon:hover::after {
     content: attr(title);
@@ -271,6 +279,22 @@
     border-color: transparent transparent #f8f9fa transparent;
     z-index: 1;
 }
+
+.stage-form {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.stage-dropdown {
+    display: inline-block;
+    width: auto;
+    padding: 5px;
+    margin: 0;
+    font-size: 14px;
+    border-radius: 4px;
+    vertical-align: middle;
+}
+
     </style>
     <div class="main-content">
         {% if applications %}
@@ -410,9 +434,14 @@
                                     </select>
                                 </form>
                                 
-                                <span class="note-icon" title="{{ application.notes }}" hx-get="{% url 'edit_note' application.id %}" hx-target="#note-form-container-{{ application.id }}" hx-swap="outerHTML">📝</span>
+                                <span class="note-icon" title="{{ application.notes }}" 
+                                hx-get="{% url 'edit_note' application.id %}" 
+                                hx-target="#note-form-container-{{ application.id }}" 
+                                hx-swap="outerHTML">📝</span>
+                                
+                          <!-- This is the container where the form will be injected -->
+                          <div id="note-form-container-{{ application.id }}"></div>
 
-                           
                             </td>
                             <td>{{ application.resume_views }}</td>
                             <td>
@@ -534,24 +563,26 @@ function updateForm(email, applicationId) {
 
 
 
-    document.body.addEventListener('htmx:afterSwap', function(event) {        
-        let response;
+document.body.addEventListener('htmx:afterSwap', function(event) {        
+    let response;
 
-        try {
-            response = JSON.parse(event.detail.xhr.responseText);
-        } catch (error) {
-            
-            return;
+    try {
+        response = JSON.parse(event.detail.xhr.responseText);
+    } catch (error) {
+        console.error('Failed to parse JSON response:', error);
+        return;
+    }
+    
+    if(response.status === "success") {
+        let rowId = "row-" + response.application_id;
+        let rowElement = document.getElementById(rowId);
+        if(rowElement) {
+            rowElement.remove();
         }
-        
-        if(response.status == "success") {
-            let rowId = "row-" + response.application_id;
-            let rowElement = document.getElementById(rowId);
-            if(rowElement) {
-                rowElement.remove();
-            }
-        }
-    });
+    } else {
+        console.error('HTMX request failed:', response);
+    }
+});
     {% if data_chart1 %}
     var chart1Data = {{ data_chart1|safe }};
     var chart1Ctx = document.getElementById('chart1').getContext('2d');
