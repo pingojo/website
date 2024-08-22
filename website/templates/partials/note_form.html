@@ -1,0 +1,5 @@
+<form id="note-form-container-{{ application.id }}" hx-post="{% url 'edit_note' application.id %}" hx-target="#note-form-container-{{ application.id }}" hx-swap="outerHTML">
+    <textarea name="note" rows="4" cols="50">{{ application.notes }}</textarea>
+    <br>
+    <button type="submit">Save</button>
+</form>

@@ -409,9 +409,10 @@
                                         {% endfor %}
                                     </select>
                                 </form>
-                                {% if application.notes %}
-                                    <span class="note-icon" title="{{ application.notes }}">📝</span>
-                                {% endif %}
+                                
+                                <span class="note-icon" title="{{ application.notes }}" hx-get="{% url 'edit_note' application.id %}" hx-target="#note-form-container-{{ application.id }}" hx-swap="outerHTML">📝</span>
+
+                           
                             </td>
                             <td>{{ application.resume_views }}</td>
                             <td>

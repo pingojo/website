@@ -77,6 +77,17 @@ from .models import (
 from .parse_resume import parse_resume
 
 
+@login_required
+def edit_note_view(request, application_id):
+    application = get_object_or_404(Application, id=application_id, user=request.user)
+    if request.method == "POST":
+        note = request.POST.get("note")
+        application.notes = note
+        application.save()
+        return JsonResponse({'status': 'success', 'note': application.notes})
+
+    return render(request, 'partials/note_form.html', {'application': application})
+
 class GetCompanyEmailView(View):
     def get(self, request):
         company_name = request.GET.get("company_name")

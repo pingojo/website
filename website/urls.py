@@ -83,6 +83,7 @@ urlpatterns = [
     # path('generage_follow_up_email/<int:application_id>', views.generage_follow_up_email, name='generage_follow_up_email'),
     path("api/is_authenticated", views.is_authenticated, name="is_authenticated"),
     path("api/bounced_email/", BouncedEmailAPI.as_view(), name="bounced_email"),
+    path('edit-note/<int:application_id>/', views.edit_note_view, name='edit_note'),
     path("accounts/profile/", views.profile_view, name="profile"),
     path(
         "accounts/profile/<int:prompt_id>/",
