@@ -436,9 +436,7 @@
                                 hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
                                 hx-target="#note-form-container-{{ application.id }}" 
                                 hx-swap="outerHTML">📝</span>
-                                
-                          <!-- This is the container where the form will be injected -->
-                          <div id="note-form-container-{{ application.id }}"></div>
+                            <div id="note-form-container-{{ application.id }}"></div>
 
                             </td>
                             <td>
@@ -528,6 +526,12 @@
 </br>
 </br>
 <script>
+
+document.addEventListener("htmx:configRequest", (event) => {
+    const token = "{{ csrf_token }}";  // Ensures the token is available in the template
+    event.detail.headers['X-CSRFToken'] = token;
+  });
+  
 function handleBounceReport(element, event, email) {
     console.log("Email:", email);  // Debugging: check if email is defined
 
