@@ -235,62 +235,60 @@
   }
 
   .note-icon {
-    border: 2px solid currentColor; /* Border will inherit the color of the stage */
-    cursor: pointer;
-    display: inline-block;
-    vertical-align: middle;
-}
+        cursor: pointer;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 5px; /* Add some spacing between the dropdown and the icon */
+    }
 
-.stage-applied .note-icon { border-color: green; }
-.stage-scheduled .note-icon { border-color: dodgerblue; }
-.stage-next .note-icon { border-color: orange; }
-.stage-offer .note-icon { border-color: purple; }
-.stage-passed .note-icon { border-color: red; }
+    .stage-form {
+        display: inline-block;
+        vertical-align: middle;
+    }
 
-.note-icon:hover::after {
-    content: attr(title);
-    position: absolute;
-    bottom: 125%; /* Position above the icon */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #f8f9fa;
-    color: #000;
-    padding: 5px;
-    border-radius: 5px;
-    white-space: nowrap;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-    font-size: 12px;
-    max-width: 250px;
-    text-align: center;
-}
+    .stage-dropdown {
+        display: inline-block;
+        width: 100px; /* Adjust the width to make it smaller */
+        padding: 5px;
+        margin: 0;
+        font-size: 14px;
+        border-radius: 4px;
+        vertical-align: middle;
+    }
 
-.note-icon:hover::before {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent #f8f9fa transparent;
-    z-index: 1;
-}
+    .note-icon-bordered {
+        border: 2px solid currentColor; /* Only apply border when there is a note */
+    }
 
-.stage-form {
-    display: inline-block;
-    vertical-align: middle;
-}
+    .note-icon:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 125%; /* Position above the icon */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #f8f9fa;
+        color: #000;
+        padding: 5px;
+        border-radius: 5px;
+        white-space: nowrap;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+        font-size: 12px;
+        max-width: 250px;
+        text-align: center;
+    }
 
-.stage-dropdown {
-    display: inline-block;
-    width: auto;
-    padding: 5px;
-    margin: 0;
-    font-size: 14px;
-    border-radius: 4px;
-    vertical-align: middle;
-}
+    .note-icon:hover::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent #f8f9fa transparent;
+        z-index: 1;
+    }
 
     </style>
     <div class="main-content">
@@ -430,19 +428,15 @@
                                         {% endfor %}
                                     </select>
                                 </form>
-                                
-                                <span class="note-icon" title="{{ application.notes }}" 
-                                hx-get="{% url 'edit_note' application.id %}" 
-                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
-                                hx-target="#note-form-container-{{ application.id }}" 
-                                hx-swap="outerHTML">📝</span>
-                            <div id="note-form-container-{{ application.id }}"></div>
-
+                                {% if application.note and application.note != "None" %}
+                                    <span class="note-icon note-icon-bordered" title="{{ application.note }}">📝</span>
+                                {% else %}
+                                    <span class="note-icon" title="No Note">📝</span>
+                                {% endif %}
+                                <div id="note-form-container-{{ application.id }}"></div>
                             </td>
                             <td>
-                                <a href="{% url 'view_resume_clicks' application.company.id %}">
-                                    {{ application.resume_views }}
-                                </a>
+                                <a href="{% url 'view_resume_clicks' application.company.id %}">{{ application.resume_views }}</a>
                             </td>
                             <td>
                                 {% if application.job.slug %}
@@ -463,13 +457,13 @@
                             <td>
                                 {% if not application.resume_views %}
                                     {% if application.company.email %}
-                                    <a href="#"
-                                    hx-post="/api/bounced_email/"
-                                    hx-trigger="click"
-                                    hx-target="this"
-                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                    onclick="handleBounceReport(this, event, '{{ application.company.email }}')"
-                                    title="Report Email Bounce">🚫</a>
+                                        <a href="#"
+                                           hx-post="/api/bounced_email/"
+                                           hx-trigger="click"
+                                           hx-target="this"
+                                           hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                           onclick="handleBounceReport(this, event, '{{ application.company.email }}')"
+                                           title="Report Email Bounce">🚫</a>
                                     {% endif %}
                                 {% endif %}
                             </td>
