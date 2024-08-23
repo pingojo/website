@@ -1339,7 +1339,16 @@ def scrape_job(request):
 from datetime import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Q, Value
+from django.db.models import (
+    Avg,
+    Count,
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    Prefetch,
+    Q,
+    Value,
+)
 from django.db.models.functions import Coalesce, TruncDay
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -1353,77 +1362,48 @@ class DashboardView(LoginRequiredMixin, ListView):
     paginate_by = 200
 
     def get_queryset(self):
-        # Check if 'view' parameter is set to 'resume_view'
-        if self.request.GET.get("view") == "resume_view":
-            applications = Application.objects.filter(user=self.request.user)
+        # Get common query parameters
+        view_param = self.request.GET.get("view")
+        sort_by = self.request.GET.get("sort_by", "last_email")
+        sort_order = "asc" if "-" not in sort_by else "desc"
+        order_prefix = "" if sort_order == "asc" else "-"
+        user = self.request.user
 
-            # Annotate applications with resume views count
+        # Map sort fields
+        sort_fields = {
+            "company": "company__name",
+            "role": "job__title",
+            "salary_max": "job__salary_max",
+            "salary_min": "job__salary_min",
+            "applied": "created",
+            "last_email": "date_of_last_email",
+        }
+
+        if view_param == "resume_view":
+            # Only fetch applications with resume views
+            applications = Application.objects.filter(user=user)
             applications = applications.annotate(
                 resume_views=Count(
                     "company__requestlog",
-                    filter=Q(company__requestlog__profile__user=self.request.user),
+                    filter=Q(company__requestlog__profile__user=user),
                 )
-            )
+            ).filter(resume_views__gt=0)
 
-            # Filter applications to only include those with resume views
-            applications = applications.filter(resume_views__gt=0)
-
-            # Apply sorting
-            sort_by = self.request.GET.get("sort_by", "last_email")
-            sort_order = "asc" if "-" not in sort_by else "desc"
-            order_prefix = "" if sort_order == "asc" else "-"
-
-            sort_fields = {
-                "company": "company__name",
-                "role": "job__title",
-                "salary_max": "job__salary_max",
-                "salary_min": "job__salary_min",
-                "applied": "created",
-                "last_email": "date_of_last_email",
-            }
-
-            # Custom order for stages: Next, Scheduled, Applied, Passed
-            stage_order = Case(
-                When(stage__name="Next", then=Value(1)),
-                When(stage__name="Scheduled", then=Value(2)),
-                When(stage__name="Applied", then=Value(3)),
-                When(stage__name="Passed", then=Value(4)),
-                default=Value(5),
-                output_field=IntegerField(),
-            )
-            # applications = applications.order_by(stage_order, "-date_applied")
-            if sort_by in sort_fields:
-                applications = applications.order_by(stage_order, f"{order_prefix}{sort_fields[sort_by]}")
         else:
-            stage = self.request.GET.get("stage", "Applied")
-            stage_obj = get_object_or_404(Stage, name=stage)
+            # Fetch applications by stage
+            stage_name = self.request.GET.get("stage", "Applied")
+            stage_obj = get_object_or_404(Stage, name=stage_name)
+            applications = Application.objects.filter(user=user, stage=stage_obj)
 
-            applications = (
-                Application.objects.filter(user=self.request.user, stage=stage_obj)
-                .prefetch_related(
-                    "company", "stage", "job", "job__company", "job__role", "email_set"
-                )
-            )
+            # Annotate resume views
             applications = applications.annotate(
                 resume_views=Count(
                     "company__requestlog",
-                    filter=Q(company__requestlog__profile__user=self.request.user),
+                    filter=Q(company__requestlog__profile__user=user),
                 )
             )
-            # Apply sorting
-            sort_by = self.request.GET.get("sort_by", "last_email")
-            sort_order = "asc" if "-" not in sort_by else "desc"
-            order_prefix = "" if sort_order == "asc" else "-"
 
-            sort_fields = {
-                "company": "company__name",
-                "role": "job__title",
-                "salary_max": "job__salary_max",
-                "salary_min": "job__salary_min",
-                "applied": "created",
-                "last_email": "date_of_last_email",
-            }
-
+            # Filter by selected date if provided
             selected_date = self.request.GET.get("date")
             if selected_date:
                 try:
@@ -1437,92 +1417,78 @@ class DashboardView(LoginRequiredMixin, ListView):
                 except ValueError:
                     pass
 
-            if sort_by in sort_fields:
-                applications = applications.order_by(
-                    f"{order_prefix}{sort_fields[sort_by]}"
-                )
-            elif sort_by == "days":
+            # Special sorting case for days and email
+            if sort_by == "days":
                 today = timezone.now().date()
-
-                applications = (
-                    applications.annotate(
-                        days_since_last_email=ExpressionWrapper(
-                            Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
-                            output_field=DurationField(),
-                        )
+                applications = applications.annotate(
+                    days_since_last_email=ExpressionWrapper(
+                        Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
+                        output_field=DurationField(),
                     )
-                    .annotate(
-                        days_int=ExtractDay(F("days_since_last_email")),
-                        output_field=IntegerField(),
-                    )
-                    .order_by(f"{order_prefix}days_int")
-                )
+                ).annotate(
+                    days_int=ExtractDay(F("days_since_last_email"))
+                ).order_by(f"{order_prefix}days_int")
             elif sort_by == "email":
                 applications = applications.annotate(email_count=Count("email")).order_by(
                     f"{order_prefix}email_count"
                 )
+            elif sort_by in sort_fields:
+                applications = applications.order_by(f"{order_prefix}{sort_fields[sort_by]}")
+
+        # Prefetch related objects to reduce query count
+        applications = applications.prefetch_related(
+            Prefetch('company'), Prefetch('stage'), Prefetch('job'), 
+            Prefetch('job__company'), Prefetch('job__role'), 
+            Prefetch('email_set')
+        )
 
         return applications
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        # Use annotations and prefetches to optimize queries
         context["stages"] = Stage.objects.annotate(
-            count=Count("application", filter=Q(application__user=self.request.user))
-        ).order_by("-order")
-        total_jobs = Job.objects.count()
-        context["total_jobs"] = total_jobs
-
-        # Calculate application_days as before
-        applications_by_day = (
-            Application.objects.filter(user=self.request.user)
-            .annotate(date=TruncDay("date_applied"))
-            .values("date")
-            .annotate(
-                application_count=Count("id"),
-                clicks_percent=ExpressionWrapper(
-                    (Count("email") * 100.0) / Count("id"), output_field=DecimalField()
-                ),
-                bounces_percent=ExpressionWrapper(
-                    Count(
-                        "company__bouncedemail",
-                        filter=Q(company__bouncedemail__created__date=F("date")),
-                    )
-                    * 100.0
-                    / Count("id"),
-                    output_field=DecimalField(),
-                ),
-            )
-            .order_by("-date")
-        )
-
-        application_days = [
-            {
-                "date": day["date"],
-                "count": day["application_count"],
-                "clicks_percent": round(day["clicks_percent"], 2)
-                if day["application_count"] > 0
-                else 0,
-                "bounces_percent": round(day["bounces_percent"], 2)
-                if day["application_count"] > 0
-                else 0,
-            }
-            for day in applications_by_day
-        ]
-        context["application_days"] = application_days[:10]
-
-        # Include other context as before
-        context["stages"] = Stage.objects.annotate(
-            count=Count("application", filter=Q(application__user=self.request.user))
+            count=Count("application", filter=Q(application__user=user))
         ).order_by("-order")
 
         context["total_jobs"] = Job.objects.count()
-        sort_by = self.request.GET.get("sort_by", "applied")
-        sort_order = self.request.GET.get("sort_order", "desc")
-        context["sort_by"] = sort_by
-        context["sort_order"] = sort_order
+
+        # Calculate application_days with optimized query
+        applications_by_day = Application.objects.filter(user=user).annotate(
+            date=TruncDay("date_applied")
+        ).values("date").annotate(
+            application_count=Count("id"),
+            clicks_percent=ExpressionWrapper(
+                (Count("email") * 100.0) / Count("id"), output_field=DecimalField()
+            ),
+            bounces_percent=ExpressionWrapper(
+                Count(
+                    "company__bouncedemail",
+                    filter=Q(company__bouncedemail__created__date=F("date")),
+                ) * 100.0 / Count("id"),
+                output_field=DecimalField(),
+            ),
+        ).order_by("-date")
+
+        context["application_days"] = [
+            {
+                "date": day["date"],
+                "count": day["application_count"],
+                "clicks_percent": round(day["clicks_percent"], 2) if day["application_count"] > 0 else 0,
+                "bounces_percent": round(day["bounces_percent"], 2) if day["application_count"] > 0 else 0,
+            }
+            for day in applications_by_day[:10]
+        ]
+
+        # Pass sorting and stage context
+        context["sort_by"] = self.request.GET.get("sort_by", "applied")
+        context["sort_order"] = self.request.GET.get("sort_order", "desc")
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
+
 
 
 
