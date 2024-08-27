@@ -4,7 +4,7 @@
 {% load humanize %}
 {% load custom_filters %}
 {% block content %}
-
+{% include 'sidebar.html' %}
 <style>
   #job-list-table {
     margin-top: 20px;
@@ -95,6 +95,7 @@
     border-bottom: 1px solid rgb(209, 209, 209);
     display: flex;
     justify-content: space-between;
+
 }
 
 .stage {
@@ -144,26 +145,6 @@
     display: inline; /* Or 'block', depending on your layout */
   }
 </style>
-<div class="stage-container">
-  <a href="/" class="stage new active" style="color:black; text-decoration: none;">
-    New <span class="number">{{ total_jobs|intcomma }}</span>
-  </a>
-  <a href="/dashboard/?stage=Applied" class="stage applied" style="color:white; text-decoration: none;">
-    Applied <span class="number">{{stages.0.count|default:0}}</span>
-  </a>
-  <a href="/dashboard/?stage=Scheduled" class="stage scheduled" style="color:white; text-decoration: none;">
-    Scheduled <span class="number">{{stages.1.count|default:0}}</span>
-  </a>
-  <a href="/dashboard/?stage=Next" class="stage next" style="color:black; text-decoration: none;">
-    Next <span class="number">{{stages.2.count|default:0}}</span>
-  </a>
-  <a href="/dashboard/?stage=Offer" class="stage offer" style="color:white; text-decoration: none;">
-    Offer <span class="number">0</span>
-  </a>
-  <a href="/dashboard/?stage=Passed" class="stage passed" style="color:white; text-decoration: none;">
-    Passed <span class="number">{{stages.3.count|default:0}}</span>
-  </a>
-</div>
 
 <script>
   // document.getElementById("apply_by_email").addEventListener("click", function () {
@@ -191,42 +172,8 @@
   <div id="loginReminder" style="display: none;">
     <p><strong>Important Reminder:</strong> Please log in to save your job application history. It's essential to keep track of your applications and follow up in a timely manner. All progress will be lost if you're not logged in.</p>
 </div>
-<div style="margin-top:20px;">
-  Streamline jobs on 
-  <a href="https://wellfound.com" target="_blank" style="border: 1px solid #ccc; border-radius: 5px; padding: 5px; margin-right: 5px;display: inline-block; text-decoration: none; color: inherit;">
-      <img src="https://www.google.com/s2/favicons?domain=wellfound.com" style="vertical-align: middle; background-color:white; border-radius: 5px; margin-right: 5px; padding-bottom:2px;">Wellfound
-  </a>
-  <a href="https://greenhouse.io" target="_blank" style="border: 1px solid #ccc; border-radius: 5px; padding: 5px; margin-right: 5px;display: inline-block; text-decoration: none; color: inherit;">
-      <img src="https://www.google.com/s2/favicons?domain=greenhouse.io" style="vertical-align: middle; background-color:white; border-radius: 5px; margin-right: 5px; padding-bottom:2px;">Greenhouse
-  </a>
-  <a href="https://dice.com" target="_blank" style="border: 1px solid #ccc; border-radius: 5px; padding: 5px; margin-right: 5px;display: inline-block; text-decoration: none; color: inherit;">
-      <img src="https://www.google.com/s2/favicons?domain=dice.com" style="vertical-align: middle; background-color:white; border-radius: 5px; margin-right: 5px; padding-bottom:2px;">Dice
-  </a>
-  and 
-  <a href="mailto:someone@example.com" target="_blank" style="border: 1px solid #ccc; border-radius: 5px; padding: 5px; margin-right: 5px;display: inline-block; text-decoration: none; color: inherit;">
-      <i class="fas fa-envelope" style="vertical-align: middle; margin-right: 2px; padding-bottom:2px;"></i> email 
-  </a>
-  with our   
-  <a href="https://chrome.google.com/webstore/detail/pingojo-extension/ihocmimgkfmbonmbdjbicbhlhffaheef" target="_blank" style="border: 1px solid #ccc; border-radius: 5px; padding: 5px; margin-right: 5px;display: inline-block; text-decoration: none; color: inherit;">
-    <img src="https://www.google.com/s2/favicons?domain=chrome.com" style="vertical-align: middle; background-color:white; border-radius: 5px; margin-right: 5px; padding-bottom:2px;">Chrome Extension
-  </a>
-</div>
 
-<div class="search-filter" style="width:50%; display: flex; align-items: center; justify-content: center; margin-top:20px;">
-    <form method="get" action="{% url 'jobs_list' %}" class="search-form-company" style="flex-grow: 1; display: flex; align-items: center;">
-        <input type="text" placeholder="Search..." name="search" value="{{ request.GET.search|default:'' }}" required class="search-input" style="height:36px; flex-grow: 1;">
-        <button class="login-btn search-btn" style="background-color: #000000;">Search</button>
-    </form>
-    <!--
 
-   
-    <a href="?{% url_modify request view='list' %}" style="margin-left:10px; font-size: 20px; color:black;">
-      <i class="fa fa-list"></i></a>
-    <a href="?{% url_modify request view='grid' %}" style="margin-left:10px; font-size: 20px; color:rgb(136, 136, 136);">
-      <i class="fa fa-th-large"></i></a>
-       -->
-
-</div>
 
   
  
@@ -263,7 +210,7 @@
             <img src="https://www.google.com/s2/favicons?domain={{ job.company.website }}" style="margin-right: 5px; border-radius: 5px;">
             {% endif %}
 
-            <a href="{% url 'company_detail' slug=job.company.slug %}" target="_blank"
+            <a href="{% url 'company_detail' slug=job.company.slug %}" 
               style="text-decoration: none; ">{{ job.company.name }}</a>
 
               <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" 

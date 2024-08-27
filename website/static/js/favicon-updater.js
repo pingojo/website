@@ -60,32 +60,32 @@
       };
       
       // Increment count and update favicon every second
-fetch('/api/application_count')
-  .then(response => response.json())
-  .then(data => {
-    if(data.count > 0) {
-      console.log(data);
-      updateFavicon(data.count);
-    } else {
-      updateFavicon(0);
-    }
-  })
-  .catch(error => {
-    console.error('Error fetching application count:', error);
-  });
+// fetch('/api/application_count')
+//   .then(response => response.json())
+//   .then(data => {
+//     if(data.count > 0) {
+//       console.log(data);
+//       updateFavicon(data.count);
+//     } else {
+//       updateFavicon(0);
+//     }
+//   })
+//   .catch(error => {
+//     console.error('Error fetching application count:', error);
+//   });
 
-setInterval(() => {
-  fetch('/api/application_count')
-    .then(response => response.json())
-    .then(data => {
-      console.log(data);
-      if(data.count > 0) {
-        updateFavicon(data.count);
-      } else {
-        updateFavicon(0);
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching application count:', error);
-    });
-}, 50000);
+// setInterval(() => {
+//   fetch('/api/application_count')
+//     .then(response => response.json())
+//     .then(data => {
+//       console.log(data);
+//       if(data.count > 0) {
+//         updateFavicon(data.count);
+//       } else {
+//         updateFavicon(0);
+//       }
+//     })
+//     .catch(error => {
+//       console.error('Error fetching application count:', error);
+//     });
+// }, 50000);

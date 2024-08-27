@@ -1,19 +1,29 @@
 {% load humanize %}
 <div class="sidebar">
     <ul class="sidebar-links">
-        <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">🏠 Home</a></li>
-        <li><a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">📊 Pipeline</a></li>
-        <li><a href="" target="_blank">☕ Donate BCH</a></li>
+        <li>
+            <a href="{% url 'jobs_list' %}" class="{% if request.path == '/jobs/' %}active{% endif %}">
+                💼 Jobs
+            </a>
+        </li>
+        <li><a href="/dashboard/?date={% now 'Y-m-d' %}" class="{% if request.path == '/dashboard/' %}active{% endif %}">📊 Pipeline</a></li>
+        <li><a href="/donate" class="{% if request.path == '/donate/' %}active{% endif %}">☕ Donate</a></li>
         <li>
             <a href="/profiles" class="{% if request.path == '/profiles/' %}active{% endif %}">
                 👥 Profiles
             </a>
         </li>
         <li>
-            <a href="{% url 'company_list' %}" class="{% if request.path == '/companies' %}active{% endif %}">
+            <a href="{% url 'company_list' %}" class="{% if request.path == '/company_list/' %}active{% endif %}">
                 🏢 Companies
             </a>
         </li>
+
+        <!-- pricing page -->
+        <li>
+            <a href="{% url 'pricing' %}" class="{% if request.path == '/pricing' %}active{% endif %}">
+                💰 Pricing
+            </a>
         <li>
             <a href="{% url 'model-counts' %}" class="{% if request.path == '/stats' %}active{% endif %}">
                 📈 Stats
@@ -24,63 +34,106 @@
                 📚 Sources <span class="badge">{{ sources|length }}</span>
             </a>
         </li>
-        <li><a href="https://github.com/pingojo/website">🐙 Github</a></li>
-        <li><a href="https://discord.gg/jQyDmZDREs" target="_blank">💬 Discord</a></li>
-        <li><a href="https://x.com/pingojo" target="_blank">❌ X</a></li>
-        <li>
-            <a href="{% url 'privacy_policy' %}" class="{% if request.path == '/privacy' %}active{% endif %}">
-                🕶️ Privacy
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'terms_of_service' %}" class="{% if request.path == '/terms' %}active{% endif %}">
-                📄 Terms
-            </a>
-        </li>
     </ul>
+
     <div class="sidebar-footer">
-        <p>&copy; Pingojo</p>
-        {% if sessions_count %}<p>Sessions: {{ sessions_count|intcomma }}</p>{% endif %}
-        <p>v1.1.7</p>
+<div style="justify-content: center; margin-bottom:10px;">
+        <a href="https://chrome.google.com/webstore/detail/pingojo-extension/ihocmimgkfmbonmbdjbicbhlhffaheef" target="_blank" style="border: 1px solid #ccc; border-radius: 5px; padding: 5px; margin-right: 5px;display: inline-block; text-decoration: none; color: inherit;">
+            <img src="https://www.google.com/s2/favicons?domain=chrome.com" style="vertical-align: middle; background-color:white; border-radius: 5px; margin-right: 5px; padding-bottom:2px;">Chrome Extension
+          </a>
+</div>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <a href="https://github.com/pingojo/website" target="_blank" title="GitHub" style="color: #333;">
+                <i class="fab fa-github"></i>
+            </a>
+            <a href="https://discord.gg/jQyDmZDREs" target="_blank" title="Discord" style="color: #333;">
+                <i class="fab fa-discord"></i>
+            </a>
+            <a href="https://x.com/pingojo" target="_blank" title="X" style="color: #333;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </div>
+
+        &copy; Pingojo v1.1.7 {% if sessions_count %}({{ sessions_count|intcomma }}){% endif %}
         <p id="load-time"></p>
+
+        <div>
+            <a href="{% url 'privacy_policy' %}" class="{% if request.path == '/privacy' %}active{% endif %}">
+                privacy</a>
+            |
+            <a href="{% url 'terms_of_service' %}" class="{% if request.path == '/terms' %}active{% endif %}">
+                terms
+            </a>
+        </div>
     </div>
 </div>
 
 <style>
     .sidebar {
-        width: 150px; /* Reduced width for a more compact sidebar */
+        width: 150px;
         position: fixed;
-        top: 100;
+        top: 0;
         left: 0;
         height: 100%;
-        padding-top: 10px;
+        padding-top: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
+
     .sidebar-links {
         list-style-type: none;
         padding: 0;
+        flex-grow: 1;
     }
+
     .sidebar-links li {
-        margin: 7px 0; /* Reduced margin for compactness */
+        margin: 7px 0;
     }
+
     .sidebar-links li a {
         color: #333;
         text-decoration: none;
-        font-size: 14px; /* Reduced font size for a more compact look */
+        font-size: 14px;
         display: block;
-        padding: 7px 15px; /* explain this padding: 8px 15px; it's the padding for the top and bottom of the link */
+        padding: 7px 15px;
+    }
 
     .sidebar-links li a:hover {
         background-color: #ddd;
         border-radius: 5px;
     }
+
     .sidebar-links li a.active {
         background-color: #007BFF;
         color: #fff;
         border-radius: 5px;
     }
+
     .sidebar-footer {
-        bottom: 20px;
-        width: 100%;
+        font-size: 12px;
         text-align: center;
+        padding: 10px 0;
+        white-space: nowrap;
+    }
+
+    .sidebar-footer p {
+        margin: 0;
+        padding: 0;
+    }
+
+    .sidebar-footer a {
+        color: #333;
+        text-decoration: none;
+    }
+
+    .sidebar-footer a:hover {
+        color: #007BFF;
+    }
+
+    .sidebar-footer .fab {
+        font-size: 18px;
     }
 </style>
+

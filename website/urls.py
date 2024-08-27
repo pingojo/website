@@ -86,6 +86,9 @@ urlpatterns = [
     path('edit-note/<int:application_id>/', views.edit_note_view, name='edit_note'),
     path('resume_clicks/<int:company_id>/', views.view_resume_clicks, name='view_resume_clicks'),
     path("accounts/profile/", views.profile_view, name="profile"),
+    path("job_detail_htmx/<slug:slug>/", views.job_detail_htmx, name="job_detail_htmx"),
+    path("pricing/", views.pricing, name="pricing"),
+    path("donate/", views.donate, name="donate"),
     path(
         "accounts/profile/<int:prompt_id>/",
         views.profile_view,

@@ -264,6 +264,7 @@ class Job(BaseModel):
     remote = models.BooleanField(null=True, blank=True)
 
     search_vector = SearchVectorField(null=True, blank=True)
+    skills = models.ManyToManyField(Skill, related_name="jobs", blank=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:

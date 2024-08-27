@@ -1,0 +1,236 @@
+{% load humanize %}
+{% load static %}
+
+<div style="display: flex; justify-content: space-between; align-items: flex-start;" id="job-posting">
+    
+    <!-- Main Job Description -->
+    <div style="width: 700px;" id="job-description">
+
+
+        {% if applications %}
+        <h3>Applications (only visible to you)</h3>
+        <table>
+            <thead>
+                <tr align="left">
+                    <th>Company</th>
+                    <th>Role</th>
+                    <th>Salary</th>
+                    <th>Applied</th>
+                    <th>Last Email</th>
+                    <th>Days</th>
+                    <th>Email</th>
+                    <th>Stage</th>
+                    <th>actions</th>
+                    <th>link</th>
+                    <th>email</th>
+                    <td>g</td>
+                </tr>
+            </thead>
+            {% for application in applications %}
+                <tr id="row-{{ application.id }}">
+                    <td>
+                        {% if application.job.company.website %}
+                            <img src="https://www.google.com/s2/favicons?domain={{ application.job.company.website }}"
+                                 style="margin-right: 5px">
+                        {% endif %}
+                        <a href="{% url 'company_detail' slug=application.job.company.slug %}"
+                           target="_blank"
+                           style="text-decoration: none;
+                                  font-size:14px">{{ application.job.company.name }}</a>
+                    </td>
+                    <td>
+                        {% if application.job.role %}
+                            {{ application.job.role|truncatechars:50 }}
+                        {% else %}
+                            <form hx-post="{% url 'update_email' %}"
+                                  hx-trigger="change"
+                                  hx-target="this"
+                                  id="role-form-{{ application.id }}">
+                                {% csrf_token %}
+                                <input type="hidden" name="application_id" value="{{ application.id }}" />
+                                <input type="text"
+                                       name="role"
+                                       id="role"
+                                       class="link-input"
+                                       placeholder="role"
+                                       style="height: 20px;
+                                              width: 120px;
+                                              display: inline-block;
+                                              vertical-align: middle;
+                                              margin:0px" />
+                            </form>
+                        {% endif %}
+                    </td>
+                    <td nowrap>
+                        {% if application.job.salary_min %}
+                            ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}
+                        {% endif %}
+                    </td>
+                    <td>{{ application.date_applied|date:"m/d" }}</td>
+                    <td>{{ application.date_of_last_email|date:"m/d" }}</td>
+                    <td>{{ application.days_since_last_email }}</td>
+                    <td valign="top" align="right">
+                        <span style="padding-bottom: 3px;
+                                     margin-left: 5px;
+                                     display: inline-block;
+                                     vertical-align: middle">{{ application.email_set.count }}</span>
+                        <div class="email-hover"
+                             style="display: inline-block;
+                                    vertical-align: middle">
+                            <a href='https://mail.google.com/mail/u/0/#search/"{{ application.company.name }}"'
+                               target="_blank"
+                               style="margin:0px;
+                                      padding:0px">
+                                <img src="{% static 'svg/search-mail.svg' %}"
+                                     alt="email"
+                                     width="20"
+                                     height="20">
+                            </a>
+                            <div class="hover-box">
+                                {% for email in application.email_set.all %}
+                                    <p>
+                                        <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
+                                           target="_blank">{{ email }}</a>
+                                        <span>({{ email.date|date:"m/d" }})</span>
+                                    </p>
+                                {% empty %}
+                                    <p>No emails found.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <form method="POST"
+                              hx-post="{% url 'update-application-stage' %}"
+                              hx-trigger="change"
+                              hx-get="{% url 'update-application-stage' %}?application_id={{ application.id }}"
+                              hx-delete="#row-{{ application.id }}"
+                              class="stage-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="application_id" value="{{ application.id }}">
+                            <select name="stage_id"
+                                    class="stage-dropdown stage-dropdown-{{ application.stage.name|lower }}">
+                                {% for stage in stages %}
+                                    <option value="{{ stage.id }}"
+                                            {% if stage.id == application.stage.id %}selected{% endif %}>
+                                        {{ stage.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        {% if application.job.slug %}
+                            <a href="{% url 'job_detail' application.job.slug %}">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'job_application_delete' application.id %}"
+                           hx-post="{% url 'job_application_delete' application.id %}"
+                           hx-swap="none"
+                           hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                           hx-confirm="Are you sure you want to delete this application?">
+                            <i class="fas fa-trash-alt"></i>
+                            {% if request.user.is_superuser %}
+                                <a href="{% url 'admin:website_application_change' application.id %}">edit</a>
+                            {% endif %}
+                        </a>
+                    </td>
+                    <td nowrap>{% include 'partials/link.html' %}</td>
+                    <td>{% include 'partials/email.html' %}</td>
+                    {% if application.company.email and application.job.role %}
+                        <td nowrap>
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ application.company.email|urlencode }}&su=Follow%20up%20on%20{{ application.job.role|urlencode }}%20at%20{{ application.company|urlencode }}&body=Hi%20{{ application.company|urlencode }},%0A%0AI%20hope%20you%20are%20doing%20well.%20I%20wanted%20to%20follow%20up%20on%20my%20application%20for%20the%20{{ application.job.role|urlencode }}%20role%20at%20{{ application.company|urlencode }}%20that%20I%20submitted%20on%20{{ application.date_applied|date:'F j'|urlencode }}.%20I%20am%20very%20interested%20in%20the%20role%20and%20would%20like%20to%20learn%20more%20about%20the%20opportunity.%20Please%20let%20me%20know%20if%20you%20have%20any%20questions%20or%20if%20there%20is%20anything%20else%20I%20can%20provide.%0A%0AThanks,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}"
+                               target="_blank"
+                               onclick="copyLink(this)"><i class="fas fa-envelope" id="email-link-button"></i></a>
+                        </td>
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    
+        <h3>Job Description</h3>
+        <p>{{ job.description_markdown|linebreaks }}</p>
+    </div>
+    
+    <!-- Skills Section -->
+    <div style="width: 250px; background-color: #f9f9f9; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);" id="skills-section">
+        <h4 style="margin-top: 0;">Skills:</h4>
+        <div style="display: flex; flex-direction: column; gap: 10px;" id="skills-list">
+            {% for skill in job.skills.all %}
+            <div style="display: flex; align-items: center;">
+                <img src="{% static 'svgs/'|add:skill.slug|add:'.svg' %}" width="20" height="20" alt="{{ skill.name }} icon"
+                    onerror="handleIconError(this)" />
+                <span>{{ skill.name }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Hidden Div for Adding Skill -->
+<div id="add-skill-div" style="display: none; position: absolute; background-color: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+    <span id="selected-text"></span>
+    <button id="add-skill-btn">Add Skill</button>
+</div>
+
+<script>
+function handleIconError(img) {
+    // Remove the image element
+    img.style.display = 'none';
+
+    // Add the gear emoji if it doesn't already exist
+    if (!img.nextElementSibling || img.nextElementSibling.tagName !== 'SPAN' || img.nextElementSibling.textContent !== '⚙️') {
+        const gearIcon = document.createElement('span');
+        gearIcon.textContent = '⚙️';
+        gearIcon.style.fontSize = '20px';  // Adjust size to match SVG
+        gearIcon.style.marginRight = '5px'; // Adjust spacing if needed
+        img.parentNode.insertBefore(gearIcon, img.nextSibling);
+    }
+}
+
+document.addEventListener('mouseup', function(event) {
+    const selectedText = window.getSelection().toString().trim();
+
+    if (selectedText.length > 0) {
+        const addSkillDiv = document.getElementById('add-skill-div');
+        const selectedTextSpan = document.getElementById('selected-text');
+        selectedTextSpan.textContent = `Add Skill "${selectedText}"`;
+
+        // Position the div above the skills section
+        const skillsSection = document.getElementById('skills-section');
+        const rect = skillsSection.getBoundingClientRect();
+        addSkillDiv.style.top = `${rect.top - addSkillDiv.offsetHeight - 10}px`;
+        addSkillDiv.style.left = `${rect.left}px`;
+        
+        addSkillDiv.style.display = 'block';
+
+        // Set up the button click event
+        const addSkillBtn = document.getElementById('add-skill-btn');
+        addSkillBtn.onclick = function() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '{% url "job_detail_htmx" job.slug %}', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    document.getElementById('job-posting').innerHTML = xhr.responseText;
+                    addSkillDiv.style.display = 'none'; // Hide the div after adding the skill
+                }
+            };
+            xhr.send(`skill=${encodeURIComponent(selectedText)}`);
+        };
+    } else {
+        document.getElementById('add-skill-div').style.display = 'none';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Scroll to top when the page loads
+    window.scrollTo(0, 0);
+});
+</script>

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<div class="container" style="display: flex; margin-top: 20px;">
+    <!-- Sidebar -->
+    <div id="sidebar" style="width: 150px;">
+        {% include 'sidebar.html' %}
+    </div>
+
+    <!-- Main content area -->
+    <div id="main-content" style="flex-grow: 1; padding-left: 20px;">
+        <h1>Pingojo Pricing</h1>
+        <p style="margin-bottom: 20px;">Pingojo is an open-source platform, and basic usage is always free. For advanced features and additional capacity, please consider one of the following plans:</p>
+
+        <div class="pricing-table" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+            <!-- Job Seeker Plans -->
+            <div class="pricing-column" style="flex: 1; min-width: 250px; margin-right: 10px;">
+                <h2 style="text-align: center; color: #4CAF50; margin-bottom: 10px;">Job Seeker Plans</h2>
+                
+                <!-- Free Plan -->
+                <div class="pricing-option" style="background-color: #f0f0f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                    <h3 style="text-align: center; margin-bottom: 10px;">Free Plan</h3>
+                    <p style="text-align: center; margin-bottom: 10px;"><strong>Price:</strong> $0/month</p>
+                    <ul style="padding-left: 20px; margin-bottom: 10px;">
+                        <li>Access to core job board features</li>
+                        <li>Up to 100 job applications tracked</li>
+                        <li>Community support</li>
+                    </ul>
+                    <div style="text-align: center;">
+                        <a href="#" class="btn" style="background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">Choose Free Plan</a>
+                    </div>
+                </div>
+
+                <!-- Advanced Plan -->
+                <div class="pricing-option" style="background-color: #f0f0f0; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                    <h3 style="text-align: center; margin-bottom: 10px;">Advanced Plan</h3>
+                    <p style="text-align: center; margin-bottom: 10px;"><strong>Price:</strong> $5/month</p>
+                    <ul style="padding-left: 20px; margin-bottom: 10px;">
+                        <li>Access to all job board features</li>
+                        <li>Track over 100 job applications</li>
+                        <li>Email support</li>
+                        <li>Advanced reporting tools</li>
+                    </ul>
+                    <div style="text-align: center;">
+                        <a href="#" class="btn" style="background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">Choose Advanced Plan</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recruiter Plan -->
+            <div class="pricing-column" style="flex: 1; min-width: 250px;">
+                <h2 style="text-align: center; color: #FF9800; margin-bottom: 10px;">Recruiter Plans</h2>
+
+                <!-- Recruiter Plan -->
+                <div class="pricing-option" style="background-color: #f0f0f0; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                    <h3 style="text-align: center; margin-bottom: 10px;">Recruiter Plan</h3>
+                    <p style="text-align: center; margin-bottom: 10px;"><strong>Price:</strong> $5/month per recruiter</p>
+                    <ul style="padding-left: 20px; margin-bottom: 10px;">
+                        <li>Access to job board features</li>
+                        <li>Advanced candidate tracking</li>
+                        <li>Collaboration tools</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <div style="text-align: center;">
+                        <a href="#" class="btn" style="background-color: #FF9800; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">Choose Recruiter Plan</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

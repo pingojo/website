@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "sidebar.html" %}
+<div style="margin-left:200px; padding-top: 50px; display: flex; flex-wrap: wrap; gap: 20px;">
+    
+    <!-- First Column: Donation Section -->
+    <div style="flex: 1; padding: 20px; background-color: #f4f6f8; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+        <h1 class="text-center mb-4" style="color: #4CAF50; font-size: 2.5em; font-family: Arial, sans-serif;">Support Pingojo</h1>
+        <p class="text-center mb-5" style="color: #555; font-size: 1.2em; font-family: Arial, sans-serif;">
+            Pingojo is an open-source platform that relies on the support of our community. If you find our platform useful and would like to help us continue developing and improving it, please consider making a donation. Your support is greatly appreciated!
+        </p>
+
+        <div class="donation-section text-center mb-5" style="background-color: #FFFFFF; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+            <h2 style="color: #FF5722; font-family: Arial, sans-serif;">Bitcoin Cash (BCH) Donations</h2>
+            <p>You can support us with Bitcoin Cash (BCH). Simply send your donation to the following BCH address:</p>
+            <p class="font-weight-bold" style="color: #3E2723;">Bitcoin Cash Address:</p>
+            <p class="text-dark" style="font-size: 1.1em;">qpqwtgzskmxc4hkkymplpahwlyu4n4p8aszrzt2amw</p>
+            <p>Scan the QR code below to make a donation:</p>
+            <img src="{% static 'img/bch_qr_code.png' %}" alt="Donate with BCH" class="mb-3" style="max-width: 200px;">
+            <p class="text-muted" style="font-style: italic;">Thank you for your support!</p>
+        </div>
+    </div>
+
+    <!-- Second Column: Why Donate and Other Support Sections -->
+    <div style="flex: 1; padding: 20px; background-color: #FFFFFF; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+        <div class="why-donate-section text-center mb-5" style="background-color: #E0F7FA; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #00796B; font-family: Arial, sans-serif;">Why Donate?</h2>
+            <ul class="list-unstyled" style="text-align: left; margin-left: 20px; font-size: 1.1em;">
+                <li class="mb-2">Support Development: Your donations help fund ongoing development and maintenance of the Pingojo platform.</li>
+                <li class="mb-2">Server Costs: Contributions go towards hosting and server expenses, ensuring that Pingojo remains fast and reliable.</li>
+                <li class="mb-2">Feature Improvements: Help us add new features and improve existing ones based on community feedback.</li>
+            </ul>
+        </div>
+
+        <div class="other-support-section text-center mb-5" style="background-color: #FFEB3B; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #F57C00; font-family: Arial, sans-serif;">Other Ways to Support</h2>
+            <p>If you're unable to donate, there are still plenty of ways you can help:</p>
+            <ul class="list-unstyled" style="text-align: left; margin-left: 20px; font-size: 1.1em;">
+                <li class="mb-2">Spread the Word: Share Pingojo with your network and help us grow our community.</li>
+                <li class="mb-2">Contribute Code: If you're a developer, check out our <a href="https://github.com/pingojo/ContributionGuidelines" target="_blank" style="color: #FF5722; text-decoration: underline;">Contribution Guidelines</a> and submit your improvements.</li>
+                <li class="mb-2">Provide Feedback: Join our <a href="https://discord.com/invite/pingojo" target="_blank" style="color: #FF5722; text-decoration: underline;">Discord Community</a> or participate in <a href="https://github.com/pingojo/Discussions" target="_blank" style="color: #FF5722; text-decoration: underline;">GitHub Discussions</a> to share your thoughts and ideas.</li>
+            </ul>
+        </div>
+
+        <p class="text-center text-dark" style="font-size: 1.1em;">Thank you for your support!</p>
+    </div>
+</div>
+{% endblock %}

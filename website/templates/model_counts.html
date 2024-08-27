@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% load static %}
+{% load humanize %}
+{% include 'sidebar.html' %}
 <div class="container">
 
     {% if user_data %}
@@ -33,6 +36,14 @@
         <li>Total Emails: {{ total_emails }}</li>
         <li>Total Bounces: {{ total_bounces }}</li>
     </ul>
+
+    {% for skill in skills %}
+    <div style="display: flex; align-items: center;">
+        <img src="{% static 'svgs/'|add:skill.slug|add:'.svg' %}" width="20" height="20" alt="{{ skill.name }} icon"
+            onerror="handleIconError(this)" />
+        <span>{{ skill.name }}</span>
+    </div>
+    {% endfor %}
 
 
 </div>

@@ -77,6 +77,21 @@ from .models import (
 from .parse_resume import parse_resume
 
 
+def donate(request):
+    return render(request, "donate.html")
+def pricing(request):
+    return render(request, "pricing.html")
+
+def job_detail_htmx(request, slug):
+    job = get_object_or_404(Job, slug=slug)
+    if request.POST.get("skill"):
+        skill = request.POST.get("skill")
+        skill, _ = Skill.objects.get_or_create(name=skill)
+        if " " + skill.name.lower() + " " in job.description_markdown.lower():
+            job.skills.add(skill)
+            job.save()
+    return render(request, "partials/job_detail_include.html", {"job": job})
+
 @login_required
 def view_resume_clicks(request, company_id):
     company = get_object_or_404(Company, id=company_id)
@@ -1288,33 +1303,113 @@ from .models import Application, Job
 
 
 class JobDetailView(DetailView):
-    model = Job
-    template_name = "job_detail.html"
-    context_object_name = "job"
+    model = Company
+    template_name = "company_detail.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        job = self.get_object()
+    def get(self, request, *args, **kwargs):
+        slug = self.kwargs["slug"]
+        cache_key_company = f"cache_company_{slug}"
+        company = cache.get(cache_key_company)
 
-        # Generate cache key based on job id and user id
-        cache_key = f'job_detail_{job.id}_user_{self.request.user.id if self.request.user.is_authenticated else "anonymous"}'
-        context_data = cache.get(cache_key)
+        if not company:
+            job = get_object_or_404(Job, slug=slug)
+            company = job.company
+            cache.set(cache_key_company, company, timeout=60 * 60 * 24)  # Cache for 24 hours
+        else:
+            job = get_object_or_404(Job, slug=slug)
 
-        if not context_data:
-            context_data = {}
+        # Cache key for the job details specific to the user
+        cache_key_job = f'job_detail_{job.id}_user_{self.request.user.id if self.request.user.is_authenticated else "anonymous"}'
+        cached_job_data = cache.get(cache_key_job)
+
+        if not cached_job_data:
+            cached_job_data = {}
+            cached_job_data["job"] = job
+
             if self.request.user.is_authenticated:
-                applications = Application.objects.filter(
-                    job=job, user=self.request.user
-                )
-                context_data["applications"] = applications
-            context_data["stages"] = Stage.objects.annotate(
+                applications = Application.objects.filter(job=job, user=self.request.user)
+                cached_job_data["applications"] = applications
+
+            cached_job_data["stages"] = Stage.objects.annotate(
                 count=Count("application")
             ).order_by("-order")
 
-            cache.set(cache_key, context_data, 60 * 60 * 24 * 30) # Cache for 30 days
+            cache.set(cache_key_job, cached_job_data, timeout=60 * 60 * 24 * 30)  # Cache for 30 days
 
-        context.update(context_data)
-        return context
+        self.object = company
+
+        # Fetch and cache the next company
+        next_company_cache_key = f"cache_company_{company.id + 1}"
+        next_company = cache.get(next_company_cache_key)
+
+        if not next_company:
+            next_company = (
+                Company.objects.filter(id__gt=company.id).first()
+                or Company.objects.all().order_by("?").first()
+            )
+            if next_company:
+                cache.set(
+                    next_company_cache_key, next_company, timeout=60 * 60 * 24
+                )  # Cache for 24 hours
+
+        # Create the context and populate it
+        context = self.get_context_data(object=company)
+        context.update(cached_job_data)
+        context["next_company"] = next_company
+
+        # Fetch and cache website status
+        website_status_cache_key = f"website_status_{company.id}"
+        website_status_info = cache.get(website_status_cache_key)
+
+        if not website_status_info:
+            if (
+                not company.website_status_updated
+                or (datetime.now(timezone.utc) - company.website_status_updated).days >= 7
+            ):
+                website = (
+                    company.website
+                    if company.website
+                    else f"https://{company.slug}.com"
+                )
+                try:
+                    response = requests.get(website, timeout=10)
+                    company.website_status_updated = timezone.now()
+
+                    if (
+                        not company.website
+                        and company.name.lower() in response.text.lower()
+                    ):
+                        company.website = response.url
+                    company.website_status = response.status_code
+                except RequestException:
+                    company.website_status = 500
+                    company.website_status_updated = timezone.now()
+                finally:
+                    company.save(
+                        update_fields=[
+                            "website",
+                            "website_status",
+                            "website_status_updated",
+                        ]
+                    )
+                    website_status_info = {
+                        "website_status": company.website_status,
+                        "website_status_updated": company.website_status_updated,
+                        "website": company.website,
+                    }
+                    cache.set(
+                        website_status_cache_key,
+                        website_status_info,
+                        timeout=60 * 60 * 24,
+                    )  # Cache for 24 hours
+
+        context["website_status_info"] = website_status_info
+
+        if not company.website and company.email:
+            company.website = f"https://{company.email.split('@')[1]}"
+            company.save(update_fields=["website"])
+
+        return self.render_to_response(context)
 
 
 def privacy_policy(request):
@@ -2088,7 +2183,8 @@ def model_counts_view(request):
     total_profiles = Profile.objects.count()
     total_links = Link.objects.count()
     total_prompts = Prompt.objects.count()
-    total_skills = Skill.objects.count()
+    skills = Skill.objects.all()
+    total_skills = skills.count()
     total_companies = Company.objects.count()
     total_roles = Role.objects.count()
     total_jobs = Job.objects.count()
@@ -2136,6 +2232,7 @@ def model_counts_view(request):
         "total_emails": total_emails,
         "total_bounces": total_bounces,
         "user_data": user_data,
+        "skills": skills,
     }
 
     return render(request, "model_counts.html", context)

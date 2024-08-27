@@ -7,14 +7,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 {% block content %}
+{% include 'sidebar.html' %}
     <style>
         .stage-container {
-            width: 100%;
+            width: 100% - 150px;
             background-color: white;
-            border-top: 1px solid rgb(209, 209, 209);
             border-bottom: 1px solid rgb(209, 209, 209);
             display: flex;
             justify-content: space-between;
+            margin-left: 150px;
         }
 
         .stage {
@@ -102,12 +103,7 @@
         }
     </style>
     <div class="stage-container">
-        <a href="/"
-           class="stage new active"
-           style="color:black;
-                  text-decoration: none">
-            New <span class="number">{{ total_jobs|intcomma }}</span>
-        </a>
+
         <a href="/dashboard/?stage=Applied"
            class="stage applied"
            style="color:white;
@@ -291,6 +287,7 @@
     }
 
     </style>
+
     <div class="main-content">
         {% if applications %}
             <table>
