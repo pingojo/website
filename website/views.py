@@ -1821,16 +1821,18 @@ def update_company_email(request):
                     "Multiple companies found with the specified domain, they were: "
                     + company_list,
                 )
-                return redirect("company_list")
+                return redirect("home")
         except Company.DoesNotExist:
             messages.error(request, "No company found with the specified domain.")
-            return redirect(
-                "company_list"
-            )  # Redirect to a list of companies or a suitable page
+            return redirect("home")
+            # return redirect(
+            #     "company_list"
+            # )  # Redirect to a list of companies or a suitable page
 
     else:
         messages.error(request, "No email address provided.")
-        return redirect("company_list")
+        return redirect("home")
+        #return redirect("company_list")
 
 
 import re
