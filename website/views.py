@@ -764,24 +764,24 @@ class SourceListView(ListView):
         return context
 
 
-class CompanyListView(ListView):
-    model = Company
-    template_name = "company_list.html"
-    context_object_name = "companies"
-    paginate_by = 100
+# class CompanyListView(ListView):
+#     model = Company
+#     template_name = "company_list.html"
+#     context_object_name = "companies"
+#     paginate_by = 100
 
-    def get_queryset(self):
-        order = self.request.GET.get("order")
+#     def get_queryset(self):
+#         order = self.request.GET.get("order")
 
-        companies = cache.get("companies_queryset")
-        if not companies:
-            companies = Company.objects.prefetch_related("application_set")
-            cache.set("companies_queryset", companies, 60 * 60 * 24)
+#         companies = cache.get("companies_queryset")
+#         if not companies:
+#             companies = Company.objects.prefetch_related("application_set")
+#             cache.set("companies_queryset", companies, 60 * 60 * 24)
 
-        if order:
-            companies = companies.order_by(order)
+#         if order:
+#             companies = companies.order_by(order)
 
-        return companies
+#         return companies
 
     # def post(self, request, *args, **kwargs):
     #     company_id = request.POST.get("company_id")

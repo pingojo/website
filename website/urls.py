@@ -10,11 +10,10 @@ from django.views.generic.base import RedirectView
 
 from website import views
 from website.utils import HashIdConverter
-from website.views import (
+from website.views import (  # CompanyListView,
     AddJobLink,
     ApplicationView,
     BouncedEmailAPI,
-    CompanyListView,
     DashboardView,
     DisplayResumeView,
     GetCompanyEmailView,
@@ -62,7 +61,7 @@ urlpatterns = [
     ),
     path("job_add/", views.job_add, name="job_add"),
     path("autocomplete/<str:model>/", views.autocomplete, name="autocomplete"),
-    path("company_list/", CompanyListView.as_view(), name="company_list"),
+    #path("company_list/", CompanyListView.as_view(), name="company_list"),
     path("sources/", SourceListView.as_view(), name="source-list"),
     # path('challenge/', views.JobListView.as_view(), name='challenge'),
     path(
