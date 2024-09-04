@@ -245,7 +245,7 @@
             <!-- Job Details -->
             <div id="job-details" style="flex-grow: 1;">
                 {% if company.job_set.all %}
-                    {% include 'partials/job_detail_include.html' with job=company.job_set.first %}
+                    {% include 'partials/job_detail_include.html' with job=company.job_set.first applications=applications %}
                 {% endif %}
             </div>
         </div>
