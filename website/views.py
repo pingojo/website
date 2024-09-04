@@ -90,7 +90,13 @@ def job_detail_htmx(request, slug):
         if " " + skill.name.lower() + " " in job.description_markdown.lower():
             job.skills.add(skill)
             job.save()
-    return render(request, "partials/job_detail_include.html", {"job": job})
+    if request.user.is_authenticated:
+        application = Application.objects.filter(
+            user=request.user, job=job
+        ).first()
+    else:
+        application = None
+    return render(request, "partials/job_detail_include.html", {"job": job, "application": application})
 
 @login_required
 def view_resume_clicks(request, company_id):
