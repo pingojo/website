@@ -94,9 +94,11 @@ def job_detail_htmx(request, slug):
         applications = Application.objects.filter(
             user=request.user, job=job
         )
+        stages = Stage.objects.all().order_by("-order")
     else:
         applications = None
-    return render(request, "partials/job_detail_include.html", {"job": job, "applications": applications})
+        stages = None
+    return render(request, "partials/job_detail_include.html", {"job": job, "applications": applications, "stages": stages})
 
 @login_required
 def view_resume_clicks(request, company_id):
@@ -987,7 +989,10 @@ class AddJobLink(APIView):
         data = request.data
         link_is_410 = data.get("link_is_410", False)
         if link_is_410:
-            job = Job.objects.get(link=data.get("link"))
+            link = data.get("link")
+            link_parts = link.split("/")
+            job_slug = link_parts[-1]
+            job = Job.objects.filter(link__endswith=job_slug).first()
             job.link_status_code = 410
             job.link_status_code_updated = timezone.now()
             job.save()

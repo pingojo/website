@@ -12,9 +12,6 @@
         <table>
             <thead>
                 <tr align="left">
-                    <th>Company</th>
-                    <th>Role</th>
-                    <th>Salary</th>
                     <th>Applied</th>
                     <th>Last Email</th>
                     <th>Days</th>
@@ -23,49 +20,11 @@
                     <th>actions</th>
                     <th>link</th>
                     <th>email</th>
-                    <td>g</td>
+                    <td>ping</td>
                 </tr>
             </thead>
             {% for application in applications %}
                 <tr id="row-{{ application.id }}">
-                    <td>
-                        {% if application.job.company.website %}
-                            <img src="https://www.google.com/s2/favicons?domain={{ application.job.company.website }}"
-                                 style="margin-right: 5px">
-                        {% endif %}
-                        <a href="{% url 'company_detail' slug=application.job.company.slug %}"
-                           target="_blank"
-                           style="text-decoration: none;
-                                  font-size:14px">{{ application.job.company.name }}</a>
-                    </td>
-                    <td>
-                        {% if application.job.role %}
-                            {{ application.job.role|truncatechars:50 }}
-                        {% else %}
-                            <form hx-post="{% url 'update_email' %}"
-                                  hx-trigger="change"
-                                  hx-target="this"
-                                  id="role-form-{{ application.id }}">
-                                {% csrf_token %}
-                                <input type="hidden" name="application_id" value="{{ application.id }}" />
-                                <input type="text"
-                                       name="role"
-                                       id="role"
-                                       class="link-input"
-                                       placeholder="role"
-                                       style="height: 20px;
-                                              width: 120px;
-                                              display: inline-block;
-                                              vertical-align: middle;
-                                              margin:0px" />
-                            </form>
-                        {% endif %}
-                    </td>
-                    <td nowrap>
-                        {% if application.job.salary_min %}
-                            ${{ application.job.salary_min|floatformat:0|intcomma }} - ${{ application.job.salary_max|floatformat:0|intcomma }}
-                        {% endif %}
-                    </td>
                     <td>{{ application.date_applied|date:"m/d" }}</td>
                     <td>{{ application.date_of_last_email|date:"m/d" }}</td>
                     <td>{{ application.days_since_last_email }}</td>
@@ -88,14 +47,12 @@
                             </a>
                             <div class="hover-box">
                                 {% for email in application.email_set.all %}
-                                    <p>
-                                        <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
-                                           target="_blank">{{ email }}</a>
-                                        <span>({{ email.date|date:"m/d" }})</span>
-                                    </p>
-                                {% empty %}
-                                    <p>No emails found.</p>
-                                {% endfor %}
+                                <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
+                                   target="_blank"
+                                   title="{{ email.date|date:'m/d/y' }}">{{ forloop.counter }}</a>
+                            {% empty %}
+                                0
+                            {% endfor %}
                             </div>
                         </div>
                     </td>
