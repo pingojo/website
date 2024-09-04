@@ -24,10 +24,13 @@
             height="30px;">
         {% endif %}
         {{ company.name }}
-        {% if company.website %}
-        <i class="fas fa-external-link-alt" style="font-size:30px;"></i>
-        {% endif %}
+
     </a>
+    {% if company.website %}
+    <a href="{{ company.website }}" target="_blank" rel="noopener noreferrer" style="color: black; text-decoration: none;">
+        <i class="fas fa-external-link-alt" style="font-size:30px;"></i>
+    </a>
+    {% endif %}
 
 
 {% if user.is_superuser %}
