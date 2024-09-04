@@ -113,7 +113,7 @@
         <p>{{ job.description_markdown|linebreaks }}</p>
     </div>
     
-    <!-- Skills Section -->
+    {% if job.skills.all %}
     <div style="width: 250px; background-color: #f9f9f9; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);" id="skills-section">
         <h4 style="margin-top: 0;">Skills:</h4>
         <div style="display: flex; flex-direction: column; gap: 10px;" id="skills-list">
@@ -126,6 +126,7 @@
             {% endfor %}
         </div>
     </div>
+    {% endif %}
 
 </div>
 
