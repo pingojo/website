@@ -91,12 +91,12 @@ def job_detail_htmx(request, slug):
             job.skills.add(skill)
             job.save()
     if request.user.is_authenticated:
-        application = Application.objects.filter(
+        applications = Application.objects.filter(
             user=request.user, job=job
-        ).first()
+        )
     else:
-        application = None
-    return render(request, "partials/job_detail_include.html", {"job": job, "application": application})
+        applications = None
+    return render(request, "partials/job_detail_include.html", {"job": job, "applications": applications})
 
 @login_required
 def view_resume_clicks(request, company_id):
