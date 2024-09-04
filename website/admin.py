@@ -33,19 +33,9 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "name",
-        "slug",
-        "twitter_url",
-        "greenhouse_url",
-        "lever_url",
-        "number_of_employees_min",
-        "number_of_employees_max",
-        "description",
+        "slug",        
         "website",
-        "city",
-        "state",
-        "country",
-        "ceo",
-        "ceo_twitter",
+        "email",
     )
     search_fields = ("name", "city", "state", "country", "ceo", "email")
     prepopulated_fields = {"slug": ("name",)}
