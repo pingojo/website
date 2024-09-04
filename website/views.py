@@ -993,14 +993,15 @@ class AddJobLink(APIView):
             link_parts = link.split("/")
             job_slug = link_parts[-1]
             job = Job.objects.filter(link__endswith=job_slug).first()
-            job.link_status_code = 410
-            job.link_status_code_updated = timezone.now()
-            job.save()
-            application = Application.objects.get(job=job, user=request.user)
-            application.stage = Stage.objects.get(name="Passed")
-            application.notes = "Link is 410"
-            application.save()
-            company = job.company
+            if job:
+                job.link_status_code = 410
+                job.link_status_code_updated = timezone.now()
+                job.save()
+                application = Application.objects.get(job=job, user=request.user)
+                application.stage = Stage.objects.get(name="Passed")
+                application.notes = "Link is 410"
+                application.save()
+                company = job.company
 
         else:
 
@@ -1674,6 +1675,12 @@ class CompanyDetailView(generic.DetailView):
 
         context = self.get_context_data(object=company)
         context["next_company"] = next_company
+        if request.user.is_authenticated:
+            context["applications"] = Application.objects.filter(
+                user=request.user, company=company
+            )
+            context["stages"] = Stage.objects.all().order_by("-order")
+
 
         # Fetch and cache website status
         website_status_cache_key = f"website_status_{company.id}"
