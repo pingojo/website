@@ -263,14 +263,15 @@
                                 </a>
                             {% endif %}
                         {% endif %}
-                    </h4>
-                    {% if user.is_superuser %}
+                        {% if user.is_superuser %}
                         <a href="{% url 'admin:website_job_change' job.id %}"
                            style="color: black;
                                   text-decoration: none">
-                            <i class="fas fa-edit" style="font-size:20px;"></i>
+                            <i class="fas fa-edit"></i>
                         </a>
                     {% endif %}
+                    </h4>
+
                     {% if job.salary_min and job.salary_max %}
                         <p style="margin: 5px 0;">
                             Salary: ${{ job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }}
