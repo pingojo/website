@@ -549,6 +549,9 @@ def update_company(request, company_id):
         company.save()
 
         webhook_url = settings.SLACK_WEBHOOK_URL
+        # remove the cache for detail_company_id_user_id
+        cache_key = f'detail_{company_id}_user_{request.user.id}'
+        cache.delete(cache_key)
 
         if webhook_url:
             message = f"{company.name} updated:" + str(request.POST)
