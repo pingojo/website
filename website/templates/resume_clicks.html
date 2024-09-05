@@ -1,14 +1,13 @@
-<!-- templates/resume_clicks.html -->
 {% extends "base.html" %}
 
 {% block content %}
+{% include 'sidebar.html' %}
     <h1>Resume Clicks for {{ company.name }}</h1>
 
     {% if resume_clicks %}
         <table>
             <thead>
                 <tr>
-
                     <th>IP Address</th>
                     <th>User Agent</th>
                     <th>Referer</th>
@@ -18,7 +17,11 @@
             <tbody>
                 {% for click in resume_clicks %}
                     <tr>
-                        <td>{{ click.ip_address }}</td>
+                        <td>
+                            <a href="https://whois.domaintools.com/{{ click.ip_address }}" target="_blank">
+                                {{ click.ip_address }}
+                            </a>
+                        </td>
                         <td>{{ click.user_agent }}</td>
                         <td>{{ click.referer }}</td>
                         <td nowrap>{{ click.created|date:"m/d/Y H:i T" }}</td>
