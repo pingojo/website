@@ -957,10 +957,13 @@ class AddJobLink(APIView):
                 job.link_status_code = 410
                 job.link_status_code_updated = timezone.now()
                 job.save()
-                application = Application.objects.get(job=job, user=request.user)
-                application.stage = Stage.objects.get(name="Passed")
-                application.notes = "Link is 410"
-                application.save()
+                try:
+                    application = Application.objects.get(job=job, user=request.user)
+                    application.stage = Stage.objects.get(name="Passed")
+                    application.notes = "Link is 410"
+                    application.save()
+                except Application.DoesNotExist:
+                    pass
                 company = job.company
 
         else:
