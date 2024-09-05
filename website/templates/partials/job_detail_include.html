@@ -19,7 +19,6 @@
                     <th>Stage</th>
                     <th>actions</th>
                     <th>link</th>
-                    <th>email</th>
                     <th>ping</th>
                 </tr>
             </thead>
@@ -88,7 +87,6 @@
                         </a>
                     </td>
                     <td nowrap>{% include 'partials/link.html' %}</td>
-                    <td>{% include 'partials/email.html' %}</td>
                     {% if application.company.email and application.job.role %}
                         <td nowrap>
                             <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ application.company.email|urlencode }}&su=Follow%20up%20on%20{{ application.job.role|urlencode }}%20at%20{{ application.company|urlencode }}&body=Hi%20{{ application.company|urlencode }},%0A%0AI%20hope%20you%20are%20doing%20well.%20I%20wanted%20to%20follow%20up%20on%20my%20application%20for%20the%20{{ application.job.role|urlencode }}%20role%20at%20{{ application.company|urlencode }}%20that%20I%20submitted%20on%20{{ application.date_applied|date:'F j'|urlencode }}.%20I%20am%20very%20interested%20in%20the%20role%20and%20would%20like%20to%20learn%20more%20about%20the%20opportunity.%20Please%20let%20me%20know%20if%20you%20have%20any%20questions%20or%20if%20there%20is%20anything%20else%20I%20can%20provide.%0A%0AThanks,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}"
