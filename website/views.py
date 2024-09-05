@@ -1601,8 +1601,8 @@ def update_company_email(request):
         try:
             companies = Company.objects.filter(website__icontains=domain)
             if not companies.exists():
-                messages.error(request, "No company found with the specified domain.")
-                return redirect("company_list")
+                messages.error(request, "No company found with the specified domain of " + domain)
+                return redirect("home")
 
             matched_company = None
             for company in companies:
