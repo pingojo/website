@@ -430,9 +430,9 @@
                                     </select>
                                 </form>
                                 {% if application.note and application.note != "None" %}
-                                    <span class="note-icon note-icon-bordered" title="{{ application.note }}">📝</span>
+                                    <span class="note-icon note-icon-bordered" title="{{ application.note }}" hx-get="{% url 'edit_note' application.id %}" hx-target="#note-form-container-{{ application.id }}" hx-swap="outerHTML">📝</span>
                                 {% else %}
-                                    <span class="note-icon" title="No Note">📝</span>
+                                    <span class="note-icon" title="No Note" hx-get="{% url 'edit_note' application.id %}" hx-target="#note-form-container-{{ application.id }}" hx-swap="outerHTML">📝</span>
                                 {% endif %}
                                 <div id="note-form-container-{{ application.id }}"></div>
                             </td>
