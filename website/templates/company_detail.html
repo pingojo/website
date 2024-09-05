@@ -303,6 +303,38 @@
                                onclick="changeRowColor(this)">
                                 <i class="fas fa-envelope" style="margin-right: 5px;"></i>Apply
                             </a>
+                        {% else %}
+                            {% if job.link %}
+                                {% if job.link_status_code == 200 %}
+                                    <a class="apply-button"
+                                       href="{{ job.link }}"
+                                       style="display: inline-flex;
+                                              align-items: center;
+                                              text-decoration: none;
+                                              padding: 5px 7px;
+                                              border: 1px solid #ccc;
+                                              border-radius: 5px;
+                                              margin: 0;
+                                              color: white"
+                                       target="_blank"
+                                       onclick="changeRowColor(this)">
+                                        <img src="https://www.google.com/s2/favicons?domain={{ job.link }}"
+                                             style="background-color:white;
+                                                    border-radius: 5px;
+                                                    margin:0px;
+                                                    padding:0px;
+                                                    position:relative;
+                                                    margin-right:5px">
+                                    Apply </a>
+                                    {% if prompt and job.description_markdown %}
+                                        <a href="#"
+                                           onclick="copyPrompt('{{ prompt.content|escapejs }}', '{{ job.description_markdown|striptags|escapejs }}', '{{ job.company.email|urlencode }}', '{{ job.role.title|urlencode }}', '{{ job.company|urlencode }}'); changeRowColor(this); event.preventDefault();"
+                                           title="Copy Prompt to Clipboard">
+                                            <img src="{% static '/svg/ChatGPT_logo.svg' %}" style="height:23px; ">
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </div>
@@ -351,5 +383,38 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+
+
+
+function changeRowColor(button) {
+  // Get the parent row element of the button
+  var row = button.closest("tr");
+
+  // Get a list of all the rows in the table
+  var rows = document.querySelectorAll("table tr");
+
+  // Loop through all the rows and remove the background color
+  for (var i = 0; i < rows.length; i++) {
+    rows[i].style.backgroundColor = "";
+  }
+
+  // Set the background color of the clicked row to yellow
+  row.style.backgroundColor = "yellow";
+
+
+}
+function copyPrompt(prompt, description, email, role, company) {
+  var copyText = prompt + "\n\n" + description;
+  navigator.clipboard.writeText(copyText)
+    .then(() => {
+      var mailtoUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" + email + "&su=Application%20for%20" + role + "%20at%20" + company + "&body=Dear%20" + company + ",%0A%0AI%20am%20writing%20to%20apply%20for%20the%20" + role + "%20role%20at%20" + company + ".%20I%20am%20very%20interested%20in%20the%20opportunity%20and%20believe%20that%20my%20skills%20and%20experience%20make%20me%20a%20strong%20candidate.%0A%0APlease%20find%20my%20resume%20attached%20to%20this%20email.%20If%20you%20require%20any%20further%20information%20or%20would%20like%20to%20schedule%20an%20interview,%20please%20let%20me%20know.%0A%0AThank%20you%20for%20your%20time%20and%20consideration.%0A%0ASincerely,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}";
+      window.open(mailtoUrl, "_blank");
+      window.open("https://chat.openai.com/", "_blank");
+    })
+    .catch(err => {
+      console.error('Could not copy text: ', err);
+    });
+  return false;
+}
 </script>
 {% endblock %}

@@ -876,7 +876,7 @@ def update_application_stage(request):
 
         job_id = application.job.id
         user_id = request.user.id
-        cache_key = f'job_detail_{job_id}_user_{user_id}'
+        cache_key = f'detail_{job_id}_user_{user_id}'
         cache.delete(cache_key)
 
         # Recreate and cache the context data
@@ -1331,7 +1331,7 @@ class CompanyJobDetailView(DetailView):
                 else:
                     cached_data["applications"] = Application.objects.filter(company=obj, user=self.request.user)
 
-            cached_data["stages"] = Stage.objects.annotate(count=Count("application")).order_by("-order")
+            cached_data["stages"] = Stage.objects.all().order_by("-order")
             cache.set(cache_key, cached_data, timeout=60 * 60 * 24 * 30)  # Cache for 30 days
 
         return cached_data
@@ -1394,121 +1394,14 @@ class CompanyJobDetailView(DetailView):
             context["website_status_info"] = self.update_website_status(obj)
         elif isinstance(obj, Job):
             company = obj.company
-            context['jobs'] = company.job_set.all()
+            jobs = company.job_set.all()
+            self.get_user_applications(jobs, self.request.user)
+            context['jobs'] = jobs
             context["next_company"] = self.get_next_company(obj.company)
             context["website_status_info"] = self.update_website_status(obj.company)
 
         return context
 
-
-# class JobDetailView(DetailView):
-#     model = Company
-#     template_name = "company_detail.html"
-
-#     def get(self, request, *args, **kwargs):
-#         slug = self.kwargs["slug"]
-#         cache_key_company = f"cache_company_{slug}"
-#         company = cache.get(cache_key_company)
-
-#         if not company:
-#             job = get_object_or_404(Job, slug=slug)
-#             company = job.company
-#             cache.set(cache_key_company, company, timeout=60 * 60 * 24)  # Cache for 24 hours
-#         else:
-#             job = get_object_or_404(Job, slug=slug)
-
-#         # Cache key for the job details specific to the user
-#         cache_key_job = f'job_detail_{job.id}_user_{self.request.user.id if self.request.user.is_authenticated else "anonymous"}'
-#         cached_job_data = cache.get(cache_key_job)
-
-#         if not cached_job_data:
-#             cached_job_data = {}
-#             cached_job_data["job"] = job
-
-#             if self.request.user.is_authenticated:
-#                 applications = Application.objects.filter(job=job, user=self.request.user)
-#                 cached_job_data["applications"] = applications
-
-#             cached_job_data["stages"] = Stage.objects.annotate(
-#                 count=Count("application")
-#             ).order_by("-order")
-
-#             cache.set(cache_key_job, cached_job_data, timeout=60 * 60 * 24 * 30)  # Cache for 30 days
-
-#         self.object = company
-
-#         # Fetch and cache the next company
-#         next_company_cache_key = f"cache_company_{company.id + 1}"
-#         next_company = cache.get(next_company_cache_key)
-
-#         if not next_company:
-#             next_company = (
-#                 Company.objects.filter(id__gt=company.id).first()
-#                 or Company.objects.all().order_by("?").first()
-#             )
-#             if next_company:
-#                 cache.set(
-#                     next_company_cache_key, next_company, timeout=60 * 60 * 24
-#                 )  # Cache for 24 hours
-
-#         # Create the context and populate it
-#         context = self.get_context_data(object=company)
-#         context.update(cached_job_data)
-#         context["next_company"] = next_company
-
-#         # Fetch and cache website status
-#         website_status_cache_key = f"website_status_{company.id}"
-#         website_status_info = cache.get(website_status_cache_key)
-
-#         if not website_status_info:
-#             if (
-#                 not company.website_status_updated
-#                 or (datetime.now(timezone.utc) - company.website_status_updated).days >= 7
-#             ):
-#                 website = (
-#                     company.website
-#                     if company.website
-#                     else f"https://{company.slug}.com"
-#                 )
-#                 try:
-#                     response = requests.get(website, timeout=10)
-#                     company.website_status_updated = timezone.now()
-
-#                     if (
-#                         not company.website
-#                         and company.name.lower() in response.text.lower()
-#                     ):
-#                         company.website = response.url
-#                     company.website_status = response.status_code
-#                 except RequestException:
-#                     company.website_status = 500
-#                     company.website_status_updated = timezone.now()
-#                 finally:
-#                     company.save(
-#                         update_fields=[
-#                             "website",
-#                             "website_status",
-#                             "website_status_updated",
-#                         ]
-#                     )
-#                     website_status_info = {
-#                         "website_status": company.website_status,
-#                         "website_status_updated": company.website_status_updated,
-#                         "website": company.website,
-#                     }
-#                     cache.set(
-#                         website_status_cache_key,
-#                         website_status_info,
-#                         timeout=60 * 60 * 24,
-#                     )  # Cache for 24 hours
-
-#         context["website_status_info"] = website_status_info
-
-#         if not company.website and company.email:
-#             company.website = f"https://{company.email.split('@')[1]}"
-#             company.save(update_fields=["website"])
-
-#         return self.render_to_response(context)
 
 
 def privacy_policy(request):
@@ -1682,97 +1575,6 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
-
-# class CompanyDetailView(generic.DetailView):
-#     model = Company
-#     template_name = "company_detail.html"
-
-#     def get(self, request, *args, **kwargs):
-#         slug = self.kwargs["slug"]
-#         cache_key = f"cache_company_{slug}"
-#         company = cache.get(cache_key)
-
-#         if not company:
-#             company = get_object_or_404(self.get_queryset().select_related(), slug=slug)
-#             cache.set(cache_key, company, timeout=60 * 60 * 24)  # Cache for 24 hours
-
-#         self.object = company
-
-#         # Fetch and cache next company using the same cache key pattern
-#         next_company_cache_key = f"cache_company_{company.id + 1}"
-#         next_company = cache.get(next_company_cache_key)
-
-#         if not next_company:
-#             next_company = (
-#                 Company.objects.filter(id__gt=company.id).first()
-#                 or Company.objects.all().order_by("?").first()
-#             )
-#             if next_company:
-#                 cache.set(
-#                     next_company_cache_key, next_company, timeout=60 * 60 * 24
-#                 )  # Cache for 24 hours
-
-#         context = self.get_context_data(object=company)
-#         context["next_company"] = next_company
-#         if request.user.is_authenticated:
-#             context["applications"] = Application.objects.filter(
-#                 user=request.user, company=company
-#             )
-#             context["stages"] = Stage.objects.all().order_by("-order")
-
-
-#         # Fetch and cache website status
-#         website_status_cache_key = f"website_status_{company.id}"
-#         website_status_info = cache.get(website_status_cache_key)
-
-#         if not website_status_info:
-#             if (
-#                 not company.website_status_updated
-#                 or (datetime.now(timezone.utc) - company.website_status_updated).days
-#                 >= 7
-#             ):
-#                 website = (
-#                     company.website
-#                     if company.website
-#                     else f"https://{company.slug}.com"
-#                 )
-#                 try:
-#                     response = requests.get(website, timeout=10)
-#                     company.website_status_updated = timezone.now()
-
-#                     if (
-#                         not company.website
-#                         and company.name.lower() in response.text.lower()
-#                     ):
-#                         company.website = response.url
-#                     company.website_status = response.status_code
-#                 except RequestException:
-#                     company.website_status = 500
-#                     company.website_status_updated = timezone.now()
-#                 finally:
-#                     company.save(
-#                         update_fields=[
-#                             "website",
-#                             "website_status",
-#                             "website_status_updated",
-#                         ]
-#                     )
-#                     website_status_info = {
-#                         "website_status": company.website_status,
-#                         "website_status_updated": company.website_status_updated,
-#                         "website": company.website,
-#                     }
-#                     cache.set(
-#                         website_status_cache_key,
-#                         website_status_info,
-#                         timeout=60 * 60 * 24,
-#                     )  # Cache for 24 hours
-
-#         if not company.website and company.email:
-#             company.website = f"https://{company.email.split('@')[1]}"
-#             company.save(update_fields=["website"])
-
-#         return self.render_to_response(context)
 
 from urllib.parse import urlparse
 
