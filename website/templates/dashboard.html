@@ -345,7 +345,7 @@
                                 <a href="{% url 'company_detail' slug=application.company.slug %}"
                                    >{{ application.company.name }}</a>
                                 {% if application.company.website %}
-                                    <a href="{{ application.company.website }}" >
+                                    <a href="{{ application.company.website }}" target="_blank">
                                         <i class="fas fa-external-link-alt" style="font-size:15px;"></i>
                                     </a>
                                 {% endif %}
