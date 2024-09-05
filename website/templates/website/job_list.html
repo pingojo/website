@@ -190,13 +190,6 @@
         <th><a href="?{% url_toggle_order request 'posted_date' %}">Posted</a>
         </th>
 
-
-        {% if request.GET.show_stage %}
-        <th>
-          Stage
-        </th>
-        {% endif %}
-
         <th></th>
       </tr>
 
@@ -244,13 +237,7 @@
           {% if job.posted_date %}{{ job.posted_date|timesince }} ago{% endif %}
         </td>
 
-        {% if request.GET.show_stage %}
-        <td>
-          {% for application in job.application_set.all %}
-            {{ application.stage }}
-          {% endfor %}
-        </td>
-        {% endif %}
+
 
         <td nowrap>
 
@@ -267,12 +254,7 @@
 
               {% if job.link %}
                 {% if job.link_status_code == 200 %}
-                  <!-- <a href="{{ job.link }}" target="_blank" title="Source Link">
-                    <img src="https://www.google.com/s2/favicons?domain={{ job.link }}"
-                      style="height:20px; border: 1px solid #ccc; border-radius: 5px;">
 
-
-                  </a> -->
 
                   <a class="apply-button" href="{{ job.link }}" style="display: inline-flex;align-items: center; text-decoration: none; padding: 5px 7px; border: 1px solid #ccc; border-radius: 5px; margin: 0; color: white; " target="_blank" onclick="changeRowColor(this)"> 
                     <img src="https://www.google.com/s2/favicons?domain={{ job.link }}" 

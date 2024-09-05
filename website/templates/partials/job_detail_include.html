@@ -20,7 +20,7 @@
                     <th>actions</th>
                     <th>link</th>
                     <th>email</th>
-                    <td>ping</td>
+                    <th>ping</th>
                 </tr>
             </thead>
             {% for application in applications %}
@@ -29,13 +29,7 @@
                     <td>{{ application.date_of_last_email|date:"m/d" }}</td>
                     <td>{{ application.days_since_last_email }}</td>
                     <td valign="top" align="right">
-                        <span style="padding-bottom: 3px;
-                                     margin-left: 5px;
-                                     display: inline-block;
-                                     vertical-align: middle">{{ application.email_set.count }}</span>
-                        <div class="email-hover"
-                             style="display: inline-block;
-                                    vertical-align: middle">
+
                             <a href='https://mail.google.com/mail/u/0/#search/"{{ application.company.name }}"'
                                target="_blank"
                                style="margin:0px;
@@ -54,7 +48,7 @@
                                 0
                             {% endfor %}
                             </div>
-                        </div>
+        
                     </td>
                     <td>
                         <form method="POST"

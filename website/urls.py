@@ -14,6 +14,7 @@ from website.views import (  # CompanyListView,
     AddJobLink,
     ApplicationView,
     BouncedEmailAPI,
+    CompanyJobDetailView,
     DashboardView,
     DisplayResumeView,
     GetCompanyEmailView,
@@ -31,21 +32,20 @@ favicon_view = RedirectView.as_view(url="/static/img/favicon.ico", permanent=Tru
 
 urlpatterns = [
     path("", views.JobListView.as_view(), name="jobs_list"),
-    path(
-        "company/<slug:slug>/", views.CompanyDetailView.as_view(), name="company_detail"
-    ),
+    #path(
+    #    "company/<slug:slug>/", views.CompanyDetailView.as_view(), name="company_detail"
+    #),
     path("home/", views.home_view, name="home"),
     path("resume/<slug:slug>/", views.resume_view, name="resume"),
     path("mark-application-as-passed/", views.mark_application_as_passed, name="mark_application_as_passed"),
     path('model-counts/', views.model_counts_view, name='model-counts'),
-    path("company/<slug:slug>/add_job_link/", views.add_job_link, name="add_job_link"),
     path("add_email/", views.update_company_email, name="add_email"),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
     path(os.environ.get("ADMIN_URL", "admin/"), admin.site.urls),
     path("accounts/", include("allauth.urls")),
-    path("scrape-job/", views.scrape_job, name="scrape-job"),
-    # path("search/", views.search, name="search"),
-    path("job/<slug:slug>/", views.JobDetailView.as_view(), name="job_detail"),
+    path("scrape-job/", views.scrape_job, name="scrape-job"),    
+    path("job/<slug:slug>/", CompanyJobDetailView.as_view(), name="job_detail", kwargs={"type": "job"}),
+    path("company/<slug:slug>/", CompanyJobDetailView.as_view(), name="company_detail", kwargs={"type": "company"}),
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("terms-of-service/", views.terms_of_service, name="terms_of_service"),
     path("favicon.ico", favicon_view),

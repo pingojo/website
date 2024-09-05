@@ -176,47 +176,12 @@ class JobAddTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["form"], JobForm)
 
-
-# from selenium import webdriver
-# from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
-# import unittest
-
-# class JobAddFrontendTestCase(unittest.TestCase):
-#     def setUp(self):
-#         self.driver = webdriver.Firefox()  # You can use any browser driver you want
-#         self.driver.get('http://localhost:8000/login')  # Assuming your Django project is running on localhost:8000 and has a login page
-#         self.driver.find_element(By.NAME, "username").send_keys('testuser')
-#         self.driver.find_element(By.NAME, "password").send_keys('12345' + Keys.RETURN)
-#         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "userMenu")))  # assuming there is a user menu appearing after login
-
-#     def test_job_add(self):
-#         self.driver.get('http://localhost:8000/job_add')  # replace with your job_add URL
-#         self.driver.find_element(By.NAME, "company").send_keys('Test Company')
-#         self.driver.find_element(By.NAME, "role").send_keys('Software Developer')
-#         # Continue the above for all the form fields
-#         self.driver.find_element(By.CSS_SELECTOR, "form button[type='submit']").click()
-#         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "jobList")))
-#         jobList = self.driver.find_element(By.ID, "jobList").text  # assuming jobs are listed in an element with id 'jobList'
-#         self.assertIn('Test Company', jobList)
-#         self.assertIn('Software Developer', jobList)
-#         # Continue the above assertions for all the job fields
-
-#     def tearDown(self):
-#         self.driver.quit()
-
-# if __name__ == "__main__":
-#     unittest.main()
-
-
 class AddJobLinkTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username="testuser", password="12345")
         self.client.force_authenticate(user=self.user)
-        self.add_job_link_url = reverse("add_job_view")
+        self.add_job_view_url = reverse("add_job_view")
         self.role = Role.objects.create(title="Software Developer")
         self.company = Company.objects.create(
             name="Test Company", email="test+bounce@pingojo.com"
@@ -230,11 +195,10 @@ class AddJobLinkTestCase(TestCase):
             gmail_id="GEbqgzGslkjhsxkbQKcfvWBQztRFpUIW", application=self.application
         )
 
-    def test_add_job_link(self):
+    def test_add_job_view(self):
         data = {
             "company": self.company.name,
             "title": self.role.title,
-            #'datePosted': '2023-07-05',
             "salaryRange": "$50000-$60000",
             "companySalary": "",
             "description": "This is a test job description.",
@@ -248,7 +212,7 @@ class AddJobLinkTestCase(TestCase):
             "link": "https://testurl.com",
         }
 
-        response = self.client.post(self.add_job_link_url, data, format="json")
+        response = self.client.post(self.add_job_view_url, data, format="json")
         self.assertEqual(
             response.status_code, 200
         )  # Checking that the request was processed successfully
