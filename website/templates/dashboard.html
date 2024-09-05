@@ -343,9 +343,9 @@
                                          width="15px">
                                 {% endif %}
                                 <a href="{% url 'company_detail' slug=application.company.slug %}"
-                                   target="_blank">{{ application.company.name }}</a>
+                                   >{{ application.company.name }}</a>
                                 {% if application.company.website %}
-                                    <a href="{{ application.company.website }}" target="_blank">
+                                    <a href="{{ application.company.website }}" >
                                         <i class="fas fa-external-link-alt" style="font-size:15px;"></i>
                                     </a>
                                 {% endif %}
@@ -353,7 +353,7 @@
                             <td>
                                 {% if application.job.role %}
                                     <a href="{% url 'job_detail' slug=application.job.slug %}"
-                                       target="_blank">{{ application.job.role|truncatechars:50 }}</a>
+                                       >{{ application.job.role|truncatechars:50 }}</a>
                                 {% else %}
                                     <form hx-post="{% url 'update_email' %}"
                                           hx-trigger="change"

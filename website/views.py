@@ -1297,6 +1297,20 @@ class CompanyJobDetailView(DetailView):
 
         return obj
 
+    def get_user_applications(self, jobs, user):
+        """
+        Fetch applications made by the current user for the jobs listed for the company.
+        Attach the application to the job object.
+        """
+        if user.is_authenticated:
+            applications = Application.objects.filter(job__in=jobs, user=user)
+            application_map = {app.job_id: app for app in applications}
+            for job in jobs:
+                job.user_application = application_map.get(job.id)  # Attach application to the job object
+        else:
+            for job in jobs:
+                job.user_application = None  # No application for anonymous users
+
     def get_common_data(self, obj):
         """
         Fetch and cache common data like applications, stages, and company/job info.
@@ -1323,6 +1337,9 @@ class CompanyJobDetailView(DetailView):
         return cached_data
 
     def get_next_company(self, company):
+        """
+        Get the next company to display.
+        """
         next_company_cache_key = f"cache_company_{company.id + 1}"
         next_company = cache.get(next_company_cache_key)
         if not next_company:
@@ -1332,6 +1349,9 @@ class CompanyJobDetailView(DetailView):
         return next_company
 
     def update_website_status(self, company):
+        """
+        Update the website status of the company.
+        """
         website_status_cache_key = f"website_status_{company.id}"
         website_status_info = cache.get(website_status_cache_key)
 
@@ -1365,12 +1385,18 @@ class CompanyJobDetailView(DetailView):
 
         context.update(common_data)
 
-        if isinstance(obj, Job):
-            context["next_company"] = self.get_next_company(obj.company)
-            context["website_status_info"] = self.update_website_status(obj.company)
-        else:
+        # If the object is a company, fetch the job list and user applications for those jobs
+        if isinstance(obj, Company):
+            jobs = obj.job_set.all()  # Get all jobs for the company
+            self.get_user_applications(jobs, self.request.user)  # Attach user applications to jobs
+            context['jobs'] = jobs
             context["next_company"] = self.get_next_company(obj)
             context["website_status_info"] = self.update_website_status(obj)
+        elif isinstance(obj, Job):
+            company = obj.company
+            context['jobs'] = company.job_set.all()
+            context["next_company"] = self.get_next_company(obj.company)
+            context["website_status_info"] = self.update_website_status(obj.company)
 
         return context
 
