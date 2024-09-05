@@ -192,6 +192,9 @@ class BouncedEmailAPI(APIView):
         company = application.company
         company.email = ""
         company.save()
+        # clear the detail_ cache key
+        cache_key = f'detail_{company.id}_user_{request.user.id}'
+        cache.delete(cache_key)
 
         return Response(
             {"detail": "Bounced email processed successfully."},
