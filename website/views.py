@@ -1618,6 +1618,8 @@ def update_company_email(request):
                     messages.success(request, "The email address has been updated.")
                 else:
                     messages.info(request, "The email address already exists.")
+                cache_key = f"detail_{matched_company.id}_user_{request.user.id}"
+                cache.delete(cache_key)
                 return redirect("company_detail", slug=matched_company.slug)
             else:
                 company_list = ", ".join([company.name for company in companies])
