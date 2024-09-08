@@ -269,13 +269,14 @@
                 {% endif %}
             </div>
             {% for job in jobs %}
-                <div class="job-card {% if forloop.first %}active{% endif %}"
-                     >
-                    <h4 style="margin-bottom: 5px; margin-top: 0px;" hx-get="{% url 'job_detail_htmx' job.slug %}"
-                    hx-target="#job-details"
-                    hx-trigger="click"
-                    hx-prevent="true"
-                    hx-swap="innerHTML">
+                <div class="job-card {% if forloop.first %}active{% endif %}">
+                    <h4 style="margin-bottom: 5px;
+                               margin-top: 0px"
+                        hx-get="{% url 'job_detail_htmx' job.slug %}"
+                        hx-target="#job-details"
+                        hx-trigger="click"
+                        hx-prevent="true"
+                        hx-swap="innerHTML">
                         {{ job.role|default:job.title|default:job.slug }}
                         {% if job.link %}
                             {% if job.link_status_code == 200 %}
@@ -296,8 +297,7 @@
                                 </a>
                             {% endif %}
                         {% else %}
-                                
-                    {% endif %}
+                        {% endif %}
                         {% if user.is_superuser %}
                             <a href="{% url 'admin:website_job_change' job.id %}"
                                style="color: black;
@@ -306,7 +306,6 @@
                             </a>
                         {% endif %}
                     </h4>
-
                     <p style="margin: 5px 0;">
                         {% if job.salary_min and job.salary_max %}
                             💰 ${{ job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }}
@@ -316,28 +315,26 @@
                     </p>
                     {% if job.user_application %}
                         <div id="row-{{ job.user_application.id }}">
-                  
                             <form method="POST"
-      hx-post="{% url 'update-application-stage' %}"
-      hx-trigger="change"
-      hx-swap="none"
-      class="stage-form"
-      hx-on::after-request="updateStageClass(this)">
-  {% csrf_token %}
-  <input type="hidden" name="application_id" value="{{ job.user_application.id }}">
-
-  <select name="stage_id"
-          class="stage-dropdown stage-dropdown-{{ job.user_application.stage|lower }}"
-          >
-      {% for stage in stages %}
-          <option value="{{ stage.id }}"
-                  {% if stage.id == job.user_application.stage.id %}selected{% endif %}>
-              {{ stage.name }}
-          </option>
-      {% endfor %}
-  </select>
-</form>
-                          
+                                  hx-post="{% url 'update-application-stage' %}"
+                                  hx-trigger="change"
+                                  hx-swap="none"
+                                  class="stage-form"
+                                  hx-on::after-request="updateStageClass(this)">
+                                {% csrf_token %}
+                                <input type="hidden"
+                                       name="application_id"
+                                       value="{{ job.user_application.id }}">
+                                <select name="stage_id"
+                                        class="stage-dropdown stage-dropdown-{{ job.user_application.stage|lower }}">
+                                    {% for stage in stages %}
+                                        <option value="{{ stage.id }}"
+                                                {% if stage.id == job.user_application.stage.id %}selected{% endif %}>
+                                            {{ stage.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </form>
                             on {{ job.user_application.date_applied|date:"m/d/Y" }}
                             <a href="{% url 'job_application_delete' job.user_application.id %}"
                                hx-post="{% url 'job_application_delete' job.user_application.id %}"
@@ -351,9 +348,9 @@
                                    style="text-decoration: none"><i class="fas fa-edit"></i></a>
                             {% endif %}
                             {% if job.user_application.company.email %}
-
-                            Follow up: {% include "partials/ping_link.html" with application=job.user_application %}
-                        {% endif %}
+                                Follow up:
+                                {% include "partials/ping_link.html" with application=job.user_application %}
+                            {% endif %}
                         </br>
                         <a href='https://mail.google.com/mail/u/0/#search/"{{ job.user_application.company.name }}"'
                            target="_blank"
@@ -362,7 +359,7 @@
                                  alt="email"
                                  width="20"
                                  height="20">
-                        </a> 
+                        </a>
                         Emails:
                         {% for email in job.user_application.email_set.all %}
                             <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
@@ -373,24 +370,39 @@
                         {% endfor %}
                         | {{ job.user_application.days_since_last_email }} days on {{ job.user_application.date_of_last_email|date:"m/d/y" }}
                     </div>
-
-                                             <div style="display: inline-flex;
-                                    align-items: center;
-                                    margin-left: 5px">
-                            
-                            <form method="POST" hx-post="{% url 'update_application_link' %}" hx-trigger="change"
-                            id="link-form-{{ job.user_application.id }}">
-                            {% csrf_token %}
-                            <input type="hidden" name="application_id" value="{{ job.user_application.id }}">
-                            <input type="text" name="link" class="link-input" placeholder="add job link"
-                                style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;">
-                            <a href="https://www.google.com/search?q={{ job.user_application.job.company.name }} {{ job.user_application.job.role.title }}" target="_blank"
-                                title="Search Google for {{ job.user_application.job.company.name }} {{ job.user_application.job.role.title }}"
-                                style="display: inline-block; vertical-align: middle; margin-left: 10px;">
-                                <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
-                            </a>
-                        </form>
+                    {% if not job.link %}
+                        <div style="display: inline-flex; align-items: center; margin-left: 5px">
+                            <form method="POST"
+                                  hx-post="{% url 'update_application_link' %}"
+                                  hx-trigger="change"
+                                  id="link-form-{{ job.user_application.id }}">
+                                {% csrf_token %}
+                                <input type="hidden"
+                                       name="application_id"
+                                       value="{{ job.user_application.id }}">
+                                <input type="text"
+                                       name="link"
+                                       class="link-input"
+                                       placeholder="add job link"
+                                       style="height: 20px;
+                                              width: 120px;
+                                              display: inline-block;
+                                              vertical-align: middle;
+                                              margin:0px">
+                                <a href="https://www.google.com/search?q={{ job.user_application.job.company.name }} {{ job.user_application.job.role.title }}"
+                                   target="_blank"
+                                   title="Search Google for {{ job.user_application.job.company.name }} {{ job.user_application.job.role.title }}"
+                                   style="display: inline-block;
+                                          vertical-align: middle;
+                                          margin-left: 10px">
+                                    <img src="{% static 'svg/search-google.svg' %}"
+                                         alt="email"
+                                         width="20"
+                                         height="20">
+                                </a>
+                            </form>
                         </div>
+                    {% endif %}
                 {% else %}
                     <!-- If the user has not applied, show the apply button -->
                     {% if job.company.email and job.role %}
@@ -532,5 +544,4 @@ function copyPrompt(prompt, description, email, role, company) {
 }
 
 </script>
-
 {% endblock %}
