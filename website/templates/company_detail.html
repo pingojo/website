@@ -228,11 +228,11 @@
                         </br>
                         <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ company.email|urlencode }}"
                            title="Open Gmail"
-                           style="text-decoration: none">📧</a>
+                           style="text-decoration: none">Gmail: 📧</a>
                         <a href="#"
                            onclick="copyToClipboard('{{ company.email }}'); return false;"
                            title="Copy to clipboard"
-                           style="text-decoration: none">📋</a>
+                           style="text-decoration: none">Copy: 📋</a>
                         <a href="#"
                            style="text-decoration: none"
                            hx-post="/api/bounced_email/"
@@ -240,7 +240,7 @@
                            hx-target="this"
                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                            onclick="handleBounceReport(this, event, '{{ company.email }}')"
-                           title="Report Email Bounce">🚫</a>
+                           title="Report Email Bounce">Bounce: 🚫</a>
                     </span>
                 {% else %}
                     <form hx-post="{% url 'update_company' company.id %}"

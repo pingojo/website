@@ -1,8 +1,6 @@
 {% load humanize %}
 {% load static %}
 <style>
-
-
     .skill-icon {
         width: 20px;
         /* Adjust size as needed */
@@ -15,7 +13,6 @@
             justify-content: space-between;
             align-items: flex-start"
      id="job-posting">
-    <!-- Main Job Description -->
     <div style="width: 700px;" id="job-description">
         <h3>Job Description</h3>
         <p>{{ job.description_markdown|linebreaks }}</p>
@@ -33,17 +30,19 @@
                         gap: 10px"
                  id="skills-list">
                 {% for skill in job.skills.all %}
-                    <div style="display: flex; align-items: center;">
-                        <a href="/?search={{ skill.name }}&search_type=skill"
-                           style="text-decoration: none;
-                                  color: #007bff">
-                            <img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/{{ skill.slug }}.png"
-                                 alt="{{ skill.name }} Icon"
-                                 class="skill-icon"
-                                 onerror="this.onerror=null; this.src='/static/img/logo.png'">
-                            <span>{{ skill.name }}</span>
-                        </a>
-                    </div>
+                    {% if skill.name %}
+                        <div style="display: flex; align-items: center;">
+                            <a href="/?search={{ skill.name }}&search_type=skill"
+                               style="text-decoration: none;
+                                      color: #007bff">
+                                <img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/{{ skill.slug }}.png"
+                                     alt="{{ skill.name }} Icon"
+                                     class="skill-icon"
+                                     onerror="this.onerror=null; this.src='/static/img/logo.png'">
+                                <span>{{ skill.name }}</span>
+                            </a>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -84,11 +83,30 @@ document.addEventListener('mouseup', function(event) {
         const selectedTextSpan = document.getElementById('selected-text');
         selectedTextSpan.textContent = `Add Skill "${selectedText}"`;
 
-        // Position the div above the skills section
-        const skillsSection = document.getElementById('skills-section');
-        const rect = skillsSection.getBoundingClientRect();
-        addSkillDiv.style.top = `${rect.top - addSkillDiv.offsetHeight - 10}px`;
-        addSkillDiv.style.left = `${rect.left}px`;
+        // Get the mouse position to position the add-skill-div
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
+        // Ensure the div doesn't go off the viewport
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const divWidth = addSkillDiv.offsetWidth;
+        const divHeight = addSkillDiv.offsetHeight;
+
+        // Adjust left and top positions to fit within the viewport
+        let leftPosition = mouseX;
+        let topPosition = mouseY + 10; // Small offset to avoid overlap with text selection
+
+        if (mouseX + divWidth > viewportWidth) {
+            leftPosition = viewportWidth - divWidth - 10; // Adjust to fit on the screen
+        }
+        if (mouseY + divHeight > viewportHeight) {
+            topPosition = mouseY - divHeight - 10; // Adjust upward if too close to the bottom
+        }
+
+        // Set position of the div
+        addSkillDiv.style.left = `${leftPosition}px`;
+        addSkillDiv.style.top = `${topPosition}px`;
         
         addSkillDiv.style.display = 'block';
 
@@ -111,6 +129,7 @@ document.addEventListener('mouseup', function(event) {
         document.getElementById('add-skill-div').style.display = 'none';
     }
 });
+
 
 document.addEventListener('DOMContentLoaded', function() {
     // Scroll to top when the page loads
