@@ -655,6 +655,8 @@ def update_email(request):
 
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db.models import Case, IntegerField, Q, Value, When
+from django.shortcuts import redirect
+from django.urls import reverse
 
 
 class JobListView(ListView):
@@ -695,28 +697,21 @@ class JobListView(ListView):
             )
 
             if search_type == "skill":
-                # If search_type is 'skill', return jobs matching the skill
-                skill_name = search_query
-                self.queryset = Job.objects.filter(skills__name__icontains=skill_name).select_related("company", "role").distinct()
+                self.queryset = Job.objects.filter(skills__name__icontains=search_query).select_related("company", "role").distinct()
 
             elif search_type == "company" and search_query:
-                # If search_type is 'company', return jobs where the company name contains the query
                 self.queryset = Job.objects.filter(company__name__icontains=search_query).select_related("company", "role").distinct()
 
             elif search_type == "role" and search_query:
-                # If search_type is 'role', return jobs where the role title contains the query
                 self.queryset = Job.objects.filter(role__title__icontains=search_query).select_related("company", "role").distinct()
 
             elif search_type == "job" and search_query:
-                # If search_type is 'job', return jobs where the job description contains the query
                 self.queryset = Job.objects.filter(description_markdown__icontains=search_query).select_related("company", "role").distinct()
 
             elif search_type == "email" and search_query:
-                # If search_type is 'email', return jobs where the company email contains the query
                 self.queryset = Job.objects.filter(company__email__icontains=search_query).select_related("company", "role").distinct()
 
             elif search_query:
-                # For general search query (if no specific search_type is provided)
                 query = SearchQuery(search_query)
                 queryset = (
                     Job.objects.select_related("company", "role")
@@ -733,7 +728,6 @@ class JobListView(ListView):
                 else:
                     self.queryset = Job.objects.select_related("company", "role").all()
             else:
-                # Default queryset if no search term is provided
                 self.queryset = Job.objects.select_related("company", "role").order_by(
                     F("posted_date").desc(nulls_last=True)
                 )
@@ -758,8 +752,13 @@ class JobListView(ListView):
             ]:
                 self.queryset = self.queryset.order_by(ordering)
 
-        return self.queryset
+        # Check if there is only one job in the queryset
+        if self.queryset.count() == 1:
+            # Redirect to the company page if there's only one result
+            job = self.queryset.first()
+            return redirect("company_detail", slug=job.company.slug)
 
+        return self.queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -779,6 +778,7 @@ class JobListView(ListView):
                 ).order_by("-order")
 
         return context
+
 
 
 
