@@ -677,11 +677,18 @@ class JobListView(ListView):
 
     def get_queryset(self):
         if not self.queryset:
+            search_type = self.request.GET.get("search_type", "").strip()
             search_query = re.sub(
                 r"[^a-zA-Z0-9,. ]", "", self.request.GET.get("search", "").strip()
             )
 
-            if search_query:
+            if search_type == "skill":
+                # If search_type is 'skill', return jobs matching the skill
+                skill_name = search_query
+                self.queryset = Job.objects.filter(skills__name__icontains=skill_name).select_related("company", "role").distinct()
+
+            elif search_query:
+                # For general search query
                 query = SearchQuery(search_query)
                 queryset = (
                     Job.objects.select_related("company", "role")
@@ -695,10 +702,10 @@ class JobListView(ListView):
                     job_count = self.queryset.count()
                     search = Search(query=search_query, matched_job_count=job_count)
                     search.save()
-                    # send_slack_notification(search)
                 else:
                     self.queryset = Job.objects.select_related("company", "role").all()
             else:
+                # Default queryset if no search term is provided
                 self.queryset = Job.objects.select_related("company", "role").order_by(
                     F("posted_date").desc(nulls_last=True)
                 )
@@ -716,7 +723,7 @@ class JobListView(ListView):
                 applied_jobs = Application.objects.filter(
                     user=self.request.user
                 ).values_list("job_id", flat=True)
-                queryset = self.queryset.exclude(id__in=applied_jobs)
+                self.queryset = self.queryset.exclude(id__in=applied_jobs)
 
             ordering = self.request.GET.get("ordering")
             if ordering and ordering.lstrip("-") in [
@@ -750,6 +757,7 @@ class JobListView(ListView):
                 ).order_by("-order")
 
         return context
+
 
 
 class SourceListView(ListView):
