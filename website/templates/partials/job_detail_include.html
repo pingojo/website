@@ -125,29 +125,30 @@
                            style="text-decoration: none;
                                   color: #007bff">
                             <img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/{{ skill.slug }}.png"
-                                alt="{{ skill.name }} Icon" class="skill-icon
-                                onerror="this.onerror=null; this.src='/static/img/logo.png'">
-                                <span>{{ skill.name }}</span>
-                            </a>
-                        </div>
-                    {% endfor %}
-                </div>
+                                 alt="{{ skill.name }} Icon"
+                                 class="skill-icon"
+                                 onerror="this.onerror=null; this.src='/static/img/logo.png'">
+                            <span>{{ skill.name }}</span>
+                        </a>
+                    </div>
+                {% endfor %}
             </div>
-        {% endif %}
-    </div>
-    <!-- Hidden Div for Adding Skill -->
-    <div id="add-skill-div"
-         style="display: none;
-                position: absolute;
-                background-color: #fff;
-                border: 1px solid #ccc;
-                padding: 10px;
-                border-radius: 5px;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1)">
-        <span id="selected-text"></span>
-        <button id="add-skill-btn">Add Skill</button>
-    </div>
-    <script>
+        </div>
+    {% endif %}
+</div>
+<!-- Hidden Div for Adding Skill -->
+<div id="add-skill-div"
+     style="display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1)">
+    <span id="selected-text"></span>
+    <button id="add-skill-btn">Add Skill</button>
+</div>
+<script>
 function handleIconError(img) {
     // Remove the image element
     img.style.display = 'none';
@@ -202,4 +203,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Scroll to top when the page loads
     window.scrollTo(0, 0);
 });
-    </script>
+</script>
