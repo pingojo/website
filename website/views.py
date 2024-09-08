@@ -654,7 +654,7 @@ def update_email(request):
 
 
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import Case, IntegerField, Q, Value, When
+from django.db.models import Case, Count, IntegerField, Q, Value, When
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -752,9 +752,9 @@ class JobListView(ListView):
             ]:
                 self.queryset = self.queryset.order_by(ordering)
 
-        # Check if there is only one job in the queryset
-        if self.queryset.count() == 1:
-            # Redirect to the company page if there's only one result
+        # Check if all jobs belong to the same company
+        distinct_companies = self.queryset.values('company').distinct()
+        if distinct_companies.count() == 1:
             job = self.queryset.first()
             return redirect("company_detail", slug=job.company.slug)
 
@@ -778,6 +778,7 @@ class JobListView(ListView):
                 ).order_by("-order")
 
         return context
+
 
 
 
