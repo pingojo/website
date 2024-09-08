@@ -654,7 +654,7 @@ def update_email(request):
 
 
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import Case, Count, IntegerField, Q, Value, When
+from django.db.models import Case, IntegerField, Q, Value, When
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -668,28 +668,18 @@ class JobListView(ListView):
     server_timestamp = int(server_time.timestamp() * 1000)
 
     def dispatch(self, *args, **kwargs):
-        # Only fetch the queryset if needed for the distinct company check
-        self.queryset = self.get_queryset()
-
-        # Use annotation to check if only one distinct company exists
-        distinct_companies = (
-            self.queryset.values("company")
-            .annotate(company_count=Count("company", distinct=True))
-        )
-        if distinct_companies.count() == 1:
-            job = self.queryset.first()
-            return redirect("company_detail", slug=job.company.slug)
-
-        # Cache logic for performance
         job_count = settings.JOB_COUNT
         session_key = self.request.session.session_key or "anonymous"
+
         query_params = self.request.GET.urlencode()
         user_specific_cache_key = (
             f"{settings.JOB_LIST_CACHE_KEY}_{session_key}_{job_count}_{query_params}"
         )
 
         response = cache.get(user_specific_cache_key)
+
         if not response:
+            # Generate the response
             response = super(JobListView, self).dispatch(*args, **kwargs)
             if hasattr(response, "render") and callable(response.render):
                 response.add_post_render_callback(
@@ -697,102 +687,91 @@ class JobListView(ListView):
                 )
             else:
                 cache.set(user_specific_cache_key, response, 60 * 60)
-
         return response
 
     def get_queryset(self):
-        if self.queryset is not None:
-            return self.queryset  # Return cached queryset if it already exists
-
-        search_type = self.request.GET.get("search_type", "").strip()
-        search_query = re.sub(
-            r"[^a-zA-Z0-9,.@ ]", "", self.request.GET.get("search", "").strip()
-        )
-
-        # Apply different filters based on search type
-        if search_type == "skill":
-            self.queryset = Job.objects.filter(
-                skills__name__icontains=search_query
-            ).select_related("company", "role").distinct()
-
-        elif search_type == "company" and search_query:
-            self.queryset = Job.objects.filter(
-                company__name__icontains=search_query
-            ).select_related("company", "role").distinct()
-
-        elif search_type == "role" and search_query:
-            self.queryset = Job.objects.filter(
-                role__title__icontains=search_query
-            ).select_related("company", "role").distinct()
-
-        elif search_type == "job" and search_query:
-            self.queryset = Job.objects.filter(
-                description_markdown__icontains=search_query
-            ).select_related("company", "role").distinct()
-
-        elif search_type == "email" and search_query:
-            self.queryset = Job.objects.filter(
-                company__email__icontains=search_query
-            ).select_related("company", "role").distinct()
-
-        elif search_query:
-            query = SearchQuery(search_query)
-            queryset = (
-                Job.objects.select_related("company", "role")
-                .annotate(rank=SearchRank(F("search_vector"), query))
-                .filter(rank__gt=0)
-                .order_by("-rank")
+        if not self.queryset:
+            search_type = self.request.GET.get("search_type", "").strip()
+            search_query = re.sub(
+                r"[^a-zA-Z0-9,.@ ]", "", self.request.GET.get("search", "").strip()
             )
 
-            if queryset.exists():
-                self.queryset = queryset
-                job_count = self.queryset.count()
-                Search.objects.create(query=search_query, matched_job_count=job_count)
+            if search_type == "skill":
+                self.queryset = Job.objects.filter(skills__name__icontains=search_query).select_related("company", "role").distinct()
+
+            elif search_type == "company" and search_query:
+                self.queryset = Job.objects.filter(company__name__icontains=search_query).select_related("company", "role").distinct()
+
+            elif search_type == "role" and search_query:
+                self.queryset = Job.objects.filter(role__title__icontains=search_query).select_related("company", "role").distinct()
+
+            elif search_type == "job" and search_query:
+                self.queryset = Job.objects.filter(description_markdown__icontains=search_query).select_related("company", "role").distinct()
+
+            elif search_type == "email" and search_query:
+                self.queryset = Job.objects.filter(company__email__icontains=search_query).select_related("company", "role").distinct()
+
+            elif search_query:
+                query = SearchQuery(search_query)
+                queryset = (
+                    Job.objects.select_related("company", "role")
+                    .annotate(rank=SearchRank(F("search_vector"), query))
+                    .filter(rank__gt=0)
+                    .order_by("-rank")
+                )
+
+                if queryset.exists():
+                    self.queryset = queryset
+                    job_count = self.queryset.count()
+                    search = Search(query=search_query, matched_job_count=job_count)
+                    search.save()
+                else:
+                    self.queryset = Job.objects.select_related("company", "role").all()
             else:
-                self.queryset = Job.objects.select_related("company", "role").all()
-        else:
-            self.queryset = Job.objects.select_related("company", "role").order_by(
-                F("posted_date").desc(nulls_last=True)
-            )
+                self.queryset = Job.objects.select_related("company", "role").order_by(
+                    F("posted_date").desc(nulls_last=True)
+                )
 
-        if self.request.GET.get("apply_by_email", ""):
-            self.queryset = self.queryset.filter(
-                company__email__isnull=False
-            ).exclude(company__email__exact="")
+            if self.request.GET.get("apply_by_email", ""):
+                self.queryset = self.queryset.filter(
+                    company__email__isnull=False
+                ).exclude(company__email__exact="")
 
-        if self.request.GET.get("view") == "grid":
-            self.template_name = "website/job_grid.html"
+            if self.request.GET.get("view") == "grid":
+                self.template_name = "website/job_grid.html"
 
-        ordering = self.request.GET.get("ordering")
-        if ordering and ordering.lstrip("-") in [
-            "created",
-            "posted_date",
-            "salary_min",
-            "salary_max",
-            "title",
-            "location",
-            "job_type",
-        ]:
-            self.queryset = self.queryset.order_by(ordering)
+            ordering = self.request.GET.get("ordering")
+            if ordering and ordering.lstrip("-") in [
+                "created",
+                "posted_date",
+                "salary_min",
+                "salary_max",
+                "title",
+                "location",
+                "job_type",
+            ]:
+                self.queryset = self.queryset.order_by(ordering)
 
         return self.queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        total_jobs = len(self.object_list)  # Use len() instead of count() for queryset caching
+        total_jobs = self.object_list.count()  # Use count() on the object list
         context["total_jobs"] = total_jobs
         context["server_timestamp"] = self.server_timestamp
         context["sessions_count"] = Session.objects.all().count()
-
-        if self.request.user.is_authenticated and self.request.user.prompt_set.exists():
-            context["prompt"] = self.request.user.prompt_set.first()
-            context["stages"] = Stage.objects.annotate(
-                count=Count("application", filter=Q(application__user=self.request.user))
-            ).order_by("-order")
+        if self.request.user.is_authenticated:
+            if self.request.user.prompt_set.all():
+                context["prompt"] = Prompt.objects.filter(
+                    user=self.request.user
+                ).first()
+                context["stages"] = Stage.objects.annotate(
+                    count=Count(
+                        "application", filter=Q(application__user=self.request.user)
+                    )
+                ).order_by("-order")
 
         return context
-
-
 
 
 
