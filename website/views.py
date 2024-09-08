@@ -925,10 +925,12 @@ def update_application_stage(request):
         # Set the new cache
         cache.set(cache_key, context_data, 60 * 60 * 24 * 30)  # Cache for 30 days
 
-        messages.success(request, "Application stage updated successfully.")
+        
 
         if request.headers.get("HX-Request"):
             return JsonResponse({"status": "success", "application_id": application_id})
+        else:
+            messages.success(request, "Application stage updated successfully.")
 
     except Application.DoesNotExist:
         messages.error(request, "Application not found.")

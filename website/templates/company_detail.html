@@ -154,6 +154,37 @@
         
     }
     
+    .stage-dropdown {
+        display: inline-block;
+        width: 100px; 
+        padding: 5px;
+        margin: 0;
+        font-size: 14px;
+        border-radius: 4px;
+        vertical-align: middle;
+    }
+
+    .stage-dropdown-applied {
+    background-color: green;
+    color: white;
+}
+
+.stage-dropdown-passed {
+    background-color: red;
+    color: white;
+}
+
+.stage-dropdown-next {
+    background-color: orange;
+    color: white;
+}
+
+.stage-dropdown-scheduled {
+    background-color: #03a9f4;
+    color: white;
+}
+
+
     </style>
     {% csrf_token %}
     <div style="display: flex;">
@@ -239,10 +270,12 @@
             </div>
             {% for job in jobs %}
                 <div class="job-card {% if forloop.first %}active{% endif %}"
-                     hx-get="{% url 'job_detail_htmx' job.slug %}"
-                     hx-target="#job-details"
-                     hx-swap="innerHTML">
-                    <h4 style="margin-bottom: 5px; margin-top: 0px;">
+                     >
+                    <h4 style="margin-bottom: 5px; margin-top: 0px;" hx-get="{% url 'job_detail_htmx' job.slug %}"
+                    hx-target="#job-details"
+                    hx-trigger="click"
+                    hx-prevent="true"
+                    hx-swap="innerHTML">
                         {{ job.role|default:job.title|default:job.slug }}
                         {% if job.link %}
                             {% if job.link_status_code == 200 %}
@@ -262,92 +295,155 @@
                                     <i class="fas fa-external-link-alt"></i>
                                 </a>
                             {% endif %}
-                        {% endif %}
-                        {% if user.is_superuser %}
-                        <a href="{% url 'admin:website_job_change' job.id %}"
-                           style="color: black;
-                                  text-decoration: none">
-                            <i class="fas fa-edit"></i>
-                        </a>
+                        {% else %}
+                                
                     {% endif %}
+                        {% if user.is_superuser %}
+                            <a href="{% url 'admin:website_job_change' job.id %}"
+                               style="color: black;
+                                      text-decoration: none">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        {% endif %}
                     </h4>
 
-                    {% if job.salary_min and job.salary_max %}
-                        <p style="margin: 5px 0;">
-                            Salary: ${{ job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }}
-                        </p>
-                    {% endif %}
-                    {% if job.location %}<p style="margin: 5px 0;">Location: {{ job.location }}</p>{% endif %}
-                    <p style="margin: 5px 0;">Posted on: {{ job.posted_date|default:job.created|default:''|date:"m/d/Y" }}</p>
-                    <!-- Check if the user has applied to this job -->
+                    <p style="margin: 5px 0;">
+                        {% if job.salary_min and job.salary_max %}
+                            💰 ${{ job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }}
+                        {% endif %}
+                        {% if job.location %}🌍 {{ job.location }}{% endif %}
+                        📅 {{ job.posted_date|default:job.created|default:''|date:"m/d/Y" }}
+                    </p>
                     {% if job.user_application %}
-                        <p>
-                            Your current stage:
-                            <select name="stage"
-                                    hx-post="{% url 'update-application-stage' %}"
-                                    hx-trigger="change"
-                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-                                {% for stage in stages %}
-                                    <option value="{{ stage.id }}"
-                                            {% if job.user_application.stage == stage %}selected{% endif %}>
-                                        {{ stage.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </p>
-                    {% else %}
-                        <!-- If the user has not applied, show the apply button -->
-                        {% if job.company.email and job.role %}
-                            <a class="apply-button"
-                               href="https://mail.google.com/mail/?view=cm&fs=1&to={{ job.company.email|urlencode }}&su=Application%20for%20{{ job.role|urlencode }}%20at%20{{ job.company|urlencode }}&body=Dear%20{{ job.company|urlencode }},%0A%0AI%20am%20writing%20to%20apply%20for%20the%20{{ job.role|urlencode }}%20role%20at%20{{ job.company|urlencode }}.%20I%20am%20very%20interested%20in%20the%20opportunity%20and%20believe%20that%20my%20skills%20and%20experience%20make%20me%20a%20strong%20candidate.%0A%0APlease%20find%20my%20resume%20attached%20to%20this%20email.%20If%20you%20require%20any%20further%20information%20or%20would%20like%20to%20schedule%20an%20interview,%20please%20let%20me%20know.%0A%0AThank%20you%20for%20your%20time%20and%20consideration.%0A%0ASincerely,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}"
+                        <div id="row-{{ job.user_application.id }}">
+                  
+                            <form method="POST"
+      hx-post="{% url 'update-application-stage' %}"
+      hx-trigger="change"
+      hx-swap="none"
+      class="stage-form"
+      hx-on::after-request="updateStageClass(this)">
+  {% csrf_token %}
+  <input type="hidden" name="application_id" value="{{ job.user_application.id }}">
+
+  <select name="stage_id"
+          class="stage-dropdown stage-dropdown-{{ job.user_application.stage|lower }}"
+          >
+      {% for stage in stages %}
+          <option value="{{ stage.id }}"
+                  {% if stage.id == job.user_application.stage.id %}selected{% endif %}>
+              {{ stage.name }}
+          </option>
+      {% endfor %}
+  </select>
+</form>
+                          
+                            on {{ job.user_application.date_applied|date:"m/d/Y" }}
+                            <a href="{% url 'job_application_delete' job.user_application.id %}"
+                               hx-post="{% url 'job_application_delete' job.user_application.id %}"
+                               hx-swap="none"
+                               hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                               hx-confirm="Are you sure you want to delete this application?"
+                               style="text-decoration: none">
+                                <i class="fas fa-trash-alt"></i> </a>
+                            {% if request.user.is_superuser %}
+                                <a href="{% url 'admin:website_application_change' job.user_application.id %}"
+                                   style="text-decoration: none"><i class="fas fa-edit"></i></a>
+                            {% endif %}
+                            {% if job.user_application.company.email %}
+
+                            Follow up: {% include "partials/ping_link.html" with application=job.user_application %}
+                        {% endif %}
+                        </br>
+                        <a href='https://mail.google.com/mail/u/0/#search/"{{ job.user_application.company.name }}"'
+                           target="_blank"
+                           style="text-decoration: none">
+                            <img src="{% static 'svg/search-mail.svg' %}"
+                                 alt="email"
+                                 width="20"
+                                 height="20">
+                        </a> 
+                        Emails:
+                        {% for email in job.user_application.email_set.all %}
+                            <a href="https://mail.google.com/mail/u/0/#inbox/{{ email }}"
                                target="_blank"
-                               onclick="changeRowColor(this)">
-                                <i class="fas fa-envelope" style="margin-right: 5px;"></i>Apply
+                               title="{{ email.date|date:'m/d/y' }}">{{ forloop.counter }}</a>
+                        {% empty %}
+                            0
+                        {% endfor %}
+                        | {{ job.user_application.days_since_last_email }} days on {{ job.user_application.date_of_last_email|date:"m/d/y" }}
+                    </div>
+
+                                             <div style="display: inline-flex;
+                                    align-items: center;
+                                    margin-left: 5px">
+                            
+                            <form method="POST" hx-post="{% url 'update_application_link' %}" hx-trigger="change"
+                            id="link-form-{{ job.user_application.id }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="application_id" value="{{ job.user_application.id }}">
+                            <input type="text" name="link" class="link-input" placeholder="add job link"
+                                style="height: 20px; width: 120px; display: inline-block; vertical-align: middle; margin:0px;">
+                            <a href="https://www.google.com/search?q={{ job.user_application.job.company.name }} {{ job.user_application.job.role.title }}" target="_blank"
+                                title="Search Google for {{ job.user_application.job.company.name }} {{ job.user_application.job.role.title }}"
+                                style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+                                <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
                             </a>
-                        {% else %}
-                            {% if job.link %}
-                                {% if job.link_status_code == 200 %}
-                                    <a class="apply-button"
-                                       href="{{ job.link }}"
-                                       style="display: inline-flex;
-                                              align-items: center;
-                                              text-decoration: none;
-                                              padding: 5px 7px;
-                                              border: 1px solid #ccc;
-                                              border-radius: 5px;
-                                              margin: 0;
-                                              color: white"
-                                       target="_blank"
-                                       onclick="changeRowColor(this)">
-                                        <img src="https://www.google.com/s2/favicons?domain={{ job.link }}"
-                                             style="background-color:white;
-                                                    border-radius: 5px;
-                                                    margin:0px;
-                                                    padding:0px;
-                                                    position:relative;
-                                                    margin-right:5px">
-                                    Apply </a>
-                                    {% if prompt and job.description_markdown %}
-                                        <a href="#"
-                                           onclick="copyPrompt('{{ prompt.content|escapejs }}', '{{ job.description_markdown|striptags|escapejs }}', '{{ job.company.email|urlencode }}', '{{ job.role.title|urlencode }}', '{{ job.company|urlencode }}'); changeRowColor(this); event.preventDefault();"
-                                           title="Copy Prompt to Clipboard">
-                                            <img src="{% static '/svg/ChatGPT_logo.svg' %}" style="height:23px; ">
-                                        </a>
-                                    {% endif %}
+                        </form>
+                        </div>
+                {% else %}
+                    <!-- If the user has not applied, show the apply button -->
+                    {% if job.company.email and job.role %}
+                        <a class="apply-button"
+                           href="https://mail.google.com/mail/?view=cm&fs=1&to={{ job.company.email|urlencode }}&su=Application%20for%20{{ job.role|urlencode }}%20at%20{{ job.company|urlencode }}&body=Dear%20{{ job.company|urlencode }},%0A%0AI%20am%20writing%20to%20apply%20for%20the%20{{ job.role|urlencode }}%20role%20at%20{{ job.company|urlencode }}.%20I%20am%20very%20interested%20in%20the%20opportunity%20and%20believe%20that%20my%20skills%20and%20experience%20make%20me%20a%20strong%20candidate.%0A%0APlease%20find%20my%20resume%20attached%20to%20this%20email.%20If%20you%20require%20any%20further%20information%20or%20would%20like%20to%20schedule%20an%20interview,%20please%20let%20me%20know.%0A%0AThank%20you%20for%20your%20time%20and%20consideration.%0A%0ASincerely,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}"
+                           target="_blank"
+                           onclick="changeRowColor(this)">
+                            <i class="fas fa-envelope" style="margin-right: 5px;"></i>Apply
+                        </a>
+                    {% else %}
+                        {% if job.link %}
+                            {% if job.link_status_code == 200 %}
+                                <a class="apply-button"
+                                   href="{{ job.link }}"
+                                   style="display: inline-flex;
+                                          align-items: center;
+                                          text-decoration: none;
+                                          padding: 5px 7px;
+                                          border: 1px solid #ccc;
+                                          border-radius: 5px;
+                                          margin: 0;
+                                          color: white"
+                                   target="_blank"
+                                   onclick="changeRowColor(this)">
+                                    <img src="https://www.google.com/s2/favicons?domain={{ job.link }}"
+                                         style="background-color:white;
+                                                border-radius: 5px;
+                                                margin:0px;
+                                                padding:0px;
+                                                position:relative;
+                                                margin-right:5px">
+                                Apply </a>
+                                {% if prompt and job.description_markdown %}
+                                    <a href="#"
+                                       onclick="copyPrompt('{{ prompt.content|escapejs }}', '{{ job.description_markdown|striptags|escapejs }}', '{{ job.company.email|urlencode }}', '{{ job.role.title|urlencode }}', '{{ job.company|urlencode }}'); changeRowColor(this); event.preventDefault();"
+                                       title="Copy Prompt to Clipboard">
+                                        <img src="{% static '/svg/ChatGPT_logo.svg' %}" style="height:23px; ">
+                                    </a>
                                 {% endif %}
                             {% endif %}
                         {% endif %}
                     {% endif %}
-                </div>
-            {% endfor %}
-        </div>
-        <!-- Job Details -->
-        <div id="job-details" style="flex-grow: 1;">
-            {% if company.job_set.all %}
-                {% include 'partials/job_detail_include.html' with job=company.job_set.first applications=applications %}
-            {% endif %}
-        </div>
+                {% endif %}
+            </div>
+        {% endfor %}
     </div>
+    <!-- Job Details -->
+    <div id="job-details" style="flex-grow: 1;">
+        {% if company.job_set.all %}
+            {% include 'partials/job_detail_include.html' with job=company.job_set.first applications=applications %}
+        {% endif %}
+    </div>
+</div>
 </div>
 </div>
 <script>
@@ -369,6 +465,23 @@ function handleBounceReport(element, event, email) {
     }
 }
 
+function updateStageClass(formElement) {
+    console.log('Updating stage class', formElement);
+    const selectElement = formElement.querySelector('select[name="stage_id"]');
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const stageId = selectedOption.value;
+
+    // Remove previous stage classes
+    selectElement.classList.forEach(cls => {
+      if (cls.startsWith('stage-dropdown-')) {
+        selectElement.classList.remove(cls);
+      }
+    });
+
+    // Add the new stage class based on the selected stage (you may need to convert the ID to the correct class format)
+    const newStageClass = 'stage-dropdown-' + selectedOption.text.toLowerCase();
+    selectElement.classList.add(newStageClass);
+  }
 document.addEventListener('DOMContentLoaded', function () {
     const jobCards = document.querySelectorAll('.job-card');
     
@@ -417,5 +530,7 @@ function copyPrompt(prompt, description, email, role, company) {
     });
   return false;
 }
+
 </script>
+
 {% endblock %}
