@@ -668,6 +668,14 @@ class JobListView(ListView):
     server_timestamp = int(server_time.timestamp() * 1000)
 
     def dispatch(self, *args, **kwargs):
+
+        self.queryset = self.get_queryset()
+
+        distinct_companies = self.queryset.values('company').distinct()
+        if distinct_companies.count() == 1:
+            job = self.queryset.first()
+            return redirect("company_detail", slug=job.company.slug)
+    
         job_count = settings.JOB_COUNT
         session_key = self.request.session.session_key or "anonymous"
 
@@ -751,12 +759,6 @@ class JobListView(ListView):
                 "job_type",
             ]:
                 self.queryset = self.queryset.order_by(ordering)
-
-        # Check if all jobs belong to the same company
-        distinct_companies = self.queryset.values('company').distinct()
-        if distinct_companies.count() == 1:
-            job = self.queryset.first()
-            return redirect("company_detail", slug=job.company.slug)
 
         return self.queryset
 
