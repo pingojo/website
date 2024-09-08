@@ -709,7 +709,7 @@ class JobListView(ListView):
 
             elif search_type == "job" and search_query:
                 # If search_type is 'job', return jobs where the job description contains the query
-                self.queryset = Job.objects.filter(description__icontains=search_query).select_related("company", "role").distinct()
+                self.queryset = Job.objects.filter(description_markdown__icontains=search_query).select_related("company", "role").distinct()
 
             elif search_query:
                 # For general search query (if no specific search_type is provided)

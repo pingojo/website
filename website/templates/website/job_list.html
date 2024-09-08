@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-
 {% load static %}
 {% load humanize %}
 {% load custom_filters %}
 {% block content %}
-{% include 'sidebar.html' %}
-<style>
+  {% include 'sidebar.html' %}
+  <style>
   #job-list-table {
     margin-top: 20px;
     width: 70%;
@@ -144,9 +143,8 @@
 .job-card-header:hover .hover-visible-link {
     display: inline; /* Or 'block', depending on your layout */
   }
-</style>
-
-<script>
+  </style>
+  <script>
   // document.getElementById("apply_by_email").addEventListener("click", function () {
   //   if (this.checked) {
   //     var url = "/?{% url_modify request apply_by_email='true' %}";
@@ -156,8 +154,8 @@
   //     window.location.href = "/";
   //   }
   // });
-</script>
-<style>
+  </script>
+  <style>
   #loginReminder {
     background-color: #ffcccb; /* light red background */
     color: black;
@@ -167,133 +165,204 @@
     text-align: center;
     font-weight: bold;
 }
-</style>
-<center>
-  <div id="loginReminder" style="display: none;">
-    <p><strong>Important Reminder:</strong> Please log in to save your job application history. It's essential to keep track of your applications and follow up in a timely manner. All progress will be lost if you're not logged in.</p>
-</div>
 
+  /* Style for the dropdown container */
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
 
+  /* Style for the dropdown content (the links) */
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+  }
 
-  
- 
-  <table id="job-list-table">
+  /* Style for individual links in the dropdown */
+  .dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
 
-    <thead>
+  /* Show the dropdown when hovering */
+  .dropdown-content a:hover {
+    background-color: #ddd;
+  }
 
-      <tr>
+  /* Dropdown button (the "..." icon) */
+  .dropdown .dropbtn {
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0px;
+    background-color: white;
+    color:#000;
+  }
 
-        <th><a href="?{% url_toggle_order request 'company' %}">Company</a></th>
-        <th><a href="?{% url_toggle_order request 'role' %}">Role</a></th>
-        <th><a href="?{% url_toggle_order request 'location' %}">Location</a></th>
-        <th><a href="?{% url_toggle_order request 'salary_max' %}">Salary</a></th>
-        <th><a href="?{% url_toggle_order request 'posted_date' %}">Posted</a>
-        </th>
-
-        <th></th>
-      </tr>
-
-    </thead>
-    <tbody>
-      {% for job in page_obj %}
-      <tr>
-        <td nowrap>
-          <div class="job-card-header" style="display: flex; align-items: center;">
-            {% if job.company.website %}
-            <img src="https://www.google.com/s2/favicons?domain={{ job.company.website }}" style="margin-right: 5px; border-radius: 5px;">
-            {% endif %}
-
-            <a href="{% url 'company_detail' slug=job.company.slug %}" 
-              style="text-decoration: none; ">{{ job.company.name }}</a>
-
-              <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}" 
-              class="hover-visible-link"  style="text-decoration:none;"
-              target="_blank" target="Searh Your Gmail for {{ job.company.name }}">
-              <img src="{% static 'svg/search-mail.svg' %}" alt="email" width="20" height="20">
-            </a>
-            <a href="https://www.google.com/search?q={{ job.company }} {{job.role}}" target="_blank"
-              target="Searh Google for {{ job.company }} {{job.role}}" class="hover-visible-link"  style="text-decoration:none;">
-              <img src="{% static 'svg/search-google.svg' %}" alt="email" width="20" height="20">
-            </a>
-          </div>
-        </td>
-        <td>
-          {% if job.role %}
-            <a href="{% url 'job_detail' job.slug %}">{{ job.role }}</a>
+  /* Show the dropdown content when the dropdown is clicked */
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+  </style>
+  <center>
+    <div id="loginReminder" style="display: none;">
+      <p>
+        <strong>Important Reminder:</strong> Please log in to save your job application history. It's essential to keep track of your applications and follow up in a timely manner. All progress will be lost if you're not logged in.
+      </p>
+    </div>
+    <table id="job-list-table">
+      <thead>
+        <tr>
+          <th>
+            <a href="?{% url_toggle_order request 'company' %}">🏢 Company</a>
+          </th>
+          <th>
+            <a href="?{% url_toggle_order request 'role' %}">💼 Role</a>
+          </th>
+          <th>
+            <a href="?{% url_toggle_order request 'location' %}">🌍 Location</a>
+          </th>
+          <th>
+            <a href="?{% url_toggle_order request 'salary_max' %}">💰 Salary</a>
+          </th>
+          <th>
+            <a href="?{% url_toggle_order request 'posted_date' %}">📅 Posted</a>
+          </th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in page_obj %}
+          <tr>
+            <td nowrap>
+              <div class="job-card-header" style="display: flex; align-items: center;">
+                {% if job.company.website %}
+                  <img src="https://www.google.com/s2/favicons?domain={{ job.company.website }}"
+                       style="margin-right: 5px;
+                              border-radius: 5px">
+                {% endif %}
+                <a href="{% url 'company_detail' slug=job.company.slug %}"
+                   style="text-decoration: none">{{ job.company.name }}</a>
+              </a>
+            </div>
+          </td>
+          <td>
+            {% if job.role %}
+              <a href="{% url 'job_detail' job.slug %}">{{ job.role }}</a>
             {% else %}
-            <form hx-post="{% url 'update_job' job.id %}" hx-trigger="change"
-              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-              <input type="text" name="role" id="role" value="">
-            </form>
-            {{job.title}}
-          {% endif %}
-        </td>
-        <td nowrap>{% if job.remote %}remote{% endif %} {{ job.location|default:""|truncatechars:20 }}</td>
-        <td nowrap>{% if job.salary_min and job.salary_max %}
-          ${{ job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }}
-          {% endif %}
-        </td>
-        <td nowrap>
-          {% if job.posted_date %}{{ job.posted_date|timesince }} ago{% endif %}
-        </td>
-
-
-
-        <td nowrap>
-
-          {% if job.company.email and job.role %}
-          <a class="apply-button" 
-          style="display: inline-flex; align-items: center; text-decoration: none; padding: 5px 7px; border: 1px solid #ccc; border-radius: 5px; margin: 0; color: white; "
-          href="https://mail.google.com/mail/?view=cm&fs=1&to={{ job.company.email|urlencode }}&su=Application%20for%20{{ job.role|urlencode }}%20at%20{{ job.company|urlencode }}&body=Dear%20{{ job.company|urlencode }},%0A%0AI%20am%20writing%20to%20apply%20for%20the%20{{ job.role|urlencode }}%20role%20at%20{{ job.company|urlencode }}.%20I%20am%20very%20interested%20in%20the%20opportunity%20and%20believe%20that%20my%20skills%20and%20experience%20make%20me%20a%20strong%20candidate.%0A%0APlease%20find%20my%20resume%20attached%20to%20this%20email.%20If%20you%20require%20any%20further%20information%20or%20would%20like%20to%20schedule%20an%20interview,%20please%20let%20me%20know.%0A%0AThank%20you%20for%20your%20time%20and%20consideration.%0A%0ASincerely,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}"
-          target="_blank" onclick="changeRowColor(this)">
-           <i class="fas fa-envelope" style="margin-right: 5px;"></i>Apply
-          </a>
-          {% else %}
-
-
-
+              <form hx-post="{% url 'update_job' job.id %}"
+                    hx-trigger="change"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                <input type="text" name="role" id="role" value="">
+              </form>
+              {{ job.title }}
+            {% endif %}
+          </td>
+          <td nowrap>
+            {% if job.remote %}remote{% endif %}
+            {{ job.location|default:""|truncatechars:20 }}
+          </td>
+          <td nowrap>
+            {% if job.salary_min and job.salary_max %}
+              ${{ job.salary_min|floatformat:0|intcomma }} - ${{ job.salary_max|floatformat:0|intcomma }}
+            {% endif %}
+          </td>
+          <td nowrap>
+            {% if job.posted_date %}{{ job.posted_date|timesince }} ago{% endif %}
+          </td>
+          <td nowrap>
+            {% if job.company.email and job.role %}
+              <a class="apply-button"
+                 style="display: inline-flex;
+                        align-items: center;
+                        text-decoration: none;
+                        padding: 5px 7px;
+                        border: 1px solid #ccc;
+                        border-radius: 5px;
+                        margin: 0;
+                        color: white"
+                 href="https://mail.google.com/mail/?view=cm&fs=1&to={{ job.company.email|urlencode }}&su=Application%20for%20{{ job.role|urlencode }}%20at%20{{ job.company|urlencode }}&body=Dear%20{{ job.company|urlencode }},%0A%0AI%20am%20writing%20to%20apply%20for%20the%20{{ job.role|urlencode }}%20role%20at%20{{ job.company|urlencode }}.%20I%20am%20very%20interested%20in%20the%20opportunity%20and%20believe%20that%20my%20skills%20and%20experience%20make%20me%20a%20strong%20candidate.%0A%0APlease%20find%20my%20resume%20attached%20to%20this%20email.%20If%20you%20require%20any%20further%20information%20or%20would%20like%20to%20schedule%20an%20interview,%20please%20let%20me%20know.%0A%0AThank%20you%20for%20your%20time%20and%20consideration.%0A%0ASincerely,%0A%0A{{ request.user.first_name|urlencode }}%20{{ request.user.last_name|urlencode }}"
+                 target="_blank"
+                 onclick="changeRowColor(this)">
+                <i class="fas fa-envelope" style="margin-right: 5px;"></i>Apply
+              </a>
+            {% else %}
               {% if job.link %}
                 {% if job.link_status_code == 200 %}
-
-
-                  <a class="apply-button" href="{{ job.link }}" style="display: inline-flex;align-items: center; text-decoration: none; padding: 5px 7px; border: 1px solid #ccc; border-radius: 5px; margin: 0; color: white; " target="_blank" onclick="changeRowColor(this)"> 
-                    <img src="https://www.google.com/s2/favicons?domain={{ job.link }}" 
-                    style="  background-color:white; border-radius: 5px; margin:0px; padding:0px; position:relative; margin-right:5px;"> Apply </a>
-                  
-
-                  {% if prompt and job.description_markdown %}
-
-                    <a href="#" onclick="copyPrompt('{{ prompt.content|escapejs }}', '{{ job.description_markdown|striptags|escapejs }}', '{{ job.company.email|urlencode }}', '{{ job.role.title|urlencode }}', '{{ job.company|urlencode }}'); changeRowColor(this); event.preventDefault();"
-                      title="Copy Prompt to Clipboard">
-                      <img src="{% static '/svg/ChatGPT_logo.svg' %}" style="height:23px; ">
-                    </a>
-
-                  {% endif %}
-
+                  <a class="apply-button"
+                     href="{{ job.link }}"
+                     style="display: inline-flex;
+                            align-items: center;
+                            text-decoration: none;
+                            padding: 5px 7px;
+                            border: 1px solid #ccc;
+                            border-radius: 5px;
+                            margin: 0;
+                            color: white"
+                     target="_blank"
+                     onclick="changeRowColor(this)">
+                    <img src="https://www.google.com/s2/favicons?domain={{ job.link }}"
+                         style="background-color:white;
+                                border-radius: 5px;
+                                margin:0px;
+                                padding:0px;
+                                position:relative;
+                                margin-right:5px">
+                  Apply </a>
                 {% endif %}
               {% endif %}
-          {% endif %}
-          {% if request.user.is_superuser %}
-            <a href="{% url 'admin:website_job_change' job.id %}">edit</a>
-          {% endif %}
-
-        </td>
-
-      </tr>
+            {% endif %}
+            <div class="dropdown">
+              <button class="dropbtn">⋯</button>
+              <div class="dropdown-content">
+                <div style="display: flex; align-items: center;">
+                  📧
+                  <a href="https://mail.google.com/mail/u/0/#search/{{ job.company.name }}"
+                     target="_blank"
+                     style="margin-left: 5px">Search Gmail</a>
+                </div>
+                <div style="display: flex; align-items: center;">
+                  🔍
+                  <a href="https://www.google.com/search?q={{ job.company }} {{ job.role }}"
+                     target="_blank"
+                     style="margin-left: 5px">Search Google</a>
+                </div>
+                {% if prompt and job.description_markdown %}
+                  <div style="display: flex; align-items: center;">
+                    🤖
+                    <a href="#"
+                       style="margin-left: 5px"
+                       onclick="copyPrompt('{{ prompt.content|escapejs }}', '{{ job.description_markdown|striptags|escapejs }}', '{{ job.company.email|urlencode }}', '{{ job.role.title|urlencode }}', '{{ job.company|urlencode }}'); return false;">Copy Prompt + JD to Clipboard</a>
+                  </div>
+                {% endif %}
+                {% if request.user.is_superuser %}
+                  <div style="display: flex; align-items: center;">
+                    ✏️
+                    <a href="{% url 'admin:website_job_change' job.id %}"
+                       style="margin-left: 5px">Edit</a>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>
-
 </center>
-
 {% if page_obj.paginator.page_range|length > 1 %}
-{% include "partials/pagination.html" %}
+  {% include "partials/pagination.html" %}
 {% endif %}
 </br>
 </br>
 </br>
 </br>
-
 <script>
 
 
@@ -330,5 +399,4 @@
     return false;
   }
 </script>
-
 {% endblock %}
