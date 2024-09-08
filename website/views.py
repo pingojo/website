@@ -741,13 +741,13 @@ class JobListView(ListView):
 
             if self.request.GET.get("view") == "grid":
                 self.template_name = "website/job_grid.html"
-
-            if self.request.user.is_authenticated:
-                # Exclude jobs the user has applied for
-                applied_jobs = Application.objects.filter(
-                    user=self.request.user
-                ).values_list("job_id", flat=True)
-                self.queryset = self.queryset.exclude(id__in=applied_jobs)
+            
+            # if self.request.user.is_authenticated:
+            #     # Exclude jobs the user has applied for
+            #     applied_jobs = Application.objects.filter(
+            #         user=self.request.user
+            #     ).values_list("job_id", flat=True)
+            #     self.queryset = self.queryset.exclude(id__in=applied_jobs)
 
             ordering = self.request.GET.get("ordering")
             if ordering and ordering.lstrip("-") in [
