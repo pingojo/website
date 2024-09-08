@@ -83,7 +83,7 @@ def pricing(request):
     return render(request, "pricing.html")
 
 def job_detail_htmx(request, slug):
-    job = get_object_or_404(Job, slug=slug)
+    job_object = get_object_or_404(Job, slug=slug)
     if request.POST.get("skill") and request.user.is_authenticated:
         skill = request.POST.get("skill")
         skill, _ = Skill.objects.get_or_create(name=skill)
@@ -104,13 +104,13 @@ def job_detail_htmx(request, slug):
         #     job.save()
     if request.user.is_authenticated:
         applications = Application.objects.filter(
-            user=request.user, job=job
+            user=request.user, job=job_object
         )
         stages = Stage.objects.all().order_by("-order")
     else:
         applications = None
         stages = None
-    return render(request, "partials/job_detail_include.html", {"job": job, "applications": applications, "stages": stages})
+    return render(request, "partials/job_detail_include.html", {"job": job_object, "applications": applications, "stages": stages})
 
 @login_required
 def view_resume_clicks(request, company_id):
