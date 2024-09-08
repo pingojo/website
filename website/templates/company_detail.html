@@ -269,7 +269,7 @@
                 {% endif %}
             </div>
             {% for job in jobs %}
-                <div class="job-card {% if forloop.first %}active{% endif %}">
+                <div class="job-card {% if forloop.last %}active{% endif %}">
                     <h4 style="margin-bottom: 5px;
                                margin-top: 0px"
                         hx-get="{% url 'job_detail_htmx' job.slug %}"
