@@ -755,18 +755,22 @@ class JobListView(ListView):
 
         return self.queryset
 
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        # Redirect if all jobs belong to the same company
+        unique_companies = self.object_list.values('company').distinct().count()
+        if unique_companies == 1:
+            single_company = self.object_list.first().company
+            return HttpResponseRedirect(reverse('company_detail', args=[single_company.slug]))
+
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         total_jobs = self.object_list.count()  # Use count() on the object list
         context["total_jobs"] = total_jobs
         context["server_timestamp"] = self.server_timestamp
         context["sessions_count"] = Session.objects.all().count()
-
-        # Redirect if all jobs belong to the same company
-        unique_companies = self.object_list.values('company').distinct().count()
-        if unique_companies == 1:
-            single_company = self.object_list.first().company
-            return HttpResponseRedirect(reverse('company_detail', args=[single_company.slug]))
 
         if self.request.user.is_authenticated:
             if self.request.user.prompt_set.all():
@@ -780,6 +784,7 @@ class JobListView(ListView):
                 ).order_by("-order")
 
         return context
+
 
 
 
