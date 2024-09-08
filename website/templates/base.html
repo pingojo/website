@@ -168,6 +168,10 @@
             </option>
             <option value="skill"
                     {% if request.GET.search_type == "skill" %}selected{% endif %}>Skill</option>
+            <option value="role"
+                    {% if request.GET.search_type == "role" %}selected{% endif %}>Role</option>
+            <option value="job"
+                    {% if request.GET.search_type == "job" %}selected{% endif %}>Job</option>
           </select>
           <!-- Search input -->
           <input type="text"
