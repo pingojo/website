@@ -113,6 +113,8 @@ document.addEventListener('mouseup', function(event) {
         // Set up the button click event
         const addSkillBtn = document.getElementById('add-skill-btn');
         addSkillBtn.onclick = function() {
+            // show a spinner on the add skill button
+            addSkillDiv.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '{% url "job_detail_htmx" job.slug %}', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -124,6 +126,7 @@ document.addEventListener('mouseup', function(event) {
                 }
             };
             xhr.send(`skill=${encodeURIComponent(selectedText)}`);
+            
         };
     } else {
         document.getElementById('add-skill-div').style.display = 'none';
