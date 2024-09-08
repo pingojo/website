@@ -671,16 +671,17 @@ class JobListView(ListView):
     def dispatch(self, *args, **kwargs):
         job_count = settings.JOB_COUNT
         session_key = self.request.session.session_key or "anonymous"
-
+        
+        # Cache key includes session and job count
         query_params = self.request.GET.urlencode()
         user_specific_cache_key = (
             f"{settings.JOB_LIST_CACHE_KEY}_{session_key}_{job_count}_{query_params}"
         )
 
         response = cache.get(user_specific_cache_key)
-
+        
         if not response:
-            # Generate the response
+            # Generate the response if not cached
             response = super(JobListView, self).dispatch(*args, **kwargs)
             if hasattr(response, "render") and callable(response.render):
                 response.add_post_render_callback(
@@ -688,39 +689,49 @@ class JobListView(ListView):
                 )
             else:
                 cache.set(user_specific_cache_key, response, 60 * 60)
+        
         return response
 
     def get_queryset(self):
-        if not self.queryset:
+        if self.queryset is None:  # Avoid re-executing the queryset
             search_type = self.request.GET.get("search_type", "").strip()
             search_query = re.sub(
                 r"[^a-zA-Z0-9,.@ ]", "", self.request.GET.get("search", "").strip()
             )
 
+            # Filters based on search type
             if search_type == "skill":
-                self.queryset = Job.objects.filter(skills__name__icontains=search_query).select_related("company", "role").distinct()
+                self.queryset = Job.objects.filter(
+                    skills__name__icontains=search_query
+                ).select_related("company", "role").distinct()
 
             elif search_type == "company" and search_query:
-                self.queryset = Job.objects.filter(company__name__icontains=search_query).select_related("company", "role").distinct()
+                self.queryset = Job.objects.filter(
+                    company__name__icontains=search_query
+                ).select_related("company", "role").distinct()
 
             elif search_type == "role" and search_query:
-                self.queryset = Job.objects.filter(role__title__icontains=search_query).select_related("company", "role").distinct()
+                self.queryset = Job.objects.filter(
+                    role__title__icontains=search_query
+                ).select_related("company", "role").distinct()
 
             elif search_type == "job" and search_query:
-                self.queryset = Job.objects.filter(description_markdown__icontains=search_query).select_related("company", "role").distinct()
+                self.queryset = Job.objects.filter(
+                    description_markdown__icontains=search_query
+                ).select_related("company", "role").distinct()
 
             elif search_type == "email" and search_query:
-                self.queryset = Job.objects.filter(company__email__icontains=search_query).select_related("company", "role").distinct()
+                self.queryset = Job.objects.filter(
+                    company__email__icontains=search_query
+                ).select_related("company", "role").distinct()
 
             elif search_query:
                 query = SearchQuery(search_query)
-                queryset = (
-                    Job.objects.select_related("company", "role")
-                    .annotate(rank=SearchRank(F("search_vector"), query))
-                    .filter(rank__gt=0)
+                queryset = Job.objects.select_related("company", "role") \
+                    .annotate(rank=SearchRank(F("search_vector"), query)) \
+                    .filter(rank__gt=0) \
                     .order_by("-rank")
-                )
-
+                
                 if queryset.exists():
                     self.queryset = queryset
                     job_count = self.queryset.count()
@@ -728,28 +739,26 @@ class JobListView(ListView):
                     search.save()
                 else:
                     self.queryset = Job.objects.select_related("company", "role").all()
-            else:
-                self.queryset = Job.objects.select_related("company", "role").order_by(
-                    F("posted_date").desc(nulls_last=True)
-                )
 
+            else:
+                self.queryset = Job.objects.select_related("company", "role") \
+                    .order_by(F("posted_date").desc(nulls_last=True))
+
+            # Filter by email if apply_by_email is set
             if self.request.GET.get("apply_by_email", ""):
                 self.queryset = self.queryset.filter(
                     company__email__isnull=False
                 ).exclude(company__email__exact="")
 
+            # Change template if view is grid
             if self.request.GET.get("view") == "grid":
                 self.template_name = "website/job_grid.html"
 
+            # Apply ordering
             ordering = self.request.GET.get("ordering")
             if ordering and ordering.lstrip("-") in [
-                "created",
-                "posted_date",
-                "salary_min",
-                "salary_max",
-                "title",
-                "location",
-                "job_type",
+                "created", "posted_date", "salary_min", "salary_max",
+                "title", "location", "job_type"
             ]:
                 self.queryset = self.queryset.order_by(ordering)
 
@@ -757,9 +766,11 @@ class JobListView(ListView):
 
     def get(self, request, *args, **kwargs):
         self.object_list = self.get_queryset()
-        # Redirect if all jobs belong to the same company
-        unique_companies = self.object_list.values('company').distinct().count()
-        if unique_companies == 1:
+
+        # Check if all jobs belong to the same company
+        company_count = self.object_list.values_list('company', flat=True).distinct().count()
+        if company_count == 1:
+            # Redirect to company detail page if only one company is found
             single_company = self.object_list.first().company
             return HttpResponseRedirect(reverse('company_detail', args=[single_company.slug]))
 
@@ -773,10 +784,8 @@ class JobListView(ListView):
         context["sessions_count"] = Session.objects.all().count()
 
         if self.request.user.is_authenticated:
-            if self.request.user.prompt_set.all():
-                context["prompt"] = Prompt.objects.filter(
-                    user=self.request.user
-                ).first()
+            if self.request.user.prompt_set.exists():
+                context["prompt"] = self.request.user.prompt_set.first()
                 context["stages"] = Stage.objects.annotate(
                     count=Count(
                         "application", filter=Q(application__user=self.request.user)
