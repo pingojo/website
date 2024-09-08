@@ -691,7 +691,7 @@ class JobListView(ListView):
         if not self.queryset:
             search_type = self.request.GET.get("search_type", "").strip()
             search_query = re.sub(
-                r"[^a-zA-Z0-9,. ]", "", self.request.GET.get("search", "").strip()
+                r"[^a-zA-Z0-9,.@ ]", "", self.request.GET.get("search", "").strip()
             )
 
             if search_type == "skill":
@@ -710,6 +710,10 @@ class JobListView(ListView):
             elif search_type == "job" and search_query:
                 # If search_type is 'job', return jobs where the job description contains the query
                 self.queryset = Job.objects.filter(description_markdown__icontains=search_query).select_related("company", "role").distinct()
+
+            elif search_type == "email" and search_query:
+                # If search_type is 'email', return jobs where the company email contains the query
+                self.queryset = Job.objects.filter(company__email__icontains=search_query).select_related("company", "role").distinct()
 
             elif search_query:
                 # For general search query (if no specific search_type is provided)
@@ -741,13 +745,6 @@ class JobListView(ListView):
 
             if self.request.GET.get("view") == "grid":
                 self.template_name = "website/job_grid.html"
-            
-            # if self.request.user.is_authenticated:
-            #     # Exclude jobs the user has applied for
-            #     applied_jobs = Application.objects.filter(
-            #         user=self.request.user
-            #     ).values_list("job_id", flat=True)
-            #     self.queryset = self.queryset.exclude(id__in=applied_jobs)
 
             ordering = self.request.GET.get("ordering")
             if ordering and ordering.lstrip("-") in [
@@ -762,6 +759,7 @@ class JobListView(ListView):
                 self.queryset = self.queryset.order_by(ordering)
 
         return self.queryset
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

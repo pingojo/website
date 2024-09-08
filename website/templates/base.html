@@ -172,6 +172,8 @@
                     {% if request.GET.search_type == "role" %}selected{% endif %}>Role</option>
             <option value="job"
                     {% if request.GET.search_type == "job" %}selected{% endif %}>Job</option>
+            <option value="email"
+                    {% if request.GET.search_type == "email" %}selected{% endif %}>Email</option>
           </select>
           <!-- Search input -->
           <input type="text"
