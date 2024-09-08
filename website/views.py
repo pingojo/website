@@ -84,12 +84,24 @@ def pricing(request):
 
 def job_detail_htmx(request, slug):
     job = get_object_or_404(Job, slug=slug)
-    if request.POST.get("skill"):
+    if request.POST.get("skill") and request.user.is_authenticated:
         skill = request.POST.get("skill")
         skill, _ = Skill.objects.get_or_create(name=skill)
-        if " " + skill.name.lower() + " " in job.description_markdown.lower():
-            job.skills.add(skill)
-            job.save()
+
+        skill_name_lower = skill.name.lower()  # Convert skill name to lowercase
+        jobs = Job.objects.prefetch_related('skills').all()
+        matching_jobs = jobs.filter(
+            description_markdown__icontains=f" {skill_name_lower}"
+        )
+
+        # Add the skill to each matching job
+        for job in matching_jobs:
+            if not job.skills.filter(id=skill.id).exists():  # Check if the skill is already added
+                job.skills.add(skill)
+
+        # if " " + skill.name.lower() in job.description_markdown.lower():
+        #     job.skills.add(skill)
+        #     job.save()
     if request.user.is_authenticated:
         applications = Application.objects.filter(
             user=request.user, job=job
