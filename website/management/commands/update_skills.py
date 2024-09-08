@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 
 from website.models import Job, Skill
 
@@ -7,27 +8,34 @@ class Command(BaseCommand):
     help = 'Updates jobs by adding skills mentioned in their descriptions.'
 
     def handle(self, *args, **kwargs):
-        # Iterate over all skills
-        # remove all skills from all jobs
-        for job in Job.objects.all():
-            job.skills.clear()
-            
+        # Fetch all jobs and skills once to avoid repeated DB hits
+        jobs = Job.objects.prefetch_related('skills').all()
         skills = Skill.objects.all()
+
         jobs_updated = 0
+        skill_job_map = {}  # To track job-skill additions
+
+        # # Clear skills from all jobs in bulk
+        # for job in jobs:
+        #     job.skills.clear()
 
         for skill in skills:
-            skill_name_lower = skill.name.lower()  # Convert skill name to lowercase for case-insensitive matching
-            if skill_name_lower:
+            skill_name_lower = skill.name.lower()  # Convert skill name to lowercase
 
-                # Iterate over all jobs
-                for job in Job.objects.all():
-                    # Check if the skill name is in the job description
-                    if job.description_markdown:
-                        if " " + skill_name_lower + " " in job.description_markdown.lower():
-                            # If the job doesn't already have this skill, add it
-                            if not job.skills.filter(id=skill.id).exists():
-                                job.skills.add(skill)
-                                jobs_updated += 1
-                                self.stdout.write(self.style.SUCCESS(f'Added skill "{skill.name}" to job "{job.title}".'))
+            # Create a query for jobs that contain the skill in their description
+            matching_jobs = jobs.filter(
+                description_markdown__icontains=f" {skill_name_lower} "
+            )
+
+            # Add the skill to each matching job
+            for job in matching_jobs:
+                if not job.skills.filter(id=skill.id).exists():  # Check if the skill is already added
+                    job.skills.add(skill)
+                    jobs_updated += 1
+                    skill_job_map[job.title] = skill.name
+
+        # Output aggregated results instead of per-update messages
+        for job_title, skill_name in skill_job_map.items():
+            self.stdout.write(self.style.SUCCESS(f'Added skill "{skill_name}" to job "{job_title}".'))
 
         self.stdout.write(self.style.SUCCESS(f'Finished updating jobs. Total jobs updated: {jobs_updated}'))
