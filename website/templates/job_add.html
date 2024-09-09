@@ -97,8 +97,8 @@
                 <option value="Contractor" {% if form.job_type.value == "Contractor" %}selected{% endif %}>Contractor</option>
             </select>
             <select class="form__select" name="remote" id="remote" class="{% if form.remote.errors %}error-field{% endif %}">
-                <option value="true" {% if form.remote.value == "true" %}selected{% endif %}>Remote OK</option>
-                <option value="false" {% if form.remote.value == "false" %}selected{% endif %}>On-Site Only</option>
+                <option value="True" {% if form.remote.value == "True" %}selected{% endif %}>Remote OK</option>
+                <option value="False" {% if form.remote.value == "False" %}selected{% endif %}>On-Site Only</option>
             </select>
         </div>
         <div class="error-message">{{ form.job_type.errors }}</div>
