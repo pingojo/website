@@ -129,7 +129,7 @@ class JobForm(forms.ModelForm):
     equity_min = forms.DecimalField(required=False, max_digits=10, decimal_places=2)
     equity_max = forms.DecimalField(required=False, max_digits=10, decimal_places=2)
     job_type = forms.ChoiceField(choices=[('Full-Time', 'Full-Time'), ('Part-Time', 'Part-Time'), ('Internship', 'Internship'), ('Contractor', 'Contractor')])
-    remote = forms.ChoiceField(choices=[('true', 'Remote OK'), ('false', 'On-Site Only')])
+    remote = forms.ChoiceField(choices=[('True', 'True'), ('False', 'False')])
     description_markdown = forms.CharField(widget=forms.Textarea, required=False)
 
     class Meta:

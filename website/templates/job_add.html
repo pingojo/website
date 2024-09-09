@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-
   
 <h1 style="margin-left:20px"> Post a Job {% if not user.is_authenticated %}<a href="/accounts/login/?next=add_job">Login to Auto Fill</a>{% endif %}</h1>
 
@@ -21,26 +20,51 @@
         color: #777;
         background-color:white;
     }
+
+    .error-message {
+        color: red;
+        font-size: 0.9em;
+    }
 </style>
 
 <div style="display: flex; margin:20px;">
     <form method="POST" style="flex: 1;">
         {% csrf_token %}
+
+        <!-- Display non-field errors -->
+        {% if form.non_field_errors %}
+            <div class="error-message">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         <div class="flex-container">
-            <input type="text" name="company" id="company-autocomplete" placeholder="Company Name" required="" class=" autocomplete">
+            <input type="text" name="company" id="company-autocomplete" placeholder="Company Name" required="" class="autocomplete">
             <input type="text" name="website" placeholder="Website https://website..." required>
         </div>
+        <!-- Display field-specific errors -->
+        <div class="error-message">{{ form.company.errors }}</div>
+        <div class="error-message">{{ form.website.errors }}</div>
 
-        <input type="text" name="role" id="role-autocomplete" placeholder="Role e.g. 'Chief Technology Officer' " required="" class=" autocomplete">
+        <input type="text" name="role" id="role-autocomplete" placeholder="Role e.g. 'Chief Technology Officer' " required="" class="autocomplete">
+        <div class="error-message">{{ form.role.errors }}</div>
 
         <div class="flex-container">
             <input type="text" name="link" placeholder="Application URL https://greenhouse.io... ">
             <input type="text" name="email" placeholder="Careers Email info@example.com">
         </div>
+        <div class="error-message">{{ form.link.errors }}</div>
+        <div class="error-message">{{ form.email.errors }}</div>
+
         <div class="flex-container">
             <input type="text" name="salary_min" placeholder="Salary Min $150,000">
             <input type="text" name="salary_max" placeholder="Salary Max $250,000">
         </div>
+        <div class="error-message">{{ form.salary_min.errors }}</div>
+        <div class="error-message">{{ form.salary_max.errors }}</div>
+
         <div class="flex-container">
             <select name="job_type" id="job_type">
                 <option selected="selected" value="Full-Time">Full-Time</option>
@@ -48,17 +72,22 @@
                 <option value="Internship">Internship</option>
                 <option value="Contractor">Contractor</option>
             </select>
-            <select class="form__select" name="remote" id="remote" >
+            <select class="form__select" name="remote" id="remote">
                 <option value="true">Remote OK</option>
                 <option value="false">On-Site Only</option>
             </select>
         </div>
+        <div class="error-message">{{ form.job_type.errors }}</div>
+        <div class="error-message">{{ form.remote.errors }}</div>
 
         <div class="flex-container">
             <input type="text" name="city" placeholder="City" required>
             <input type="text" name="state" placeholder="State" required>
             <input type="text" name="country" placeholder="Country" required>
         </div>
+        <div class="error-message">{{ form.city.errors }}</div>
+        <div class="error-message">{{ form.state.errors }}</div>
+        <div class="error-message">{{ form.country.errors }}</div>
 
         <button type="submit">Post job for Free</button>
     </form>
@@ -74,6 +103,7 @@
 <script>
     var simplemde = new SimpleMDE({ element: document.getElementById("description_markdown") });
 </script>
+
 {% endblock %}
 
 {% block extra_js %}

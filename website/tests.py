@@ -314,7 +314,7 @@ class BouncedEmailAPITest(APITestCase):
         # Data for the bounced email
         data = {
             "email": "test+bounce@pingojo.com",
-            "reason": "5.1.1 - Bad destination mailbox address",
+            "reason": "5.1.1 - Bad destination bounce mailbox address",
         }
 
         # Make a POST request to report the bounced email with form-encoded data
