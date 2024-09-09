@@ -2,7 +2,7 @@
 
 {% block content %}
   
-<h1 style="margin-left:20px"> Post a Job {% if not user.is_authenticated %}<a href="/accounts/login/?next=add_job">Login to Auto Fill</a>{% endif %}</h1>
+<h1 style="margin-left:20px">Post a Job {% if not user.is_authenticated %}<a href="/accounts/login/?next=add_job">Login to Auto Fill</a>{% endif %}</h1>
 
 <style>
     .flex-container {
@@ -17,13 +17,24 @@
         border: 1px solid #ccc;
         border-radius: 4px;
         font-size: 14px;
-        color: #777;
-        background-color:white;
+        color: #333;
+        background-color: white;
+    }
+
+    /* Solid background for inputs when pre-filled */
+    .flex-container > input.filled {
+        background-color: #f0f0f0;
     }
 
     .error-message {
         color: red;
         font-size: 0.9em;
+    }
+
+    /* Add a red outline for fields with errors */
+    .error-field {
+        border-color: red;
+        outline: 2px solid red;
     }
 </style>
 
@@ -41,59 +52,78 @@
         {% endif %}
         
         <div class="flex-container">
-            <input type="text" name="company" id="company-autocomplete" placeholder="Company Name" required="" class="autocomplete">
-            <input type="text" name="website" placeholder="Website https://website..." required>
+            <input type="text" name="company" id="company-autocomplete" placeholder="Company Name" 
+                value="{{ form.company.value|default:'' }}" 
+                class="autocomplete {% if form.company.errors %}error-field{% elif form.company.value %}filled{% endif %}">
+            <input type="text" name="website" placeholder="Website https://website..." 
+                value="{{ form.website.value|default:'' }}" 
+                class="{% if form.website.errors %}error-field{% elif form.website.value %}filled{% endif %}">
         </div>
-        <!-- Display field-specific errors -->
         <div class="error-message">{{ form.company.errors }}</div>
         <div class="error-message">{{ form.website.errors }}</div>
 
-        <input type="text" name="role" id="role-autocomplete" placeholder="Role e.g. 'Chief Technology Officer' " required="" class="autocomplete">
+        <input type="text" name="role" id="role-autocomplete" placeholder="Role e.g. 'Chief Technology Officer'"
+            value="{{ form.role.value|default:'' }}"
+            class="autocomplete {% if form.role.errors %}error-field{% elif form.role.value %}filled{% endif %}">
         <div class="error-message">{{ form.role.errors }}</div>
 
         <div class="flex-container">
-            <input type="text" name="link" placeholder="Application URL https://greenhouse.io... ">
-            <input type="text" name="email" placeholder="Careers Email info@example.com">
+            <input type="text" name="link" placeholder="Application URL https://greenhouse.io..."
+                value="{{ form.link.value|default:'' }}"
+                class="{% if form.link.errors %}error-field{% elif form.link.value %}filled{% endif %}">
+            <input type="text" name="email" placeholder="Careers Email info@example.com"
+                value="{{ form.email.value|default:'' }}"
+                class="{% if form.email.errors %}error-field{% elif form.email.value %}filled{% endif %}">
         </div>
         <div class="error-message">{{ form.link.errors }}</div>
         <div class="error-message">{{ form.email.errors }}</div>
 
         <div class="flex-container">
-            <input type="text" name="salary_min" placeholder="Salary Min $150,000">
-            <input type="text" name="salary_max" placeholder="Salary Max $250,000">
+            <input type="text" name="salary_min" placeholder="Salary Min $150,000"
+                value="{{ form.salary_min.value|default:'' }}"
+                class="{% if form.salary_min.errors %}error-field{% elif form.salary_min.value %}filled{% endif %}">
+            <input type="text" name="salary_max" placeholder="Salary Max $250,000"
+                value="{{ form.salary_max.value|default:'' }}"
+                class="{% if form.salary_max.errors %}error-field{% elif form.salary_max.value %}filled{% endif %}">
         </div>
         <div class="error-message">{{ form.salary_min.errors }}</div>
         <div class="error-message">{{ form.salary_max.errors }}</div>
 
         <div class="flex-container">
-            <select name="job_type" id="job_type">
-                <option selected="selected" value="Full-Time">Full-Time</option>
-                <option value="Part-Time">Part-Time</option>
-                <option value="Internship">Internship</option>
-                <option value="Contractor">Contractor</option>
+            <select name="job_type" id="job_type" class="{% if form.job_type.errors %}error-field{% endif %}">
+                <option value="Full-Time" {% if form.job_type.value == "Full-Time" %}selected{% endif %}>Full-Time</option>
+                <option value="Part-Time" {% if form.job_type.value == "Part-Time" %}selected{% endif %}>Part-Time</option>
+                <option value="Internship" {% if form.job_type.value == "Internship" %}selected{% endif %}>Internship</option>
+                <option value="Contractor" {% if form.job_type.value == "Contractor" %}selected{% endif %}>Contractor</option>
             </select>
-            <select class="form__select" name="remote" id="remote">
-                <option value="true">Remote OK</option>
-                <option value="false">On-Site Only</option>
+            <select class="form__select" name="remote" id="remote" class="{% if form.remote.errors %}error-field{% endif %}">
+                <option value="true" {% if form.remote.value == "true" %}selected{% endif %}>Remote OK</option>
+                <option value="false" {% if form.remote.value == "false" %}selected{% endif %}>On-Site Only</option>
             </select>
         </div>
         <div class="error-message">{{ form.job_type.errors }}</div>
         <div class="error-message">{{ form.remote.errors }}</div>
 
         <div class="flex-container">
-            <input type="text" name="city" placeholder="City" required>
-            <input type="text" name="state" placeholder="State" required>
-            <input type="text" name="country" placeholder="Country" required>
+            <input type="text" name="city" placeholder="City" required
+                value="{{ form.city.value|default:'' }}"
+                class="{% if form.city.errors %}error-field{% elif form.city.value %}filled{% endif %}">
+            <input type="text" name="state" placeholder="State" required
+                value="{{ form.state.value|default:'' }}"
+                class="{% if form.state.errors %}error-field{% elif form.state.value %}filled{% endif %}">
+            <input type="text" name="country" placeholder="Country" required
+                value="{{ form.country.value|default:'' }}"
+                class="{% if form.country.errors %}error-field{% elif form.country.value %}filled{% endif %}">
         </div>
         <div class="error-message">{{ form.city.errors }}</div>
         <div class="error-message">{{ form.state.errors }}</div>
         <div class="error-message">{{ form.country.errors }}</div>
 
-        <button type="submit">Post job for Free</button>
+        <button type="submit">Post this Job</button>
     </form>
 
     <div style="flex: 1; margin-left: 20px;">
-        <textarea id="description_markdown" name="description_markdown" rows="10" placeholder="Description"></textarea>
+        <textarea id="description_markdown" name="description_markdown" rows="10" placeholder="Description">{{ form.description_markdown.value|default:'' }}</textarea>
     </div>
 </div>
 
