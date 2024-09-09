@@ -173,8 +173,8 @@ class BouncedEmailAPI(APIView):
         if not reason:
             raise ValidationError({"reason": "This field is required."})
 
-        if "bounce" not in reason.lower():
-            raise ValidationError({"reason": "Invalid reason."})
+        # if "bounce" not in reason.lower():
+        #     raise ValidationError({"reason": "Invalid reason."})
 
         # Check if email is valid
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
