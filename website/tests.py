@@ -150,7 +150,7 @@ class JobAddTestCase(TestCase):
                 "remote": True,
                 "link": "testurl.com",
                 "email": "test@testcompany.com",
-                "description": "This is a test job description.",
+                "description_markdown": "This is a test job description.",
             },
         )
         self.assertEqual(
@@ -169,6 +169,9 @@ class JobAddTestCase(TestCase):
         self.assertEqual(new_job.company.country, "USA")
         self.assertEqual(new_job.remote, True)
         self.assertEqual(new_job.role.title, "Software Developer")
+        self.assertEqual(new_job.description_markdown, "This is a test job description.")
+        self.assertEqual(new_job.location, "San Francisco, CA")
+        
 
     def test_job_add_get(self):
         self.client.login(username="testuser", password="12345")

@@ -850,6 +850,7 @@ def job_add(request):
             job = form.save(commit=False)  # Do not save the object to DB just yet
             job.added_by = request.user  # Assign the current user to 'added_by'
             job.slug = slugify(job.role.title + "-at-" + job.company.name)
+            job.location = form.cleaned_data["city"] + ", " + form.cleaned_data["state"]
             job.save()  # Now save it to DB
             messages.success(request, "Job created successfully.")
             return redirect("job_detail", slug=job.slug)
