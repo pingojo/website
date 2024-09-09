@@ -39,7 +39,7 @@
         </div>
         <div class="flex-container">
             <input type="text" name="salary_min" placeholder="Salary Min $150,000">
-            <input type="text" name="salary_min" placeholder="Salary Max $250,000">
+            <input type="text" name="salary_max" placeholder="Salary Max $250,000">
         </div>
         <div class="flex-container">
             <select name="job_type" id="job_type">
@@ -64,7 +64,7 @@
     </form>
 
     <div style="flex: 1; margin-left: 20px;">
-        <textarea id="description" name="description" rows="10" placeholder="Description"></textarea>
+        <textarea id="description_markdown" name="description_markdown" rows="10" placeholder="Description"></textarea>
     </div>
 </div>
 
@@ -72,7 +72,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
 
 <script>
-    var simplemde = new SimpleMDE({ element: document.getElementById("description") });
+    var simplemde = new SimpleMDE({ element: document.getElementById("description_markdown") });
 </script>
 {% endblock %}
 

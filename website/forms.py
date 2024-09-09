@@ -123,6 +123,14 @@ class JobForm(forms.ModelForm):
     city = forms.CharField()
     state = forms.CharField()
     country = forms.CharField()
+    link = forms.URLField(required=False)
+    salary_min = forms.DecimalField(required=False, max_digits=10, decimal_places=2)
+    salary_max = forms.DecimalField(required=False, max_digits=10, decimal_places=2)
+    equity_min = forms.DecimalField(required=False, max_digits=10, decimal_places=2)
+    equity_max = forms.DecimalField(required=False, max_digits=10, decimal_places=2)
+    job_type = forms.ChoiceField(choices=[('Full-Time', 'Full-Time'), ('Part-Time', 'Part-Time'), ('Internship', 'Internship'), ('Contractor', 'Contractor')])
+    remote = forms.ChoiceField(choices=[('true', 'Remote OK'), ('false', 'On-Site Only')])
+    description_markdown = forms.CharField(widget=forms.Textarea, required=False)
 
     class Meta:
         model = Job
@@ -151,25 +159,30 @@ class JobForm(forms.ModelForm):
 
     def clean_role(self):
         title = self.cleaned_data.get('role')
-
         role_slug = slugify(title[:50])
         role, _ = Role.objects.get_or_create(
-                slug=role_slug, defaults={"title": title}
+            slug=role_slug, defaults={"title": title}
         )
-        
-        #role, created = Role.objects.get_or_create(title=title)
         return role
 
     def clean(self):
-        name = self.cleaned_data.get('company')
-        company, created = Company.objects.update_or_create(
-            name=name,
-            defaults={
-                'city': self.cleaned_data.get('city'),
-                'state': self.cleaned_data.get('state'),
-                'country': self.cleaned_data.get('country')
-            }
-        )
+        cleaned_data = super().clean()
+        name = cleaned_data.get('company')
+        city = cleaned_data.get('city')
+        state = cleaned_data.get('state')
+        country = cleaned_data.get('country')
+        
+        if name:
+            company, created = Company.objects.update_or_create(
+                name=name,
+                defaults={
+                    'city': city,
+                    'state': state,
+                    'country': country
+                }
+            )
+        return cleaned_data
+
         
 
 class CompanyUpdateForm(forms.ModelForm):
