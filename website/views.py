@@ -1204,6 +1204,8 @@ class ApplicationView(APIView):
             defaults={"name": company_name, "email": to_email},
         )
         if to_email != "" and company.email != to_email:
+            if not company.website:
+                company.website = to_email.split("@")[1]
             company.email = to_email
             company.save()
 
