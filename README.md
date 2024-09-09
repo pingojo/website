@@ -1,1 +1,1 @@
-# Pingojo Open Source
+# Pingojo
