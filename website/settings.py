@@ -126,6 +126,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://www.dice.com",
     "https://www.linkedin.com",
     "https://www.ycombinator.com",
+    "https://indeed.com",
+    "https://monster.com",
+    "https://glassdoor.com",
+    "https://builtin.com",    
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
