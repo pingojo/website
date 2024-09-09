@@ -71,23 +71,23 @@
                 <input type="text" name="company" id="company-autocomplete" placeholder="Company Name" 
                     value="{{ form.company.value|default:'' }}" 
                     class="autocomplete {% if form.company.errors %}error-field{% elif form.company.value %}filled{% endif %}">
-                <input type="text" name="website" placeholder="Website https://website..." 
+                <input type="text" name="website" placeholder="Website"
                     value="{{ form.website.value|default:'' }}" 
                     class="{% if form.website.errors %}error-field{% elif form.website.value %}filled{% endif %}">
             </div>
             <div class="error-message">{{ form.company.errors }}</div>
             <div class="error-message">{{ form.website.errors }}</div>
 
-            <input type="text" name="role" id="role-autocomplete" placeholder="Role e.g. 'Chief Technology Officer'"
+            <input type="text" name="role" id="role-autocomplete" placeholder="Role"
                 value="{{ form.role.value|default:'' }}"
                 class="autocomplete {% if form.role.errors %}error-field{% elif form.role.value %}filled{% endif %}">
             <div class="error-message">{{ form.role.errors }}</div>
 
             <div class="flex-container">
-                <input type="text" name="link" placeholder="Application URL https://greenhouse.io..."
+                <input type="text" name="link" placeholder="Job link"
                     value="{{ form.link.value|default:'' }}"
                     class="{% if form.link.errors %}error-field{% elif form.link.value %}filled{% endif %}">
-                <input type="text" name="email" placeholder="Careers Email info@example.com"
+                <input type="text" name="email" placeholder="Company Email"
                     value="{{ form.email.value|default:'' }}"
                     class="{% if form.email.errors %}error-field{% elif form.email.value %}filled{% endif %}">
             </div>
@@ -95,10 +95,10 @@
             <div class="error-message">{{ form.email.errors }}</div>
 
             <div class="flex-container">
-                <input type="text" name="salary_min" placeholder="Salary Min $150,000"
+                <input type="text" name="salary_min" placeholder="Salary Min"
                     value="{{ form.salary_min.value|default:'' }}"
                     class="{% if form.salary_min.errors %}error-field{% elif form.salary_min.value %}filled{% endif %}">
-                <input type="text" name="salary_max" placeholder="Salary Max $250,000"
+                <input type="text" name="salary_max" placeholder="Salary Max"
                     value="{{ form.salary_max.value|default:'' }}"
                     class="{% if form.salary_max.errors %}error-field{% elif form.salary_max.value %}filled{% endif %}">
             </div>
