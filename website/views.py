@@ -1210,8 +1210,12 @@ class ApplicationView(APIView):
         max_stage = Stage.objects.all().order_by("order").last()
         max_stage = max_stage.order if max_stage else 0
 
-        job, _ = Job.objects.update_or_create(
-            company=company, role=role, slug=slugify(role.title + "-at-" + company.name)
+        job, created = Job.objects.update_or_create(
+            company=company,
+            role=role,
+            defaults={
+                'slug': slugify(role.title + "-at-" + company.name),
+            }
         )
 
         stage, _ = Stage.objects.get_or_create(
