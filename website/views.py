@@ -1330,6 +1330,8 @@ class ApplicationView(APIView):
         ).count()
 
         data = {"email": email_data, "counts": stage_counts, "today_count": today_count}
+        cache_key = f'detail_{company.id}_user_{request.user.id}'
+        cache.delete(cache_key)
 
         return JsonResponse(data, status=status.HTTP_201_CREATED)
 
