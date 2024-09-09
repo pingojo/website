@@ -1101,7 +1101,7 @@ class AddJobLink(APIView):
                     "salary_max": salary_max,
                     "link": link,
                     "title": role.title,
-                    "location": location,
+                    "location": location[:254],
                     "job_type": job_type,
                     "remote": remote,
                     "description_markdown": description,
