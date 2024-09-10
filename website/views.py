@@ -1635,6 +1635,10 @@ class DashboardView(LoginRequiredMixin, ListView):
             }
             for day in applications_by_day[:10]
         ]
+        context["resume_views_total_companies"] = RequestLog.objects.filter(
+            profile__user=user
+        ).values("company").distinct().count()
+        
 
         # Pass sorting and stage context
         context["sort_by"] = self.request.GET.get("sort_by", "applied")

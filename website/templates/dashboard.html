@@ -146,7 +146,10 @@
             </a>
         {% endfor %}
         <!-- Move the resume views button here -->
-        <a href="/dashboard/?view=resume_view" class="resume-view-button">View Resume Views</a>
+        <a href="/dashboard/?view=resume_view" class="resume-view-button">View Resume Views
+            <div style="text-align: center; font-size:16px;">{{resume_views_total_companies}} Companies</div>
+        </a>
+
     </div>
     <style>
       .pagination {
