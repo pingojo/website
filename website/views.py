@@ -1501,7 +1501,6 @@ from django.db.models import (
     F,
     Prefetch,
     Q,
-    TruncDay,
     Value,
 )
 from django.db.models.functions import Coalesce, TruncDay
