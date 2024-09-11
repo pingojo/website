@@ -1641,7 +1641,7 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         # Grouping data into the application_days list...
         application_days_data = []
-        for day in applications_by_day:
+        for day in applications_by_day[:10]:
             # Find matching emails sent for the day
             email_day = next((email for email in emails_sent_by_day if email["truncated_date"] == day["date"]), None)
             email_count = email_day["email_count"] if email_day else 0
