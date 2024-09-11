@@ -1626,7 +1626,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         ).order_by("-date")
 
         # Emails sent per day calculation...
-        emails_sent_by_day = Email.objects.filter(user=user).annotate(
+        emails_sent_by_day = Email.objects.filter(application__user=user).annotate(
             date=TruncDay("created")
         ).values("date").annotate(
             email_count=Count("id")
