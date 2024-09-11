@@ -1501,6 +1501,7 @@ from django.db.models import (
     F,
     Prefetch,
     Q,
+    TruncDay,
     Value,
 )
 from django.db.models.functions import Coalesce, TruncDay
@@ -1516,14 +1517,14 @@ class DashboardView(LoginRequiredMixin, ListView):
     paginate_by = 200
 
     def get_queryset(self):
-        # Get common query parameters
+        # Existing query setup...
         view_param = self.request.GET.get("view")
         sort_by = self.request.GET.get("sort_by", "last_email")
         sort_order = "asc" if "-" not in sort_by else "desc"
         order_prefix = "" if sort_order == "asc" else "-"
         user = self.request.user
 
-        # Map sort fields
+        # Map sort fields...
         sort_fields = {
             "company": "company__name",
             "role": "job__title",
@@ -1534,7 +1535,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         }
 
         if view_param == "resume_view":
-            # Only fetch applications with resume views
+            # Only fetch applications with resume views...
             applications = Application.objects.filter(user=user)
             applications = applications.annotate(
                 resume_views=Count(
@@ -1544,12 +1545,12 @@ class DashboardView(LoginRequiredMixin, ListView):
             ).filter(resume_views__gt=0)
 
         else:
-            # Fetch applications by stage
+            # Fetch applications by stage...
             stage_name = self.request.GET.get("stage", "Applied")
             stage_obj = get_object_or_404(Stage, name=stage_name)
             applications = Application.objects.filter(user=user, stage=stage_obj)
 
-            # Annotate resume views
+            # Annotate resume views...
             applications = applications.annotate(
                 resume_views=Count(
                     "company__requestlog",
@@ -1557,7 +1558,7 @@ class DashboardView(LoginRequiredMixin, ListView):
                 )
             )
 
-            # Filter by selected date if provided
+            # Filter by selected date if provided...
             selected_date = self.request.GET.get("date")
             if selected_date:
                 try:
@@ -1571,7 +1572,7 @@ class DashboardView(LoginRequiredMixin, ListView):
                 except ValueError:
                     pass
 
-            # Special sorting case for days and email
+            # Special sorting case for days and email...
             if sort_by == "days":
                 today = timezone.now().date()
                 applications = applications.annotate(
@@ -1589,7 +1590,7 @@ class DashboardView(LoginRequiredMixin, ListView):
             elif sort_by in sort_fields:
                 applications = applications.order_by(f"{order_prefix}{sort_fields[sort_by]}")
 
-        # Prefetch related objects to reduce query count
+        # Prefetch related objects...
         applications = applications.prefetch_related(
             Prefetch('company'), Prefetch('stage'), Prefetch('job'), 
             Prefetch('job__company'), Prefetch('job__role'), 
@@ -1602,14 +1603,13 @@ class DashboardView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Use annotations and prefetches to optimize queries
+        # Existing stage and job context setup...
         context["stages"] = Stage.objects.annotate(
             count=Count("application", filter=Q(application__user=user))
         ).order_by("-order")
-
         context["total_jobs"] = Job.objects.count()
 
-        # Calculate application_days with optimized query
+        # Application days calculation (same as before)...
         applications_by_day = Application.objects.filter(user=user).annotate(
             date=TruncDay("date_applied")
         ).values("date").annotate(
@@ -1626,26 +1626,54 @@ class DashboardView(LoginRequiredMixin, ListView):
             ),
         ).order_by("-date")
 
-        context["application_days"] = [
-            {
+        # Emails sent per day calculation...
+        emails_sent_by_day = Email.objects.filter(user=user).annotate(
+            date=TruncDay("created")
+        ).values("date").annotate(
+            email_count=Count("id")
+        ).order_by("-date")
+
+        # Resume views by day calculation...
+        resume_views_by_day = RequestLog.objects.filter(profile__user=user).annotate(
+            date=TruncDay("created")
+        ).values("date").annotate(
+            views_count=Count("id")
+        ).order_by("-date")
+
+        # Grouping data into the application_days list...
+        application_days_data = []
+        for day in applications_by_day:
+            # Find matching emails sent for the day
+            email_day = next((email for email in emails_sent_by_day if email["date"] == day["date"]), None)
+            email_count = email_day["email_count"] if email_day else 0
+
+            # Find matching resume views for the day
+            resume_view_day = next((view for view in resume_views_by_day if view["date"] == day["date"]), None)
+            resume_view_count = resume_view_day["views_count"] if resume_view_day else 0
+
+            # Append to the application_days_data list
+            application_days_data.append({
                 "date": day["date"],
                 "count": day["application_count"],
                 "clicks_percent": round(day["clicks_percent"], 2) if day["application_count"] > 0 else 0,
                 "bounces_percent": round(day["bounces_percent"], 2) if day["application_count"] > 0 else 0,
-            }
-            for day in applications_by_day[:10]
-        ]
+                "emails_sent": email_count,
+                "resume_views": resume_view_count,
+            })
+
+        context["application_days"] = application_days_data
+
         context["resume_views_total_companies"] = RequestLog.objects.filter(
             profile__user=user
         ).values("company").distinct().count()
-        
 
-        # Pass sorting and stage context
+        # Pass sorting and stage context...
         context["sort_by"] = self.request.GET.get("sort_by", "applied")
         context["sort_order"] = self.request.GET.get("sort_order", "desc")
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
+
 
 from urllib.parse import urlparse
 

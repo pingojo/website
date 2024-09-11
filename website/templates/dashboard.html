@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 {% block content %}
-{% include 'sidebar.html' %}
+    {% include 'sidebar.html' %}
     <style>
         .stage-container {
             width: 100% - 150px;
@@ -103,7 +103,6 @@
         }
     </style>
     <div class="stage-container">
-
         <a href="/dashboard/?stage=Applied"
            class="stage applied"
            style="color:white;
@@ -143,13 +142,15 @@
                 <strong>{{ day.date|date:"m/d" }}</strong>
                 <br>
                 <span style="font-size: 20px;">{{ day.count }}</span>
+                <br>
+                <!-- Small text for emails sent and resume views with emojis -->
+                <span style="font-size: 12px;">📧 {{ day.emails_sent }} &nbsp; 👁️ {{ day.resume_views }}</span>
             </a>
         {% endfor %}
         <!-- Move the resume views button here -->
         <a href="/dashboard/?view=resume_view" class="resume-view-button">View Resume Views
-            <div style="text-align: center; font-size:16px;">{{resume_views_total_companies}} Companies</div>
+            <div style="text-align: center; font-size:16px;">{{ resume_views_total_companies }} Companies</div>
         </a>
-
     </div>
     <style>
       .pagination {
@@ -293,7 +294,6 @@
     }
 
     </style>
-
     <div class="main-content">
         {% if applications %}
             <table>
@@ -344,8 +344,7 @@
                                          height="15px;"
                                          width="15px">
                                 {% endif %}
-                                <a href="{% url 'company_detail' slug=application.company.slug %}"
-                                   >{{ application.company.name }}</a>
+                                <a href="{% url 'company_detail' slug=application.company.slug %}">{{ application.company.name }}</a>
                                 {% if application.company.website %}
                                     <a href="{{ application.company.website }}" target="_blank">
                                         <i class="fas fa-external-link-alt" style="font-size:15px;"></i>
@@ -354,8 +353,7 @@
                             </td>
                             <td>
                                 {% if application.job.role %}
-                                    <a href="{% url 'job_detail' slug=application.job.slug %}"
-                                       >{{ application.job.role|truncatechars:50 }}</a>
+                                    <a href="{% url 'job_detail' slug=application.job.slug %}">{{ application.job.role|truncatechars:50 }}</a>
                                 {% else %}
                                     <form hx-post="{% url 'update_email' %}"
                                           hx-trigger="change"
@@ -432,9 +430,17 @@
                                     </select>
                                 </form>
                                 {% if application.note %}
-                                    <span class="note-icon note-icon-bordered" title="{{ application.note }}" hx-get="{% url 'edit_note' application.id %}" hx-target="#note-form-container-{{ application.id }}" hx-swap="outerHTML">📝</span>
+                                    <span class="note-icon note-icon-bordered"
+                                          title="{{ application.note }}"
+                                          hx-get="{% url 'edit_note' application.id %}"
+                                          hx-target="#note-form-container-{{ application.id }}"
+                                          hx-swap="outerHTML">📝</span>
                                 {% else %}
-                                    <span class="note-icon" title="No Note" hx-get="{% url 'edit_note' application.id %}" hx-target="#note-form-container-{{ application.id }}" hx-swap="outerHTML">📝</span>
+                                    <span class="note-icon"
+                                          title="No Note"
+                                          hx-get="{% url 'edit_note' application.id %}"
+                                          hx-target="#note-form-container-{{ application.id }}"
+                                          hx-swap="outerHTML">📝</span>
                                 {% endif %}
                                 <div id="note-form-container-{{ application.id }}"></div>
                             </td>
@@ -471,10 +477,7 @@
                                 {% endif %}
                             </td>
                             {% if application.company.email and application.job.role %}
-                                <td nowrap>
-                                    {% include "partials/ping_link.html" %}
-                                    
-                                </td>
+                                <td nowrap>{% include "partials/ping_link.html" %}</td>
                             {% else %}
                                 <td></td>
                             {% endif %}
