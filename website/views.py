@@ -1627,7 +1627,7 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         # Emails sent per day calculation...
         emails_sent_by_day = Email.objects.filter(application__user=user).annotate(
-            date=TruncDay("created")
+            date_created=TruncDay("created")
         ).values("date").annotate(
             email_count=Count("id")
         ).order_by("-date")
@@ -1643,7 +1643,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         application_days_data = []
         for day in applications_by_day:
             # Find matching emails sent for the day
-            email_day = next((email for email in emails_sent_by_day if email["date"] == day["date"]), None)
+            email_day = next((email for email in emails_sent_by_day if email["date_created"] == day["date"]), None)
             email_count = email_day["email_count"] if email_day else 0
 
             # Find matching resume views for the day
