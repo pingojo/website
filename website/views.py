@@ -1627,10 +1627,10 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         # Emails sent per day calculation...
         emails_sent_by_day = Email.objects.filter(application__user=user).annotate(
-            date_created=TruncDay("date")
-        ).values("date").annotate(
+            truncated_date=TruncDay("date")  # Avoid conflicting with the original 'date' field by using 'truncated_date'
+        ).values("truncated_date").annotate(
             email_count=Count("id")
-        ).order_by("-date")
+        ).order_by("-truncated_date")
 
         # Resume views by day calculation...
         resume_views_by_day = RequestLog.objects.filter(profile__user=user).annotate(
@@ -1643,7 +1643,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         application_days_data = []
         for day in applications_by_day:
             # Find matching emails sent for the day
-            email_day = next((email for email in emails_sent_by_day if email["date_created"] == day["date"]), None)
+            email_day = next((email for email in emails_sent_by_day if email["truncated_date"] == day["date"]), None)
             email_count = email_day["email_count"] if email_day else 0
 
             # Find matching resume views for the day
@@ -1672,6 +1672,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
+
 
 
 from urllib.parse import urlparse
