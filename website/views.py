@@ -1018,7 +1018,7 @@ class AddJobLink(APIView):
             job_type = data.get("companyStatus", " ").strip()
             remote = data.get("companyRemote", " ").strip() == "Yes" or True
             CompanyPhone = data.get("companyPhone", " ").strip()
-            CompanyEmail = data.get("companyEmail", " ").strip()
+            CompanyEmail = data.get("companyEmail", "").strip()
             description = data.get("description", " ").strip()
 
             link = data.get("link")
@@ -1041,17 +1041,28 @@ class AddJobLink(APIView):
                 role, _ = Role.objects.get_or_create(
                     slug=role_slug, defaults={"title": data.get("title", "").strip()[:50]}
                 )
+            if CompanyEmail:
 
-            company, _ = Company.objects.update_or_create(
-                slug=slugify(company_name).strip()[:50],
-                defaults={
-                    "name": company_name,
-                    "website": website,
-                    "country": country,
-                    "email": CompanyEmail,
-                    "phone": CompanyPhone,
-                },
-            )
+                company, _ = Company.objects.update_or_create(
+                    slug=slugify(company_name).strip()[:50],
+                    defaults={
+                        "name": company_name,
+                        "website": website,
+                        "country": country,
+                        "email": CompanyEmail,
+                        "phone": CompanyPhone,
+                    },
+                )
+            else:
+                company, _ = Company.objects.update_or_create(
+                    slug=slugify(company_name).strip()[:50],
+                    defaults={
+                        "name": company_name,
+                        "website": website,
+                        "country": country,
+                        "phone": CompanyPhone,
+                    },
+                )
 
             if description:
                 converter = html2text.HTML2Text()
