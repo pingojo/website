@@ -155,20 +155,25 @@ class Company(BaseModel):
             self.slug = f"{original_slug}-{counter}"
             counter += 1
 
-        # Check if the email should be updated or left as is
-        if self.email:
-            from website.models import \
-                BouncedEmail  # Import your BouncedEmail model
-            bounced_email_exists = BouncedEmail.objects.filter(email=self.email).exists()
-
-            # If the email exists in the BouncedEmail table, clear it
-            if bounced_email_exists:
-                self.email = None
-        else:
-            # If there's already an email set, keep it unless a new email is provided
-            existing_company = Company.objects.filter(pk=self.pk).first()
-            if existing_company and existing_company.email:
-                self.email = existing_company.email
+        # # Check if the email should be updated or left as is
+        # if self.email:
+        #     print("Email provided checking if it exists in the BouncedEmail table" + self.email)
+        #     from website.models import \
+        #         BouncedEmail  # Import your BouncedEmail model
+        #     bounced_email_exists = BouncedEmail.objects.filter(email=self.email).exists()
+        #     print("pringing all bounced")
+        #     for email in BouncedEmail.objects.all():
+        #         print(email.email)
+        #     print(f"Email exists in BouncedEmail table: {bounced_email_exists}")
+        #     # If the email exists in the BouncedEmail table, clear it
+        #     if bounced_email_exists:
+        #         self.email = None
+        # else:
+        #     print('this is the case where there is no email')
+        #     # If there's already an email set, keep it unless a new email is provided
+        #     existing_company = Company.objects.filter(pk=self.pk).first()
+        #     if existing_company and existing_company.email:
+        #         self.email = existing_company.email
 
         # Save the object
         super().save(*args, **kwargs)
