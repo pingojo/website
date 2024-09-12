@@ -126,12 +126,7 @@ class Company(BaseModel):
     careers_url_status = models.IntegerField(null=True, blank=True)
     careers_url_status_updated = models.DateTimeField(null=True, blank=True)
     email = models.EmailField(blank=True, null=True)
-    screenshot = models.ImageField(
-        upload_to="company_screenshots", blank=True, null=True
-    )
-    greenhouse_icon = '<svg height="2500" viewBox="-8.30925739 -.2362298 217.94925739 445.3362298" width="1269" xmlns="http://www.w3.org/2000/svg"><path d="m104.42 444.2c-58.12.85-105.51-49-104.42-106.6a105.12 105.12 0 0 1 105.87-103.37c55.36.15 101.71 47.66 102.71 103.07 1.06 58.7-47.33 107.8-104.16 106.9zm85.45-104.32c.35-47.58-37.69-86.42-85-86.78s-85.87 37.9-86.27 85.47a86.24 86.24 0 0 0 85.26 87.16c46.79.59 85.66-38.21 86.01-85.85zm-189.66-213.65a86.13 86.13 0 0 1 86-86.83c47.2-.09 86.08 38.89 86.15 86.36.08 48.15-38.19 87.13-85.67 87.27-48.18.13-86.34-38.19-86.48-86.8zm18.91-.54a67 67 0 1 0 134.09 1.31c.24-37.53-29.46-68.13-66.4-68.43-37.13-.26-67.4 29.74-67.69 67.12zm117.97-108.37a17.61 17.61 0 0 1 35.22.24 17.53 17.53 0 0 1 -17.74 17.72c-9.9-.07-17.48-7.87-17.48-17.96z" fill="#38b2a7"/></svg>'  # Replace with your actual SVG code
-    wellfound_icon = "<svg>...</svg>"  # Replace with your actual SVG code
-    lever_icon = "<svg>...</svg>"  # Replace with your actual SVG code
+    screenshot = models.ImageField(upload_to="company_screenshots", blank=True, null=True)
     phone = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
@@ -140,14 +135,50 @@ class Company(BaseModel):
     def __str__(self):
         return self.name
 
+    def send_slack_notification(self, changes):
+        """Send a Slack notification with the changes"""
+        webhook_url = settings.SLACK_WEBHOOK_URL  # Slack Webhook URL from settings
+        if not webhook_url:
+            return  # Exit if no webhook URL is configured
+
+        message = f"Company '{self.name}' has been updated.\nChanges:\n"
+        for field, (old, new) in changes.items():
+            message += f"- {field}: '{old}' -> '{new}'\n"
+
+        payload = {
+            "text": message,
+            "username": "Company Update Bot",
+            "icon_emoji": ":office:",
+        }
+
+        try:
+            # Send POST request to Slack Webhook
+            response = requests.post(webhook_url, json=payload)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Error sending Slack notification: {e}")
+
     def save(self, *args, **kwargs):
+        # Detect changes before saving
+        if self.pk:
+            old_company = Company.objects.get(pk=self.pk)
+            changes = {}
+            for field in self._meta.fields:
+                field_name = field.name
+                old_value = getattr(old_company, field_name)
+                new_value = getattr(self, field_name)
+                if old_value != new_value:
+                    changes[field_name] = (old_value, new_value)
+        else:
+            changes = {"created": (None, self.name)}
+
         # Ensure the slug is generated if it doesn't already exist
         if not self.slug:
             if not self.name:
                 raise ValueError("A company name is required to generate a slug.")
             self.slug = slugify(self.name[:50])
 
-        # Check for uniqueness of the slug
+        # Ensure slug uniqueness
         original_slug = self.slug
         queryset = Company.objects.all().exclude(pk=self.pk)
         counter = 1
@@ -155,37 +186,17 @@ class Company(BaseModel):
             self.slug = f"{original_slug}-{counter}"
             counter += 1
 
-        # # Check if the email should be updated or left as is
-        # if self.email:
-        #     print("Email provided checking if it exists in the BouncedEmail table" + self.email)
-        #     from website.models import \
-        #         BouncedEmail  # Import your BouncedEmail model
-        #     bounced_email_exists = BouncedEmail.objects.filter(email=self.email).exists()
-        #     print("pringing all bounced")
-        #     for email in BouncedEmail.objects.all():
-        #         print(email.email)
-        #     print(f"Email exists in BouncedEmail table: {bounced_email_exists}")
-        #     # If the email exists in the BouncedEmail table, clear it
-        #     if bounced_email_exists:
-        #         self.email = None
-        # else:
-        #     print('this is the case where there is no email')
-        #     # If there's already an email set, keep it unless a new email is provided
-        #     existing_company = Company.objects.filter(pk=self.pk).first()
-        #     if existing_company and existing_company.email:
-        #         self.email = existing_company.email
-
-        # Save the object
+        # Save the company
         super().save(*args, **kwargs)
 
         # Cache keys
         cache_key = f"cache_company_{self.slug}"
-
-        # Invalidate the cache
         cache.delete(cache_key)
-
-        # Re-cache the company object
         cache.set(cache_key, self, timeout=60 * 60 * 24)  # Cache for 24 hours
+
+        # Send a Slack notification if changes were detected
+        if changes:
+            self.send_slack_notification(changes)
 
     def delete(self, *args, **kwargs):
         # Cache keys
@@ -200,6 +211,7 @@ class Company(BaseModel):
 
         # Delete the object
         super().delete(*args, **kwargs)
+
 
 
 class RequestLog(BaseModel):
@@ -522,4 +534,5 @@ class Source(BaseModel):
 #     position = models.CharField(max_length=255)
 #     start_date = models.DateField()
 #     end_date = models.DateField()
+#     skills = models.ManyToManyField('Skill')
 #     skills = models.ManyToManyField('Skill')
