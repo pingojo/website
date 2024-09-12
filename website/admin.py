@@ -10,22 +10,9 @@ from django.template.response import TemplateResponse
 from django.urls import path
 
 from .admin_actions import merge_companies_action
-from .models import (
-    Application,
-    BouncedEmail,
-    Company,
-    Email,
-    Job,
-    Link,
-    Profile,
-    Prompt,
-    RequestLog,
-    Role,
-    Search,
-    Skill,
-    Source,
-    Stage,
-)
+from .models import (Application, BouncedEmail, Company, Email, Job, Link,
+                     Profile, Prompt, RequestLog, Role, Search, Skill, Source,
+                     Stage)
 
 
 class CompanyAdmin(admin.ModelAdmin):
@@ -252,9 +239,9 @@ class ProfileAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Link)
-class LinkAdmin(admin.ModelAdmin):
-    list_display = [field.name for field in Link._meta.get_fields()]
+# @admin.register(Link)
+# class LinkAdmin(admin.ModelAdmin):
+#     #list_display = [field.name for field in Link._meta.get_fields()]
 
 @admin.register(RequestLog)
 class RequestLogAdmin(admin.ModelAdmin):

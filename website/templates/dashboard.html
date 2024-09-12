@@ -495,14 +495,14 @@
                 <div class="pagination">
                     <span class="step-links">
                         {% if page_obj.has_previous %}
-                            <a href="{% querystring %}&page=1">&laquo; first</a>
+                            <a href="{% querystring page=1 %}">&laquo; first</a>
                             <a href="{% querystring page=page_obj.previous_page_number %}">previous</a>
                         {% endif %}
                         {% for i in page_obj.paginator.page_range %}
                             {% if page_obj.number == i %}
                                 <span class="current">{{ i }}</span>
                             {% else %}
-                                <a href="{% querystring %}&page={{ i }} ">{{ i }}</a>
+                                <a href="{% querystring page=i %}">{{ i }}</a>
                             {% endif %}
                         {% endfor %}
                         {% if page_obj.has_next %}
