@@ -999,6 +999,10 @@ class AddJobLink(APIView):
         else:
 
             company_name = data.get("company", "").strip()
+            if not company_name:
+                return JsonResponse(
+                    {"error": "Company name is required."}, status=400
+                )
             role_title = data.get("title", "").strip()
 
             posted_date = data.get("datePosted")
@@ -1011,7 +1015,7 @@ class AddJobLink(APIView):
                 location = data.get("location", " ").strip()
             else:
                 location = " "
-            website = data.get("website", " ").strip()
+            website = data.get("website", "").strip()
             country = data.get("companyAddress", " ").strip()
             if country and not location:
                 location = country
@@ -1041,28 +1045,25 @@ class AddJobLink(APIView):
                 role, _ = Role.objects.get_or_create(
                     slug=role_slug, defaults={"title": data.get("title", "").strip()[:50]}
                 )
-            if CompanyEmail:
+            company_defaults = {
+                "name": company_name,
+                "country": country,
+                "phone": CompanyPhone,
+            }
 
-                company, _ = Company.objects.update_or_create(
-                    slug=slugify(company_name).strip()[:50],
-                    defaults={
-                        "name": company_name,
-                        "website": website,
-                        "country": country,
-                        "email": CompanyEmail,
-                        "phone": CompanyPhone,
-                    },
-                )
-            else:
-                company, _ = Company.objects.update_or_create(
-                    slug=slugify(company_name).strip()[:50],
-                    defaults={
-                        "name": company_name,
-                        "website": website,
-                        "country": country,
-                        "phone": CompanyPhone,
-                    },
-                )
+            # Only add the email if it's provided
+            if CompanyEmail:
+                company_defaults["email"] = CompanyEmail
+
+            # Only add the website if it's provided
+            if website:
+                company_defaults["website"] = website
+
+            # Update or create the company using the defaults
+            company, _ = Company.objects.update_or_create(
+                slug=slugify(company_name).strip()[:50],
+                defaults=company_defaults,
+            )
 
             if description:
                 converter = html2text.HTML2Text()
