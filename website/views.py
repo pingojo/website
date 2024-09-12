@@ -1507,12 +1507,12 @@ class DashboardView(LoginRequiredMixin, ListView):
             ).filter(resume_views__gt=0)
             today = timezone.now().date()
             applications = applications.annotate(
-                days_since_last_email=ExpressionWrapper(
+                days_since_last_email_sort=ExpressionWrapper(
                     Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
                     output_field=DurationField(),
                 )
             ).annotate(
-                days_int=ExtractDay(F("days_since_last_email"))
+                days_int=ExtractDay(F("days_since_last_email_sort"))
             ).order_by(f"{order_prefix}days_int")
             
         else:
