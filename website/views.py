@@ -1385,35 +1385,35 @@ class CompanyJobDetailView(DetailView):
                 cache.set(next_company_cache_key, next_company, timeout=60 * 60 * 24)  # Cache for 24 hours
         return next_company
 
-    def update_website_status(self, company):
-        """
-        Update the website status of the company.
-        """
-        website_status_cache_key = f"website_status_{company.id}"
-        website_status_info = cache.get(website_status_cache_key)
+    # def update_website_status(self, company):
+    #     """
+    #     Update the website status of the company.
+    #     """
+    #     website_status_cache_key = f"website_status_{company.id}"
+    #     website_status_info = cache.get(website_status_cache_key)
 
-        if not website_status_info:
-            if not company.website_status_updated or (timezone.now() - company.website_status_updated).days >= 7:
-                website = company.website or f"https://{company.slug}.com"
-                try:
-                    response = requests.get(website, timeout=10)
-                    company.website_status_updated = timezone.now()
-                    if not company.website and company.name.lower() in response.text.lower():
-                        company.website = response.url
-                    company.website_status = response.status_code
-                except RequestException:
-                    company.website_status = 500
-                    company.website_status_updated = timezone.now()
-                finally:
-                    company.save(update_fields=["website", "website_status", "website_status_updated"])
-                    website_status_info = {
-                        "website_status": company.website_status,
-                        "website_status_updated": company.website_status_updated,
-                        "website": company.website,
-                    }
-                    cache.set(website_status_cache_key, website_status_info, timeout=60 * 60 * 24)
+    #     if not website_status_info:
+    #         if not company.website_status_updated or (timezone.now() - company.website_status_updated).days >= 7:
+    #             website = company.website or f"https://{company.slug}.com"
+    #             try:
+    #                 response = requests.get(website, timeout=10)
+    #                 company.website_status_updated = timezone.now()
+    #                 if not company.website and company.name.lower() in response.text.lower():
+    #                     company.website = response.url
+    #                 company.website_status = response.status_code
+    #             except RequestException:
+    #                 company.website_status = 500
+    #                 company.website_status_updated = timezone.now()
+    #             finally:
+    #                 company.save(update_fields=["website", "website_status", "website_status_updated"])
+    #                 website_status_info = {
+    #                     "website_status": company.website_status,
+    #                     "website_status_updated": company.website_status_updated,
+    #                     "website": company.website,
+    #                 }
+    #                 cache.set(website_status_cache_key, website_status_info, timeout=60 * 60 * 24)
 
-        return website_status_info
+    #     return website_status_info
 
     def get_context_data(self, **kwargs):
         obj = self.get_object()
@@ -1428,14 +1428,14 @@ class CompanyJobDetailView(DetailView):
             self.get_user_applications(jobs, self.request.user)  # Attach user applications to jobs
             context['jobs'] = jobs
             context["next_company"] = self.get_next_company(obj)
-            context["website_status_info"] = self.update_website_status(obj)
+            #context["website_status_info"] = self.update_website_status(obj)
         elif isinstance(obj, Job):
             company = obj.company
             jobs = company.job_set.all()
             self.get_user_applications(jobs, self.request.user)
             context['jobs'] = jobs
             context["next_company"] = self.get_next_company(obj.company)
-            context["website_status_info"] = self.update_website_status(obj.company)
+            #context["website_status_info"] = self.update_website_status(obj.company)
 
         return context
 
