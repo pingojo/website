@@ -1506,8 +1506,14 @@ class DashboardView(LoginRequiredMixin, ListView):
         }
 
         if view_param == "resume_view":
+            hide_passed = self.request.GET.get("hide_passed")
             # Only fetch applications with resume views...
-            applications = Application.objects.filter(user=user)
+            if hide_passed:
+                applications = Application.objects.filter(
+                    user=user
+                ).exclude(stage__name="Passed")
+            else:
+                applications = Application.objects.filter(user=user)
             applications = applications.annotate(
                 resume_views=Count(
                     "company__requestlog",
