@@ -495,8 +495,8 @@ def update_company(request, company_id):
         if email and not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return JsonResponse({"success": False, "error": "Invalid email address"})
 
-        if not company.email:
-            company.email = email or company.email
+        if email:
+            company.email = email
 
         if not company.twitter_url:
             company.twitter_url = request.POST.get("twitter_url") or company.twitter_url
@@ -602,16 +602,17 @@ def update_email(request):
                 return JsonResponse({"error": "Invalid email address"}, status=400)
 
             if application.user == request.user and new_email:
-                application.job.company.email = new_email
-                application.job.company.save()
-                application.job.company.refresh_from_db()
-                return render(
-                    request,
-                    "partials/email.html",
-                    {
-                        "application": application,
-                    },
-                )
+                if new_email and re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
+                    application.job.company.email = new_email
+                    application.job.company.save()
+                    application.job.company.refresh_from_db()
+                    return render(
+                        request,
+                        "partials/email.html",
+                        {
+                            "application": application,
+                        },
+                    )
         new_role = request.POST.get("role", None)
 
         if new_role:
