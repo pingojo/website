@@ -2,6 +2,7 @@ import os
 import re
 import tempfile
 from datetime import datetime, time, timedelta
+from datetime import timezone as dt_timezone
 
 import html2text
 import requests
@@ -426,7 +427,6 @@ from django.contrib.sessions.models import Session
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
 
 from .models import Company, Job, Role
 
@@ -640,7 +640,8 @@ class JobListView(ListView):
     context_object_name = "jobs"
     paginate_by = 50
     queryset = None
-    server_time = timezone.now()
+    from django.utils import timezone  # Ensure this is imported
+    server_time = timezone.now()  # Django's timezone handling
     server_timestamp = int(server_time.timestamp() * 1000)
 
     def dispatch(self, *args, **kwargs):
@@ -1225,16 +1226,14 @@ class ApplicationView(APIView):
             application.stage = stage
 
         if not created and application.date_applied and original_date:
-            original_date = timezone.make_aware(
-                original_date, timezone.get_current_timezone()
-            )
+            original_date = make_aware(original_date, timezone.get_default_timezone())
+
 
             if application.date_applied > original_date:
                 application.date_applied = original_date
         if created:
-            original_date = timezone.make_aware(
-                original_date, timezone.get_current_timezone()
-            )
+            original_date = make_aware(original_date, timezone.get_default_timezone())
+
 
             if application.date_applied > original_date:
                 application.date_applied = original_date
@@ -1292,7 +1291,7 @@ class ApplicationView(APIView):
         now_et = now_server + et_offset
 
         start_time_et = datetime.combine(now_et.date(), time.min).replace(
-            tzinfo=timezone.utc
+            tzinfo=dt_timezone.utc
         )
 
         start_time_server = start_time_et - et_offset
@@ -1310,7 +1309,6 @@ class ApplicationView(APIView):
 
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from django.views.generic import DetailView
 from requests.exceptions import RequestException
 
@@ -1462,14 +1460,12 @@ def scrape_job(request):
     return JsonResponse({"job_title": job_title, "company_name": company_name})
 
 
-from datetime import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import (Avg, Count, DecimalField, ExpressionWrapper, F,
                               Prefetch, Q, Value)
 from django.db.models.functions import Coalesce, TruncDay
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from django.utils.timezone import timedelta
 from django.views.generic import ListView
 
