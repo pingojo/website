@@ -495,19 +495,19 @@
                 <div class="pagination">
                     <span class="step-links">
                         {% if page_obj.has_previous %}
-                            <a href="?stage={{ stage }}{% if request.GET.view %}&view={{ request.GET.view }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}&page=1">&laquo; first</a>
-                            <a href="?stage={{ stage }}{% if request.GET.view %}&view={{ request.GET.view }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}&page={{ page_obj.previous_page_number }}">previous</a>
+                            <a href="{% querystring page=1 %}">&laquo; first</a>
+                            <a href="{% querystring page=page_obj.previous_page_number %}">previous</a>
                         {% endif %}
                         {% for i in page_obj.paginator.page_range %}
                             {% if page_obj.number == i %}
                                 <span class="current">{{ i }}</span>
                             {% else %}
-                                <a href="?page={{ i }}&stage={{ stage }}{% if request.GET.view %}&view={{ request.GET.view }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}">{{ i }}</a>
+                                <a href="{% querystring page=i %}">{{ i }}</a>
                             {% endif %}
                         {% endfor %}
                         {% if page_obj.has_next %}
-                            <a href="?stage={{ stage }}{% if request.GET.view %}&view={{ request.GET.view }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}&page={{ page_obj.next_page_number }}">next</a>
-                            <a href="?stage={{ stage }}{% if request.GET.view %}&view={{ request.GET.view }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.sort_order %}&sort_order={{ request.GET.sort_order }}{% endif %}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                            <a href="{% querystring page=page_obj.next_page_number }}">next</a>
+                            <a href="{% querystring page=page_obj.num_pages %}">last &raquo;</a>
                         {% endif %}
                     </span>
                 </div>
