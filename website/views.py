@@ -1765,7 +1765,7 @@ def resume_view(request, slug):
                         user=profile.user, company=company
                     )
                     # If status = passed, then show 404
-                    if applications.filter(stage__name="Passed").exists():
+                    if not applications.exclude(stage__name="Passed").exists():
                         raise Http404
 
                     if not applications:
