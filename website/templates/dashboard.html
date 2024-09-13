@@ -125,13 +125,13 @@
            class="stage offer"
            style="color:white;
                   text-decoration: none">
-            Offer <span class="number">0</span>
+            Offer <span class="number">{{ stages.3.count|default:0 }}</span>
         </a>
         <a href="/dashboard/?stage=Passed"
            class="stage passed"
            style="color:white;
                   text-decoration: none">
-            Passed <span class="number">{{ stages.3.count|default:0 }}</span>
+            Passed <span class="number">{{ stages.4.count|default:0 }}</span>
         </a>
     </div>
     <br>
