@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 {% include 'sidebar.html' %}
     <h1>Resume Clicks for {{ company.name }}</h1>
-
+    <div style="margin-left:150px;">
     {% if resume_clicks %}
         <table>
             <thead>
@@ -32,4 +33,5 @@
     {% else %}
         <p>No resume clicks recorded for this company.</p>
     {% endif %}
+    </div>
 {% endblock %}
