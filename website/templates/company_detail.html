@@ -3,9 +3,9 @@
 {% load humanize %}
 {% block seo_header %}
     {% if job %}
-        <title>{{ job.title }} at {{ job.company.name }}</title>
+        <title>{{ job.role|default:job.title }} at {{ job.company.name }}</title>
         <meta name="description"
-              content="{{ job.description|striptags|truncatechars:155 }}">
+              content="{{ job.description_markdown|striptags|truncatechars:155 }}">
         <meta name="keywords" content="{{ job.job_type }}, {{ job.location }}">
     {% else %}
         <title>{{ company.name }} - Jobs</title>
