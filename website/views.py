@@ -16,8 +16,18 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import (Count, DurationField, ExpressionWrapper, F,
-                              IntegerField, Max, Min, Q, Sum, Value)
+from django.db.models import (
+    Count,
+    DurationField,
+    ExpressionWrapper,
+    F,
+    IntegerField,
+    Max,
+    Min,
+    Q,
+    Sum,
+    Value,
+)
 from django.db.models.functions import Coalesce, ExtractDay, TruncDay
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -41,10 +51,30 @@ from rest_framework.views import APIView
 from website.models import Application, Company, Email, Job, Role, Stage
 from website.utils import get_website_title
 
-from .forms import (CompanyUpdateForm, EditAccountForm, JobForm, LinkForm,
-                    ProfileForm, PromptForm, ResumeUploadForm)
-from .models import (Application, BouncedEmail, Company, Job, Link, Profile,
-                     Prompt, RequestLog, Role, Search, Skill, Source, User)
+from .forms import (
+    CompanyUpdateForm,
+    EditAccountForm,
+    JobForm,
+    LinkForm,
+    ProfileForm,
+    PromptForm,
+    ResumeUploadForm,
+)
+from .models import (
+    Application,
+    BouncedEmail,
+    Company,
+    Job,
+    Link,
+    Profile,
+    Prompt,
+    RequestLog,
+    Role,
+    Search,
+    Skill,
+    Source,
+    User,
+)
 from .parse_resume import parse_resume
 
 
@@ -627,8 +657,7 @@ def update_email(request):
     return JsonResponse({"error": "Invalid Method or Missing email field"}, status=400)
 
 
-from django.contrib.postgres.search import (SearchQuery, SearchRank,
-                                            SearchVector)
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db.models import Case, Count, IntegerField, Q, Value, When
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -982,7 +1011,7 @@ class AddJobLink(APIView):
             link = data.get("link")
             link_parts = link.split("/")
             job_slug = link_parts[-1]
-            job = Job.objects.filter(link__endswith=job_slug).first()
+            job = Job.objects.filter(link__contains=job_slug).first()
             if job:
                 job.link_status_code = 410
                 job.link_status_code_updated = timezone.now()
@@ -1474,8 +1503,16 @@ def scrape_job(request):
 
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import (Avg, Count, DecimalField, ExpressionWrapper, F,
-                              Prefetch, Q, Value)
+from django.db.models import (
+    Avg,
+    Count,
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    Prefetch,
+    Q,
+    Value,
+)
 from django.db.models.functions import Coalesce, TruncDay
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import timedelta
