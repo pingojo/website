@@ -198,9 +198,15 @@ else:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
-    DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL", ""))}
-if os.getenv("DATABASE_URL", ""):
-    DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL", ""))}
+    try:
+        DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL", ""))}
+    except Exception as e:
+        print("Error parsing DATABASE_URL", e)'
+        print("env file is lolcated at", os.path.join(BASE_DIR, '.env'))
+        print("DATABASE_URL is", os.getenv("DATABASE_URL", ""))
+        print("BASE_DIR is", BASE_DIR)
+        length_of_file = os.path.getsize(os.path.join(BASE_DIR, '.env'))
+        print("length of the .env file is ", length_of_file)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
