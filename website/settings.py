@@ -10,6 +10,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TESTING = "test" in sys.argv
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from sentry_sdk.integrations.django import DjangoIntegration
 
 if os.environ.get("SENTRY_DSN"):
