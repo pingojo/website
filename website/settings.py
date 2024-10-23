@@ -24,7 +24,7 @@ if os.environ.get("SENTRY_DSN"):
     )
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "secret")
-DEBUG = "RENDER" not in os.environ
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "www.pingojo.com",
