@@ -1,21 +1,21 @@
 import os
 import socket
 import sys
-from pathlib import Path
 
 import dj_database_url
 import sentry_sdk
+from dotenv import load_dotenv
+from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 TESTING = "test" in sys.argv
 
-from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-from sentry_sdk.integrations.django import DjangoIntegration
 
 if os.getenv("SENTRY_DSN"):
     sentry_sdk.init(
