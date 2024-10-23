@@ -17,9 +17,9 @@ load_dotenv()
 
 from sentry_sdk.integrations.django import DjangoIntegration
 
-if os.environ.get("SENTRY_DSN"):
+if os.getenv("SENTRY_DSN"):
     sentry_sdk.init(
-        dsn=os.environ.get("SENTRY_DSN", "sentry_dsn"),
+        dsn=os.getenv("SENTRY_DSN", "sentry_dsn"),
         integrations=[
             DjangoIntegration(),
         ],
@@ -28,14 +28,14 @@ if os.environ.get("SENTRY_DSN"):
         profiles_sample_rate=1,
     )
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "secret")
+SECRET_KEY = os.getenv("SECRET_KEY", "secret")
 DEBUG = False
 
 ALLOWED_HOSTS = [
     "www.pingojo.com",
     "pingojo.com",
     "127.0.0.1",
-    os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost"),
+    os.getenv("RENDER_EXTERNAL_HOSTNAME", "localhost"),
     "localhost",
 ]
 ALLOWED_HOSTS.append(socket.getaddrinfo(socket.gethostname(), "http")[0][4][0])
@@ -107,7 +107,7 @@ DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK": show_toolbar,
 }
 
-ENABLE_DEBUG_TOOLBAR = os.environ.get("ENABLE_DEBUG_TOOLBAR", True)
+ENABLE_DEBUG_TOOLBAR = os.getenv("ENABLE_DEBUG_TOOLBAR", True)
 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
@@ -198,9 +198,9 @@ else:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
-    DATABASES = {"default": dj_database_url.parse(os.environ.get("DATABASE_URL", ""))}
-if os.environ.get("DATABASE_URL", ""):
-    DATABASES = {"default": dj_database_url.parse(os.environ.get("DATABASE_URL", ""))}
+    DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL", ""))}
+if os.getenv("DATABASE_URL", ""):
+    DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL", ""))}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -269,21 +269,21 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 # used for generating unique urls that can't be guessed
-HASHID_FIELD_SALT = os.environ.get("HASHID_FIELD_SALT", "salt123")
+HASHID_FIELD_SALT = os.getenv("HASHID_FIELD_SALT", "salt123")
 
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "your_sendgrid_api_key")
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "your_sendgrid_api_key")
     EMAIL_HOST = "smtp.sendgrid.net"
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "apikey")
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "apikey")
     EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "email@server.com")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "email@server.com")
 
-SLACK_WEBHOOK_URL = os.environ.get(
+SLACK_WEBHOOK_URL = os.getenv(
     "SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/your_slack_webhook_url"
 )
 
@@ -303,7 +303,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-GPT_KEY = os.environ.get("GPT_KEY", "your_gpt_key")
+GPT_KEY = os.getenv("GPT_KEY", "your_gpt_key")
 
 import os
 
