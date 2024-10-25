@@ -1,7 +1,7 @@
 from django.db import migrations, models
 
-
 class Migration(migrations.Migration):
+
     dependencies = [
         ("website", "0032_company_phone_job_remote"),
     ]
@@ -10,15 +10,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="job",
             name="search_vector",
-            field=models.TextField(null=True),  # Replacing SearchVectorField with TextField
-        ),
-        migrations.AddIndex(
-            model_name="job",
-            index=models.Index(
-                fields=["search_vector"], name="website_job_search_vector_idx"
-            ),  # Creating a regular index with key length
+            field=models.TextField(null=True),
         ),
         migrations.RunSQL(
-            "CREATE INDEX website_job_search_vector_idx ON website_job (search_vector(255));"
-        ),  # Specifying key length for TEXT field index
+            "ALTER TABLE website_job ADD FULLTEXT (search_vector);"
+        ),  # Adding FULLTEXT index for text search
     ]
