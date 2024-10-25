@@ -16,9 +16,9 @@ class Migration(migrations.Migration):
             model_name="job",
             index=models.Index(
                 fields=["search_vector"], name="website_job_search_vector_idx"
-            ),  # Replace GinIndex with Index
+            ),  # Creating a regular index with key length
         ),
         migrations.RunSQL(
-            "ALTER TABLE website_job ADD FULLTEXT(search_vector);"
-        ),  # Adding FULLTEXT index for MySQL
+            "CREATE INDEX website_job_search_vector_idx ON website_job (search_vector(255));"
+        ),  # Specifying key length for TEXT field index
     ]
