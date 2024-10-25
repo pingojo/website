@@ -201,7 +201,7 @@ else:
     try:
         DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL", ""))}
     except Exception as e:
-        print("Error parsing DATABASE_URL", e)'
+        print("Error parsing DATABASE_URL", e)
         print("env file is lolcated at", os.path.join(BASE_DIR, '.env'))
         print("DATABASE_URL is", os.getenv("DATABASE_URL", ""))
         print("BASE_DIR is", BASE_DIR)
