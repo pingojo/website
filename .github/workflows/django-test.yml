@@ -21,6 +21,10 @@ jobs:
         with:
           node-version: '16'
 
+      # Install @supabase/supabase-js dependency
+      - name: Install Dependencies
+        run: npm install @supabase/supabase-js
+
       # Run the test script
       - name: Run Website Field Test
         run: |
