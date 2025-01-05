@@ -1,1 +1,60 @@
-404
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Company Page</title>
+    <script type="module">
+        // Import Supabase Client
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        // Supabase credentials
+        const supabaseUrl = "https://your-supabase-url.supabase.co";
+        const supabaseKey = "your-public-anon-key";
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // Dynamic Routing Logic
+        document.addEventListener("DOMContentLoaded", async () => {
+            const path = window.location.pathname;
+
+            // Check if the URL matches /company/slug/
+            const match = path.match(/^\/company\/([^/]+)\/?$/);
+            if (match) {
+                const slug = match[1]; // Extract the slug
+                const contentDiv = document.getElementById("content");
+
+                try {
+                    // Fetch company data from Supabase
+                    const { data, error } = await supabase
+                        .from("companies")
+                        .select("*")
+                        .eq("slug", slug)
+                        .single();
+
+                    if (error || !data) {
+                        contentDiv.innerHTML = `<h1>Company Not Found</h1>`;
+                    } else {
+                        // Render company data
+                        contentDiv.innerHTML = `
+                            <h1>${data.name}</h1>
+                            <p>${data.description}</p>
+                            <p><strong>Website:</strong> <a href="${data.website}" target="_blank">${data.website}</a></p>
+                        `;
+                    }
+                } catch (err) {
+                    console.error("Error fetching company data:", err);
+                    contentDiv.innerHTML = `<h1>Error Loading Company Data</h1>`;
+                }
+            } else {
+                // If not matching /company/slug/, show default 404 page
+                document.body.innerHTML = `<h1>404 Not Found</h1>`;
+            }
+        });
+    </script>
+</head>
+<body>
+    <div id="content">
+        <h1>Loading...</h1>
+    </div>
+</body>
+</html>
