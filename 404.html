@@ -32,18 +32,30 @@
                         .single();
 
                     if (error || !data) {
-                        contentDiv.innerHTML = `<h1>Company Not Found</h1>`;
-                    } else {
-                        // Render company data
                         contentDiv.innerHTML = `
-                            <h1>${data.name}</h1>
-                            <p>${data.description}</p>
-                            <p><strong>Website:</strong> <a href="${data.website}" target="_blank">${data.website}</a></p>
+                            <h1>404 Not Found</h1>
+                            <p>The company with slug <strong>"${slug}"</strong> does not exist.</p>
                         `;
+                    } else {
+                        // Load HTML template and populate it
+                        const response = await fetch("/company.html");
+                        const template = await response.text();
+
+                        // Replace placeholders with dynamic data
+                        const populatedTemplate = template
+                            .replace("{{name}}", data.name)
+                            .replace("{{description}}", data.description)
+                            .replace("{{website}}", data.website);
+
+                        // Inject the populated template into the content div
+                        contentDiv.innerHTML = populatedTemplate;
                     }
                 } catch (err) {
                     console.error("Error fetching company data:", err);
-                    contentDiv.innerHTML = `<h1>Error Loading Company Data</h1>`;
+                    contentDiv.innerHTML = `
+                        <h1>Error Loading Company Data</h1>
+                        <p>There was an error loading the data for slug <strong>"${slug}"</strong>.</p>
+                    `;
                 }
             } else {
                 // If not matching /company/slug/, show default 404 page
