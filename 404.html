@@ -23,7 +23,7 @@
                 supabase = createClient(supabaseUrl, supabaseKey);
 
                 // Test the connection by performing a simple request
-                const { error } = await supabase.from("companies").select("*").limit(1);
+                const { error } = await supabase.from("company").select("*").limit(1);
                 if (error) {
                     throw new Error("Supabase connection test failed: " + error.message);
                 }
