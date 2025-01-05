@@ -19,9 +19,10 @@
 
             // Check if the URL matches /company/slug/
             const match = path.match(/^\/company\/([^/]+)\/?$/);
+            const contentDiv = document.getElementById("content");
+
             if (match) {
                 const slug = match[1]; // Extract the slug
-                const contentDiv = document.getElementById("content");
 
                 try {
                     // Fetch company data from Supabase
@@ -35,6 +36,7 @@
                         contentDiv.innerHTML = `
                             <h1>404 Not Found</h1>
                             <p>The company with slug <strong>"${slug}"</strong> does not exist.</p>
+                            <p>Route: <code>${path}</code></p>
                         `;
                     } else {
                         // Load HTML template and populate it
@@ -55,11 +57,15 @@
                     contentDiv.innerHTML = `
                         <h1>Error Loading Company Data</h1>
                         <p>There was an error loading the data for slug <strong>"${slug}"</strong>.</p>
+                        <p>Route: <code>${path}</code></p>
                     `;
                 }
             } else {
-                // If not matching /company/slug/, show default 404 page
-                document.body.innerHTML = `<h1>404 Not Found</h1>`;
+                // If not matching /company/slug/, show default 404 page with route
+                contentDiv.innerHTML = `
+                    <h1>404 Not Found</h1>
+                    <p>Route: <code>${path}</code></p>
+                `;
             }
         });
     </script>
