@@ -9,22 +9,24 @@
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
         // Supabase credentials
-        const supabaseUrl = "https://your-supabase-url.supabase.co";
-        const supabaseKey = "your-public-anon-key";
+        const supabaseUrl = "https://your-supabase-url.supabase.co"; // Replace with your Supabase URL
+        const supabaseKey = "your-public-anon-key"; // Replace with your Supabase Key
 
         // Initialize Supabase Client
         let supabase;
+        let connectionError = null;
+
         try {
             supabase = createClient(supabaseUrl, supabaseKey);
+
+            // Test the connection by performing a simple request
+            const { error } = await supabase.from("companies").select("*").limit(1);
+            if (error) {
+                throw new Error("Supabase connection test failed: " + error.message);
+            }
         } catch (error) {
             console.error("Error initializing Supabase:", error);
-            document.addEventListener("DOMContentLoaded", () => {
-                const contentDiv = document.getElementById("content");
-                contentDiv.innerHTML = `
-                    <h1>Supabase Initialization Error</h1>
-                    <p>There was an error connecting to the database. Please try again later.</p>
-                `;
-            });
+            connectionError = error.message;
         }
 
         // Dynamic Routing Logic
@@ -32,17 +34,18 @@
             const path = window.location.pathname;
             const contentDiv = document.getElementById("content");
 
-            // Check if the URL matches /company/slug/
-            const match = path.match(/^\/company\/([^/]+)\/?$/);
-
-            if (!supabase) {
+            if (connectionError) {
                 contentDiv.innerHTML = `
                     <h1>Supabase Connection Error</h1>
-                    <p>The Supabase connection could not be established. Please check your credentials or network.</p>
+                    <p>There was an error connecting to the database. Please check your Supabase URL and key.</p>
+                    <p>Error Details: <code>${connectionError}</code></p>
                     <p>Route: <code>${path}</code></p>
                 `;
                 return;
             }
+
+            // Check if the URL matches /company/slug/
+            const match = path.match(/^\/company\/([^/]+)\/?$/);
 
             if (match) {
                 const slug = match[1]; // Extract the slug
