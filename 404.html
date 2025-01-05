@@ -59,7 +59,7 @@
                     // Fetch company data from Supabase
                     const { data, error } = await supabase
                         .from("company")
-                        .select("name")
+                        .select("name, description, website")
                         .eq("slug", slug)
                         .single();
 
@@ -71,10 +71,15 @@
                         throw new Error(`No data found for slug: "${slug}"`);
                     }
 
+                    // Define the template path
+                    const templatePath = "/website/website/templates/company_detail.html";
+
                     // Load HTML template and populate it
-                    const response = await fetch("/website/website/templates/company_detail.html");
+                    const response = await fetch(templatePath);
                     if (!response.ok) {
-                        throw new Error("Failed to load company.html template.");
+                        throw new Error(
+                            `Failed to load template. Attempted path: "${templatePath}". Status: ${response.status}`
+                        );
                     }
 
                     const template = await response.text();
@@ -82,8 +87,8 @@
                     // Replace placeholders with dynamic data
                     const populatedTemplate = template
                         .replace("{{name}}", data.name)
-                        .replace("{{description}}", data.description)
-                        .replace("{{website}}", data.website);
+                        .replace("{{description}}", data.description || "No description available.")
+                        .replace("{{website}}", data.website || "No website provided.");
 
                     // Inject the populated template into the content div
                     contentDiv.innerHTML = populatedTemplate;
@@ -95,11 +100,13 @@
                     `;
                 }
             } catch (err) {
+                // Include detailed debugging information for errors
+                const currentPath = window.location.href;
                 contentDiv.innerHTML = `
                     <h1>Error</h1>
                     <p>Something went wrong while processing your request.</p>
                     <p>Error Details: <code>${err.message}</code></p>
-                    <p>Route: <code>${path}</code></p>
+                    <p>Current Path: <code>${currentPath}</code></p>
                 `;
             }
         }
