@@ -11,15 +11,38 @@
         // Supabase credentials
         const supabaseUrl = "https://your-supabase-url.supabase.co";
         const supabaseKey = "your-public-anon-key";
-        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // Initialize Supabase Client
+        let supabase;
+        try {
+            supabase = createClient(supabaseUrl, supabaseKey);
+        } catch (error) {
+            console.error("Error initializing Supabase:", error);
+            document.addEventListener("DOMContentLoaded", () => {
+                const contentDiv = document.getElementById("content");
+                contentDiv.innerHTML = `
+                    <h1>Supabase Initialization Error</h1>
+                    <p>There was an error connecting to the database. Please try again later.</p>
+                `;
+            });
+        }
 
         // Dynamic Routing Logic
         document.addEventListener("DOMContentLoaded", async () => {
             const path = window.location.pathname;
+            const contentDiv = document.getElementById("content");
 
             // Check if the URL matches /company/slug/
             const match = path.match(/^\/company\/([^/]+)\/?$/);
-            const contentDiv = document.getElementById("content");
+
+            if (!supabase) {
+                contentDiv.innerHTML = `
+                    <h1>Supabase Connection Error</h1>
+                    <p>The Supabase connection could not be established. Please check your credentials or network.</p>
+                    <p>Route: <code>${path}</code></p>
+                `;
+                return;
+            }
 
             if (match) {
                 const slug = match[1]; // Extract the slug
@@ -57,6 +80,7 @@
                     contentDiv.innerHTML = `
                         <h1>Error Loading Company Data</h1>
                         <p>There was an error loading the data for slug <strong>"${slug}"</strong>.</p>
+                        <p>Error Details: <code>${err.message}</code></p>
                         <p>Route: <code>${path}</code></p>
                     `;
                 }
