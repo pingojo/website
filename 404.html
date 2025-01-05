@@ -16,41 +16,46 @@
         let supabase;
         let connectionError = null;
 
-        try {
-            supabase = createClient(supabaseUrl, supabaseKey);
-
-            // Test the connection by performing a simple request
-            const { error } = await supabase.from("companies").select("*").limit(1);
-            if (error) {
-                throw new Error("Supabase connection test failed: " + error.message);
-            }
-        } catch (error) {
-            console.error("Error initializing Supabase:", error);
-            connectionError = error.message;
-        }
-
-        // Dynamic Routing Logic
-        document.addEventListener("DOMContentLoaded", async () => {
-            const path = window.location.pathname;
+        async function initializeSupabase() {
             const contentDiv = document.getElementById("content");
 
-            if (connectionError) {
+            try {
+                supabase = createClient(supabaseUrl, supabaseKey);
+
+                // Test the connection by performing a simple request
+                const { error } = await supabase.from("companies").select("*").limit(1);
+                if (error) {
+                    throw new Error("Supabase connection test failed: " + error.message);
+                }
+            } catch (error) {
+                connectionError = error.message;
                 contentDiv.innerHTML = `
                     <h1>Supabase Connection Error</h1>
                     <p>There was an error connecting to the database. Please check your Supabase URL and key.</p>
                     <p>Error Details: <code>${connectionError}</code></p>
+                `;
+            }
+        }
+
+        // Dynamic Routing Logic
+        async function handleRouting() {
+            const path = window.location.pathname;
+            const contentDiv = document.getElementById("content");
+
+            if (connectionError) {
+                contentDiv.innerHTML += `
                     <p>Route: <code>${path}</code></p>
                 `;
                 return;
             }
 
-            // Check if the URL matches /company/slug/
-            const match = path.match(/^\/company\/([^/]+)\/?$/);
+            try {
+                // Check if the URL matches /company/slug/
+                const match = path.match(/^\/company\/([^/]+)\/?$/);
 
-            if (match) {
-                const slug = match[1]; // Extract the slug
+                if (match) {
+                    const slug = match[1]; // Extract the slug
 
-                try {
                     // Fetch company data from Supabase
                     const { data, error } = await supabase
                         .from("companies")
@@ -58,40 +63,58 @@
                         .eq("slug", slug)
                         .single();
 
-                    if (error || !data) {
-                        contentDiv.innerHTML = `
-                            <h1>404 Not Found</h1>
-                            <p>The company with slug <strong>"${slug}"</strong> does not exist.</p>
-                            <p>Route: <code>${path}</code></p>
-                        `;
-                    } else {
-                        // Load HTML template and populate it
-                        const response = await fetch("/company.html");
-                        const template = await response.text();
-
-                        // Replace placeholders with dynamic data
-                        const populatedTemplate = template
-                            .replace("{{name}}", data.name)
-                            .replace("{{description}}", data.description)
-                            .replace("{{website}}", data.website);
-
-                        // Inject the populated template into the content div
-                        contentDiv.innerHTML = populatedTemplate;
+                    if (error) {
+                        throw new Error(`Error fetching company data: ${error.message}`);
                     }
-                } catch (err) {
-                    console.error("Error fetching company data:", err);
+
+                    if (!data) {
+                        throw new Error(`No data found for slug: "${slug}"`);
+                    }
+
+                    // Load HTML template and populate it
+                    const response = await fetch("/company.html");
+                    if (!response.ok) {
+                        throw new Error("Failed to load company.html template.");
+                    }
+
+                    const template = await response.text();
+
+                    // Replace placeholders with dynamic data
+                    const populatedTemplate = template
+                        .replace("{{name}}", data.name)
+                        .replace("{{description}}", data.description)
+                        .replace("{{website}}", data.website);
+
+                    // Inject the populated template into the content div
+                    contentDiv.innerHTML = populatedTemplate;
+                } else {
+                    // If not matching /company/slug/, show default 404 page with route
                     contentDiv.innerHTML = `
-                        <h1>Error Loading Company Data</h1>
-                        <p>There was an error loading the data for slug <strong>"${slug}"</strong>.</p>
-                        <p>Error Details: <code>${err.message}</code></p>
+                        <h1>404 Not Found</h1>
                         <p>Route: <code>${path}</code></p>
                     `;
                 }
-            } else {
-                // If not matching /company/slug/, show default 404 page with route
+            } catch (err) {
                 contentDiv.innerHTML = `
-                    <h1>404 Not Found</h1>
+                    <h1>Error</h1>
+                    <p>Something went wrong while processing your request.</p>
+                    <p>Error Details: <code>${err.message}</code></p>
                     <p>Route: <code>${path}</code></p>
+                `;
+            }
+        }
+
+        // Run Supabase Initialization and Routing
+        document.addEventListener("DOMContentLoaded", async () => {
+            const contentDiv = document.getElementById("content");
+            try {
+                await initializeSupabase();
+                await handleRouting();
+            } catch (err) {
+                contentDiv.innerHTML = `
+                    <h1>Critical Error</h1>
+                    <p>Unexpected error occurred while loading the page.</p>
+                    <p>Error Details: <code>${err.message}</code></p>
                 `;
             }
         });
