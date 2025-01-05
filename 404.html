@@ -59,7 +59,7 @@
                     // Fetch company data from Supabase
                     const { data, error } = await supabase
                         .from("company")
-                        .select("name, description, website")
+                        .select("name, slug, website")
                         .eq("slug", slug)
                         .single();
 
