@@ -80,8 +80,11 @@ from .parse_resume import parse_resume
 
 def donate(request):
     return render(request, "donate.html")
+
+
 def pricing(request):
     return render(request, "pricing.html")
+
 
 def job_detail_htmx(request, slug):
     job_object = get_object_or_404(Job, slug=slug)
@@ -90,45 +93,51 @@ def job_detail_htmx(request, slug):
         skill, _ = Skill.objects.get_or_create(name=skill)
 
         skill_name_lower = skill.name.lower()  # Convert skill name to lowercase
-        jobs = Job.objects.prefetch_related('skills').all()
+        jobs = Job.objects.prefetch_related("skills").all()
         matching_jobs = jobs.filter(
             description_markdown__icontains=f" {skill_name_lower}"
         )
 
         # Add the skill to each matching job
         for job in matching_jobs:
-            if not job.skills.filter(id=skill.id).exists():  # Check if the skill is already added
+            if not job.skills.filter(
+                id=skill.id
+            ).exists():  # Check if the skill is already added
                 job.skills.add(skill)
 
         # if " " + skill.name.lower() in job.description_markdown.lower():
         #     job.skills.add(skill)
         #     job.save()
     if request.user.is_authenticated:
-        applications = Application.objects.filter(
-            user=request.user, job=job_object
-        )
+        applications = Application.objects.filter(user=request.user, job=job_object)
         stages = Stage.objects.all().order_by("-order")
     else:
         applications = None
         stages = None
-    return render(request, "partials/job_detail_include.html", {"job": job_object, "applications": applications, "stages": stages})
+    return render(
+        request,
+        "partials/job_detail_include.html",
+        {"job": job_object, "applications": applications, "stages": stages},
+    )
+
 
 @login_required
 def view_resume_clicks(request, company_id):
     company = get_object_or_404(Company, id=company_id)
     user_applications = Application.objects.filter(user=request.user, company=company)
-    
+
     if not user_applications.exists():
-        return redirect('dashboard') 
-    
-    resume_clicks = RequestLog.objects.filter(company=company).order_by('-created')
+        return redirect("dashboard")
+
+    resume_clicks = RequestLog.objects.filter(company=company).order_by("-created")
 
     context = {
-        'company': company,
-        'resume_clicks': resume_clicks,
+        "company": company,
+        "resume_clicks": resume_clicks,
     }
-    
-    return render(request, 'resume_clicks.html', context)
+
+    return render(request, "resume_clicks.html", context)
+
 
 @login_required
 def edit_note_view(request, application_id):
@@ -137,9 +146,10 @@ def edit_note_view(request, application_id):
         note = request.POST.get("note")
         application.notes = note
         application.save()
-        return JsonResponse({'status': 'success', 'note': application.notes})
+        return JsonResponse({"status": "success", "note": application.notes})
 
-    return render(request, 'partials/note_form.html', {'application': application})
+    return render(request, "partials/note_form.html", {"application": application})
+
 
 class GetCompanyEmailView(View):
     def get(self, request):
@@ -209,7 +219,7 @@ class BouncedEmailAPI(APIView):
         company.email = ""
         company.save()
         # clear the detail_ cache key
-        cache_key = f'detail_{company.id}_user_{request.user.id}'
+        cache_key = f"detail_{company.id}_user_{request.user.id}"
         cache.delete(cache_key)
 
         return Response(
@@ -567,7 +577,7 @@ def update_company(request, company_id):
         company.save()
 
         webhook_url = settings.SLACK_WEBHOOK_URL
-        cache_key = f'detail_{company_id}_user_{request.user.id}'
+        cache_key = f"detail_{company_id}_user_{request.user.id}"
         cache.delete(cache_key)
 
         if webhook_url:
@@ -670,13 +680,14 @@ class JobListView(ListView):
     paginate_by = 50
     queryset = None
     from django.utils import timezone  # Ensure this is imported
+
     server_time = timezone.now()  # Django's timezone handling
     server_timestamp = int(server_time.timestamp() * 1000)
 
     def dispatch(self, *args, **kwargs):
         job_count = settings.JOB_COUNT
         session_key = self.request.session.session_key or "anonymous"
-        
+
         # Cache key includes session and job count
         query_params = self.request.GET.urlencode()
         user_specific_cache_key = (
@@ -684,7 +695,7 @@ class JobListView(ListView):
         )
 
         response = cache.get(user_specific_cache_key)
-        
+
         if not response:
             # Generate the response if not cached
             response = super(JobListView, self).dispatch(*args, **kwargs)
@@ -694,7 +705,7 @@ class JobListView(ListView):
                 )
             else:
                 cache.set(user_specific_cache_key, response, 60 * 60)
-        
+
         return response
 
     def get_queryset(self):
@@ -706,37 +717,49 @@ class JobListView(ListView):
 
             # Filters based on search type
             if search_type == "skill":
-                self.queryset = Job.objects.filter(
-                    skills__name__icontains=search_query
-                ).select_related("company", "role").distinct()
+                self.queryset = (
+                    Job.objects.filter(skills__name__icontains=search_query)
+                    .select_related("company", "role")
+                    .distinct()
+                )
 
             elif search_type == "company" and search_query:
-                self.queryset = Job.objects.filter(
-                    company__name__icontains=search_query
-                ).select_related("company", "role").distinct()
+                self.queryset = (
+                    Job.objects.filter(company__name__icontains=search_query)
+                    .select_related("company", "role")
+                    .distinct()
+                )
 
             elif search_type == "role" and search_query:
-                self.queryset = Job.objects.filter(
-                    role__title__icontains=search_query
-                ).select_related("company", "role").distinct()
+                self.queryset = (
+                    Job.objects.filter(role__title__icontains=search_query)
+                    .select_related("company", "role")
+                    .distinct()
+                )
 
             elif search_type == "job" and search_query:
-                self.queryset = Job.objects.filter(
-                    description_markdown__icontains=search_query
-                ).select_related("company", "role").distinct()
+                self.queryset = (
+                    Job.objects.filter(description_markdown__icontains=search_query)
+                    .select_related("company", "role")
+                    .distinct()
+                )
 
             elif search_type == "email" and search_query:
-                self.queryset = Job.objects.filter(
-                    company__email__icontains=search_query
-                ).select_related("company", "role").distinct()
+                self.queryset = (
+                    Job.objects.filter(company__email__icontains=search_query)
+                    .select_related("company", "role")
+                    .distinct()
+                )
 
             elif search_query:
                 query = SearchQuery(search_query)
-                queryset = Job.objects.select_related("company", "role") \
-                    .annotate(rank=SearchRank(F("search_vector"), query)) \
-                    .filter(rank__gt=0) \
+                queryset = (
+                    Job.objects.select_related("company", "role")
+                    .annotate(rank=SearchRank(F("search_vector"), query))
+                    .filter(rank__gt=0)
                     .order_by("-rank")
-                
+                )
+
                 if queryset.exists():
                     self.queryset = queryset
                     job_count = self.queryset.count()
@@ -746,8 +769,9 @@ class JobListView(ListView):
                     self.queryset = Job.objects.select_related("company", "role").all()
 
             else:
-                self.queryset = Job.objects.select_related("company", "role") \
-                    .order_by(F("posted_date").desc(nulls_last=True))
+                self.queryset = Job.objects.select_related("company", "role").order_by(
+                    F("posted_date").desc(nulls_last=True)
+                )
 
             # Filter by email if apply_by_email is set
             if self.request.GET.get("apply_by_email", ""):
@@ -762,8 +786,13 @@ class JobListView(ListView):
             # Apply ordering
             ordering = self.request.GET.get("ordering")
             if ordering and ordering.lstrip("-") in [
-                "created", "posted_date", "salary_min", "salary_max",
-                "title", "location", "job_type"
+                "created",
+                "posted_date",
+                "salary_min",
+                "salary_max",
+                "title",
+                "location",
+                "job_type",
             ]:
                 self.queryset = self.queryset.order_by(ordering)
 
@@ -773,11 +802,15 @@ class JobListView(ListView):
         self.object_list = self.get_queryset()
 
         # Check if all jobs belong to the same company
-        company_count = self.object_list.values_list('company', flat=True).distinct().count()
+        company_count = (
+            self.object_list.values_list("company", flat=True).distinct().count()
+        )
         if company_count == 1:
             # Redirect to company detail page if only one company is found
             single_company = self.object_list.first().company
-            return HttpResponseRedirect(reverse('company_detail', args=[single_company.slug]))
+            return HttpResponseRedirect(
+                reverse("company_detail", args=[single_company.slug])
+            )
 
         return super().get(request, *args, **kwargs)
 
@@ -800,11 +833,6 @@ class JobListView(ListView):
         return context
 
 
-
-
-
-
-
 class SourceListView(ListView):
     model = Source
     template_name = "sources.html"
@@ -825,7 +853,6 @@ class SourceListView(ListView):
         context["current_sort"] = self.request.GET.get("sort", "")
         context["current_direction"] = self.request.GET.get("direction", "")
         return context
-
 
 
 def autocomplete(request, model):
@@ -932,12 +959,14 @@ def update_application_stage(request):
 
         job_id = application.job.id
         user_id = request.user.id
-        cache_key = f'detail_{job_id}_user_{user_id}'
+        cache_key = f"detail_{job_id}_user_{user_id}"
         cache.delete(cache_key)
 
         # Recreate and cache the context data
         context_data = {}
-        applications = Application.objects.filter(job=application.job, user=request.user)
+        applications = Application.objects.filter(
+            job=application.job, user=request.user
+        )
         context_data["applications"] = applications
         context_data["stages"] = Stage.objects.annotate(
             count=Count("application")
@@ -945,8 +974,6 @@ def update_application_stage(request):
 
         # Set the new cache
         cache.set(cache_key, context_data, 60 * 60 * 24 * 30)  # Cache for 30 days
-
-        
 
         if request.headers.get("HX-Request"):
             return JsonResponse({"status": "success", "application_id": application_id})
@@ -1029,9 +1056,7 @@ class AddJobLink(APIView):
 
             company_name = data.get("company", "").strip()
             if not company_name:
-                return JsonResponse(
-                    {"error": "Company name is required."}, status=400
-                )
+                return JsonResponse({"error": "Company name is required."}, status=400)
             role_title = data.get("title", "").strip()
 
             posted_date = data.get("datePosted")
@@ -1072,7 +1097,8 @@ class AddJobLink(APIView):
             else:
                 role_slug = slugify(data.get("title", "").strip()[:50])
                 role, _ = Role.objects.get_or_create(
-                    slug=role_slug, defaults={"title": data.get("title", "").strip()[:50]}
+                    slug=role_slug,
+                    defaults={"title": data.get("title", "").strip()[:50]},
                 )
             company_defaults = {
                 "name": company_name,
@@ -1109,7 +1135,7 @@ class AddJobLink(APIView):
                 company=company,
                 role=role,
                 defaults={
-                    'slug': slugify(role.title + "-at-" + company.name),
+                    "slug": slugify(role.title + "-at-" + company.name),
                     "posted_date": posted_date,
                     "salary_min": salary_min,
                     "salary_max": salary_max,
@@ -1230,8 +1256,8 @@ class ApplicationView(APIView):
             company=company,
             role=role,
             defaults={
-                'slug': slugify(role.title + "-at-" + company.name),
-            }
+                "slug": slugify(role.title + "-at-" + company.name),
+            },
         )
 
         stage, _ = Stage.objects.get_or_create(
@@ -1269,12 +1295,10 @@ class ApplicationView(APIView):
         if not created and application.date_applied and original_date:
             original_date = make_aware(original_date, timezone.get_default_timezone())
 
-
             if application.date_applied > original_date:
                 application.date_applied = original_date
         if created:
             original_date = make_aware(original_date, timezone.get_default_timezone())
-
 
             if application.date_applied > original_date:
                 application.date_applied = original_date
@@ -1311,11 +1335,19 @@ class ApplicationView(APIView):
                 },
             )
 
-        stage_counts = {}
-        for stage in Stage.objects.all():
-            stage_counts["total_" + stage.name.lower()] = Application.objects.filter(
-                user=request.user, stage=stage
-            ).count()
+        stage_counts = (
+            Application.objects.filter(user=request.user)
+            .values("stage__name")
+            .annotate(count=Count("id"))
+            .values_list("stage__name", "count")
+        )
+
+        # Convert to the expected format
+        stage_counts_dict = {
+            f"total_{stage_name.lower()}": count
+            for stage_name, count in stage_counts
+            if stage_name
+        }
 
         email_data = {
             "email_id": gmail_id,
@@ -1341,8 +1373,12 @@ class ApplicationView(APIView):
             user=request.user, created__gte=start_time_server
         ).count()
 
-        data = {"email": email_data, "counts": stage_counts, "today_count": today_count}
-        cache_key = f'detail_{company.id}_user_{request.user.id}'
+        data = {
+            "email": email_data,
+            "counts": stage_counts_dict,
+            "today_count": today_count,
+        }
+        cache_key = f"detail_{company.id}_user_{request.user.id}"
         cache.delete(cache_key)
 
         return JsonResponse(data, status=status.HTTP_201_CREATED)
@@ -1384,7 +1420,9 @@ class CompanyJobDetailView(DetailView):
             applications = Application.objects.filter(job__in=jobs, user=user)
             application_map = {app.job_id: app for app in applications}
             for job in jobs:
-                job.user_application = application_map.get(job.id)  # Attach application to the job object
+                job.user_application = application_map.get(
+                    job.id
+                )  # Attach application to the job object
         else:
             for job in jobs:
                 job.user_application = None  # No application for anonymous users
@@ -1405,12 +1443,18 @@ class CompanyJobDetailView(DetailView):
 
             if self.request.user.is_authenticated:
                 if isinstance(obj, Job):
-                    cached_data["applications"] = Application.objects.filter(job=obj, user=self.request.user)
+                    cached_data["applications"] = Application.objects.filter(
+                        job=obj, user=self.request.user
+                    )
                 else:
-                    cached_data["applications"] = Application.objects.filter(company=obj, user=self.request.user)
+                    cached_data["applications"] = Application.objects.filter(
+                        company=obj, user=self.request.user
+                    )
 
             cached_data["stages"] = Stage.objects.all().order_by("-order")
-            cache.set(cache_key, cached_data, timeout=60 * 60 * 24 * 30)  # Cache for 30 days
+            cache.set(
+                cache_key, cached_data, timeout=60 * 60 * 24 * 30
+            )  # Cache for 30 days
 
         return cached_data
 
@@ -1421,9 +1465,14 @@ class CompanyJobDetailView(DetailView):
         next_company_cache_key = f"cache_company_{company.id + 1}"
         next_company = cache.get(next_company_cache_key)
         if not next_company:
-            next_company = Company.objects.filter(id__gt=company.id).first() or Company.objects.all().order_by("?").first()
+            next_company = (
+                Company.objects.filter(id__gt=company.id).first()
+                or Company.objects.all().order_by("?").first()
+            )
             if next_company:
-                cache.set(next_company_cache_key, next_company, timeout=60 * 60 * 24)  # Cache for 24 hours
+                cache.set(
+                    next_company_cache_key, next_company, timeout=60 * 60 * 24
+                )  # Cache for 24 hours
         return next_company
 
     # def update_website_status(self, company):
@@ -1466,20 +1515,21 @@ class CompanyJobDetailView(DetailView):
         # If the object is a company, fetch the job list and user applications for those jobs
         if isinstance(obj, Company):
             jobs = obj.job_set.all()  # Get all jobs for the company
-            self.get_user_applications(jobs, self.request.user)  # Attach user applications to jobs
-            context['jobs'] = jobs
+            self.get_user_applications(
+                jobs, self.request.user
+            )  # Attach user applications to jobs
+            context["jobs"] = jobs
             context["next_company"] = self.get_next_company(obj)
-            #context["website_status_info"] = self.update_website_status(obj)
+            # context["website_status_info"] = self.update_website_status(obj)
         elif isinstance(obj, Job):
             company = obj.company
             jobs = company.job_set.all()
             self.get_user_applications(jobs, self.request.user)
-            context['jobs'] = jobs
+            context["jobs"] = jobs
             context["next_company"] = self.get_next_company(obj.company)
-            #context["website_status_info"] = self.update_website_status(obj.company)
+            # context["website_status_info"] = self.update_website_status(obj.company)
 
         return context
-
 
 
 def privacy_policy(request):
@@ -1499,7 +1549,6 @@ def scrape_job(request):
     job_title = ""
     company_name = ""
     return JsonResponse({"job_title": job_title, "company_name": company_name})
-
 
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -1546,8 +1595,7 @@ class DashboardView(LoginRequiredMixin, ListView):
             only_applied = self.request.GET.get("only_applied")
             if only_applied:
                 applications = Application.objects.filter(
-                    user=user,
-                    stage__name="Applied"
+                    user=user, stage__name="Applied"
                 )
             else:
                 applications = Application.objects.filter(user=user)
@@ -1558,15 +1606,17 @@ class DashboardView(LoginRequiredMixin, ListView):
                 )
             ).filter(resume_views__gt=0)
             today = timezone.now().date()
-            applications = applications.annotate(
-                days_since_last_email_sort=ExpressionWrapper(
-                    Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
-                    output_field=DurationField(),
+            applications = (
+                applications.annotate(
+                    days_since_last_email_sort=ExpressionWrapper(
+                        Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
+                        output_field=DurationField(),
+                    )
                 )
-            ).annotate(
-                days_int=ExtractDay(F("days_since_last_email_sort"))
-            ).order_by(f"{order_prefix}days_int")
-            
+                .annotate(days_int=ExtractDay(F("days_since_last_email_sort")))
+                .order_by(f"{order_prefix}days_int")
+            )
+
         else:
             # Fetch applications by stage...
             stage_name = self.request.GET.get("stage", "Applied")
@@ -1598,26 +1648,34 @@ class DashboardView(LoginRequiredMixin, ListView):
             # Special sorting case for days and email...
             if sort_by == "days":
                 today = timezone.now().date()
-                applications = applications.annotate(
-                    days_since_last_email=ExpressionWrapper(
-                        Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
-                        output_field=DurationField(),
+                applications = (
+                    applications.annotate(
+                        days_since_last_email=ExpressionWrapper(
+                            Coalesce(F("date_of_last_email"), Value(today))
+                            - Value(today),
+                            output_field=DurationField(),
+                        )
                     )
-                ).annotate(
-                    days_int=ExtractDay(F("days_since_last_email"))
-                ).order_by(f"{order_prefix}days_int")
-            elif sort_by == "email":
-                applications = applications.annotate(email_count=Count("email")).order_by(
-                    f"{order_prefix}email_count"
+                    .annotate(days_int=ExtractDay(F("days_since_last_email")))
+                    .order_by(f"{order_prefix}days_int")
                 )
+            elif sort_by == "email":
+                applications = applications.annotate(
+                    email_count=Count("email")
+                ).order_by(f"{order_prefix}email_count")
             elif sort_by in sort_fields:
-                applications = applications.order_by(f"{order_prefix}{sort_fields[sort_by]}")
+                applications = applications.order_by(
+                    f"{order_prefix}{sort_fields[sort_by]}"
+                )
 
         # Prefetch related objects...
         applications = applications.prefetch_related(
-            Prefetch('company'), Prefetch('stage'), Prefetch('job'), 
-            Prefetch('job__company'), Prefetch('job__role'), 
-            Prefetch('email_set')
+            Prefetch("company"),
+            Prefetch("stage"),
+            Prefetch("job"),
+            Prefetch("job__company"),
+            Prefetch("job__role"),
+            Prefetch("email_set"),
         )
 
         return applications
@@ -1633,62 +1691,99 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["total_jobs"] = Job.objects.count()
 
         # Application days calculation (same as before)...
-        applications_by_day = Application.objects.filter(user=user).annotate(
-            date=TruncDay("date_applied")
-        ).values("date").annotate(
-            application_count=Count("id"),
-            clicks_percent=ExpressionWrapper(
-                (Count("email") * 100.0) / Count("id"), output_field=DecimalField()
-            ),
-            bounces_percent=ExpressionWrapper(
-                Count(
-                    "company__bouncedemail",
-                    filter=Q(company__bouncedemail__created__date=F("date")),
-                ) * 100.0 / Count("id"),
-                output_field=DecimalField(),
-            ),
-        ).order_by("-date")
+        applications_by_day = (
+            Application.objects.filter(user=user)
+            .annotate(date=TruncDay("date_applied"))
+            .values("date")
+            .annotate(
+                application_count=Count("id"),
+                clicks_percent=ExpressionWrapper(
+                    (Count("email") * 100.0) / Count("id"), output_field=DecimalField()
+                ),
+                bounces_percent=ExpressionWrapper(
+                    Count(
+                        "company__bouncedemail",
+                        filter=Q(company__bouncedemail__created__date=F("date")),
+                    )
+                    * 100.0
+                    / Count("id"),
+                    output_field=DecimalField(),
+                ),
+            )
+            .order_by("-date")
+        )
 
         # Emails sent per day calculation...
-        emails_sent_by_day = Email.objects.filter(application__user=user).annotate(
-            truncated_date=TruncDay("date")  # Avoid conflicting with the original 'date' field by using 'truncated_date'
-        ).values("truncated_date").annotate(
-            email_count=Count("id")
-        ).order_by("-truncated_date")
+        emails_sent_by_day = (
+            Email.objects.filter(application__user=user)
+            .annotate(
+                truncated_date=TruncDay(
+                    "date"
+                )  # Avoid conflicting with the original 'date' field by using 'truncated_date'
+            )
+            .values("truncated_date")
+            .annotate(email_count=Count("id"))
+            .order_by("-truncated_date")
+        )
 
         # Resume views by day calculation...
-        resume_views_by_day = RequestLog.objects.filter(profile__user=user).annotate(
-            date=TruncDay("created")
-        ).values("date").annotate(
-            views_count=Count("id")
-        ).order_by("-date")
+        resume_views_by_day = (
+            RequestLog.objects.filter(profile__user=user)
+            .annotate(date=TruncDay("created"))
+            .values("date")
+            .annotate(views_count=Count("id"))
+            .order_by("-date")
+        )
 
         # Grouping data into the application_days list...
         application_days_data = []
         for day in applications_by_day[:10]:
             # Find matching emails sent for the day
-            email_day = next((email for email in emails_sent_by_day if email["truncated_date"] == day["date"]), None)
+            email_day = next(
+                (
+                    email
+                    for email in emails_sent_by_day
+                    if email["truncated_date"] == day["date"]
+                ),
+                None,
+            )
             email_count = email_day["email_count"] if email_day else 0
 
             # Find matching resume views for the day
-            resume_view_day = next((view for view in resume_views_by_day if view["date"] == day["date"]), None)
+            resume_view_day = next(
+                (view for view in resume_views_by_day if view["date"] == day["date"]),
+                None,
+            )
             resume_view_count = resume_view_day["views_count"] if resume_view_day else 0
 
             # Append to the application_days_data list
-            application_days_data.append({
-                "date": day["date"],
-                "count": day["application_count"],
-                "clicks_percent": round(day["clicks_percent"], 2) if day["application_count"] > 0 else 0,
-                "bounces_percent": round(day["bounces_percent"], 2) if day["application_count"] > 0 else 0,
-                "emails_sent": email_count,
-                "resume_views": resume_view_count,
-            })
+            application_days_data.append(
+                {
+                    "date": day["date"],
+                    "count": day["application_count"],
+                    "clicks_percent": (
+                        round(day["clicks_percent"], 2)
+                        if day["application_count"] > 0
+                        else 0
+                    ),
+                    "bounces_percent": (
+                        round(day["bounces_percent"], 2)
+                        if day["application_count"] > 0
+                        else 0
+                    ),
+                    "emails_sent": email_count,
+                    "resume_views": resume_view_count,
+                }
+            )
 
         context["application_days"] = application_days_data
 
-        context["resume_views_total_companies"] = RequestLog.objects.filter(
-            profile__user=user
-        ).values("company").distinct().count()
+        context["resume_views_total_companies"] = (
+            RequestLog.objects.filter(profile__user=user)
+            .values("company")
+            .distinct()
+            .count()
+        )
 
         # Pass sorting and stage context...
         context["sort_by"] = self.request.GET.get("sort_by", "applied")
@@ -1696,7 +1791,6 @@ class DashboardView(LoginRequiredMixin, ListView):
         context["stage"] = self.request.GET.get("stage", "Scheduled")
 
         return context
-
 
 
 from urllib.parse import urlparse
@@ -1719,7 +1813,9 @@ def update_company_email(request):
         try:
             companies = Company.objects.filter(website__icontains=domain)
             if not companies.exists():
-                messages.error(request, "No company found with the specified domain of " + domain)
+                messages.error(
+                    request, "No company found with the specified domain of " + domain
+                )
                 return redirect("home")
 
             matched_company = None
@@ -1757,7 +1853,7 @@ def update_company_email(request):
     else:
         messages.error(request, "No email address provided.")
         return redirect("home")
-        #return redirect("company_list")
+        # return redirect("company_list")
 
 
 import re
@@ -1869,7 +1965,9 @@ def resume_view(request, slug):
                             style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: #f9f9f9; padding: 20px; border: 2px solid #ccc; box-shadow: 0px 0px 15px rgba(0,0,0,0.1); z-index: 1001; text-align: center; border-radius: 10px; width: auto; max-width: 90%;",
                         )
 
-                        prompt = soup.new_tag("p", style="margin: 0 0 10px; font-size: 1.2em;")
+                        prompt = soup.new_tag(
+                            "p", style="margin: 0 0 10px; font-size: 1.2em;"
+                        )
                         prompt.string = (
                             f"Would you like to interview {profile.user.first_name}?"
                         )
@@ -1877,17 +1975,23 @@ def resume_view(request, slug):
 
                         button_style = "margin: 0 10px; padding: 10px 20px; background-color: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em;"
 
-                        yes_button = soup.new_tag("button", id="yesButton", style=button_style)
+                        yes_button = soup.new_tag(
+                            "button", id="yesButton", style=button_style
+                        )
                         yes_button.string = "Yes"
                         sticky_div.append(yes_button)
 
-                        no_button = soup.new_tag("button", id="noButton", style=button_style)
+                        no_button = soup.new_tag(
+                            "button", id="noButton", style=button_style
+                        )
                         no_button.string = "No"
                         sticky_div.append(no_button)
 
                         # Reason field (initially hidden)
                         reason_div = soup.new_tag(
-                            "div", id="reasonField", style="display:none; margin-top: 10px;"
+                            "div",
+                            id="reasonField",
+                            style="display:none; margin-top: 10px;",
                         )
                         reason_prompt = soup.new_tag(
                             "p", style="margin: 0 0 10px; font-size: 1em;"
@@ -1964,7 +2068,9 @@ def resume_view(request, slug):
                         soup.body.append(sticky_div)
 
                         # Add padding to the body to account for the sticky footer height
-                        padding_div = soup.new_tag("div", style="padding-bottom: 120px;")
+                        padding_div = soup.new_tag(
+                            "div", style="padding-bottom: 120px;"
+                        )
                         soup.body.append(padding_div)
 
                 # Add JavaScript for disabling copy-paste and button functionality
