@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Company Page</title>
+    <script type="module">
+        // Import Supabase Client
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        // Supabase credentials
+        const supabaseUrl = "https://eyghpgfznmuahcqohmkk.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5Z2hwZ2Z6bm11YWhjcW9obWtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTM5NTY4MDMsImV4cCI6MjAwOTUzMjgwM30.j_5poF_GPEZ6RoMwNjz1ndxaaw6CdGDFLuVVbJR_MAs";
+
+        // Initialize Supabase Client
+        let supabase;
+        let connectionError = null;
+
+        async function initializeSupabase() {
+            const contentDiv = document.getElementById("content");
+
+            try {
+                supabase = createClient(supabaseUrl, supabaseKey);
+
+                // Test the connection by performing a simple request
+                const { error } = await supabase.from("company").select("*").limit(1);
+                if (error) {
+                    throw new Error("Supabase connection test failed: " + error.message);
+                }
+            } catch (error) {
+                connectionError = error.message;
+                contentDiv.innerHTML = `
+                    <h1>Supabase Connection Error</h1>
+                    <p>There was an error connecting to the database. Please check your Supabase URL and key.</p>
+                    <p>Error Details: <code>${connectionError}</code></p>
+                `;
+            }
+        }
+
+        // Dynamic Routing Logic
+        async function handleRouting() {
+            const path = window.location.pathname;
+            const contentDiv = document.getElementById("content");
+
+            if (connectionError) {
+                contentDiv.innerHTML += `
+                    <p>Route: <code>${path}</code></p>
+                `;
+                return;
+            }
+
+            try {
+                // Check if the URL matches /company/slug/
+                const match = path.match(/^\/website\/company\/([^/]+)\/?$/);
+
+                if (match) {
+                    const slug = match[1]; // Extract the slug
+
+                    // Fetch company data from Supabase
+                    const { data, error } = await supabase
+                        .from("company")
+                        .select("name, slug")
+                        .eq("slug", slug)
+                        .single();
+
+                    if (error) {
+                        throw new Error(`Error fetching company data: ${error.message}`);
+                    }
+
+                    if (!data) {
+                        throw new Error(`No data found for slug: "${slug}"`);
+                    }
+
+                    // Define the template path
+                    const templatePath = "/website/website/templates/company_detail.html";
+
+                    // Load HTML template and populate it
+                    const response = await fetch(templatePath);
+                    if (!response.ok) {
+                        throw new Error(
+                            `Failed to load template. Attempted path: "${templatePath}". Status: ${response.status}`
+                        );
+                    }
+
+                    const template = await response.text();
+
+                    // Replace placeholders with dynamic data
+                    const populatedTemplate = template
+                        .replace("{{name}}", data.name)
+                        .replace("{{description}}", data.description || "No description available.")
+                        .replace("{{website}}", data.website || "No website provided.");
+
+                    // Inject the populated template into the content div
+                    contentDiv.innerHTML = populatedTemplate;
+                } else {
+                    // If not matching /company/slug/, show default 404 page with route
+                    contentDiv.innerHTML = `
+                        <h1>404 Not Found</h1>
+                        <p>Route: <code>${path}</code></p>
+                    `;
+                }
+            } catch (err) {
+                // Include detailed debugging information for errors
+                const currentPath = window.location.href;
+                contentDiv.innerHTML = `
+                    <h1>Error</h1>
+                    <p>Something went wrong while processing your request.</p>
+                    <p>Error Details: <code>${err.message}</code></p>
+                    <p>Current Path: <code>${currentPath}</code></p>
+                `;
+            }
+        }
+
+        // Run Supabase Initialization and Routing
+        document.addEventListener("DOMContentLoaded", async () => {
+            const contentDiv = document.getElementById("content");
+            try {
+                await initializeSupabase();
+                await handleRouting();
+            } catch (err) {
+                contentDiv.innerHTML = `
+                    <h1>Critical Error</h1>
+                    <p>Unexpected error occurred while loading the page.</p>
+                    <p>Error Details: <code>${err.message}</code></p>
+                `;
+            }
+        });
+    </script>
+</head>
+<body>
+    <div id="content">
+        <h1>Loading...</h1>
+    </div>
+</body>
+</html>
