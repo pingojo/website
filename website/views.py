@@ -1876,7 +1876,8 @@ def home_view(request):
 
 
 def resume_view(request, slug):
-    if request.method == "GET":
+    # Handle HEAD requests the same way as GET requests
+    if request.method in ["GET", "HEAD"]:
         # Validate the slug to check if it matches the pattern YYYYMMDD-#
         is_slug_valid = re.match(r"^\d{8}-\d+$", slug)
         if is_slug_valid:
