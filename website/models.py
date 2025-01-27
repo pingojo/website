@@ -126,7 +126,9 @@ class Company(BaseModel):
     careers_url_status = models.IntegerField(null=True, blank=True)
     careers_url_status_updated = models.DateTimeField(null=True, blank=True)
     email = models.EmailField(blank=True, null=True)
-    screenshot = models.ImageField(upload_to="company_screenshots", blank=True, null=True)
+    screenshot = models.ImageField(
+        upload_to="company_screenshots", blank=True, null=True
+    )
     phone = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
@@ -194,8 +196,15 @@ class Company(BaseModel):
         cache.delete(cache_key)
         cache.set(cache_key, self, timeout=60 * 60 * 24)  # Cache for 24 hours
 
-        # Send a Slack notification if changes were detected
-        if changes:
+        # Only send Slack notification if no recent updates in the past hour
+        one_hour_ago = timezone.now() - timezone.timedelta(hours=1)
+        recent_update = (
+            Company.objects.filter(modified__gte=one_hour_ago)
+            .exclude(pk=self.pk)
+            .exists()
+        )
+
+        if changes and not recent_update:
             self.send_slack_notification(changes)
 
     def delete(self, *args, **kwargs):
@@ -211,7 +220,6 @@ class Company(BaseModel):
 
         # Delete the object
         super().delete(*args, **kwargs)
-
 
 
 class RequestLog(BaseModel):
