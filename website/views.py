@@ -2228,6 +2228,16 @@ def model_counts_view(request):
     total_emails = Email.objects.count()
     total_bounces = BouncedEmail.objects.count()
 
+    # Get top 10 most common email prefixes
+    companies_with_emails = Company.objects.exclude(email='').exclude(email__isnull=True)
+    email_prefixes = {}
+    for company in companies_with_emails:
+        prefix = company.email.split('@')[0].lower()
+        email_prefixes[prefix] = email_prefixes.get(prefix, 0) + 1
+    
+    # Sort by count and get top 10
+    common_prefixes = sorted(email_prefixes.items(), key=lambda x: x[1], reverse=True)[:10]
+
     user_data = {}
 
     # Check if the user is logged in
@@ -2267,6 +2277,7 @@ def model_counts_view(request):
         "total_bounces": total_bounces,
         "user_data": user_data,
         "skills": skills,
+        "common_prefixes": common_prefixes,
     }
 
     return render(request, "model_counts.html", context)

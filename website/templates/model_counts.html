@@ -37,7 +37,25 @@
         <li>Total Bounces: {{ total_bounces }}</li>
     </ul>
 
-
+    <h2>Common Email Prefixes</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Email Prefix</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prefix, count in common_prefixes %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ prefix }}</td>
+                <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
 </div>
 {% endblock %}
