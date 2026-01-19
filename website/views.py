@@ -1191,6 +1191,7 @@ class ApplicationView(APIView):
                 job_link=F("application__job__link"),
                 job_role=F("application__job__role__title"),
                 stage_name=F("application__stage__name"),
+                company_email=F("application__company__email"),
             )
             .values(
                 "gmail_id",
@@ -1199,6 +1200,7 @@ class ApplicationView(APIView):
                 "job_link",
                 "job_role",
                 "stage_name",
+                "company_email",
             )
         )
 
