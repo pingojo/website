@@ -1913,43 +1913,36 @@ def resume_view(request, slug):
                     viewer_email = request.GET.get("e")
                     user_agent = request.META.get("HTTP_USER_AGENT")
                     
-                    first_view = not RequestLog.objects.filter(
-                        profile=profile,
-                        email=viewer_email,
-                        ip_address=ip_address
-                    ).exists()
-                    
-                    # Send Slack notification on first view
-                    if first_view:
-                        try:
-                            role = (
-                                applications.first().job.role
-                                if applications.first() and applications.first().job and applications.first().job.role
-                                else None
+                    # Send Slack notification on every view
+                    try:
+                        role = (
+                            applications.first().job.role
+                            if applications.first() and applications.first().job and applications.first().job.role
+                            else None
+                        )
+                        webhook_url = getattr(settings, "SLACK_WEBHOOK_URL", None)
+                        if webhook_url:
+                            message = (
+                                ":page_facing_up: Resume viewed\n"
+                                f"User: {profile.user.username}\n"
+                                f"Company: {company.name}\n"
+                                f"Role: {role.title if role else '(unknown)'}\n"
+                                f"Viewer Email: {viewer_email}\n"
+                                f"IP: {ip_address}\n"
+                                f"UA: {user_agent}\n"
+                                f"Resume Key: {slug}"
                             )
-                            webhook_url = getattr(settings, "SLACK_WEBHOOK_URL", None)
-                            if webhook_url:
-                                message = (
-                                    ":page_facing_up: Resume viewed\n"
-                                    f"User: {profile.user.username}\n"
-                                    f"Company: {company.name}\n"
-                                    f"Role: {role.title if role else '(unknown)'}\n"
-                                    f"Viewer Email: {viewer_email}\n"
-                                    f"IP: {ip_address}\n"
-                                    f"UA: {user_agent}\n"
-                                    f"Resume Key: {slug}"
-                                )
-                                payload = {
-                                    "text": message,
-                                    "username": "Resume View",
-                                    "icon_emoji": ":page_facing_up:",
-                                    "channel": "#updates",
-                                }
-                                requests.post(webhook_url, json=payload, timeout=10)
-                        except Exception as e:
-                            import logging
-                            logger = logging.getLogger(__name__)
-                            logger.error(f"Failed to send Slack resume view notification: {e}")
+                            payload = {
+                                "text": message,
+                                "username": "Resume View",
+                                "icon_emoji": ":page_facing_up:",
+                                "channel": "#updates",
+                            }
+                            requests.post(webhook_url, json=payload, timeout=10)
+                    except Exception as e:
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Failed to send Slack resume view notification: {e}")
                     
                     # Log the request to the Request table
                     RequestLog.objects.create(
