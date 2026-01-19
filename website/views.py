@@ -1871,6 +1871,35 @@ def get_client_ip(request):
     return ip
 
 
+def send_resume_view_notification(user, viewer_email, company, role, ip_address, user_agent):
+    """Send email notification when resume is viewed for the first time"""
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+    
+    subject = f"Your resume was viewed by {company.name}!"
+    
+    context = {
+        'user': user,
+        'viewer_email': viewer_email,
+        'company': company,
+        'role': role,
+        'ip_address': ip_address,
+        'user_agent': user_agent,
+    }
+    
+    html_message = render_to_string('emails/resume_view_notification.html', context)
+    plain_message = render_to_string('emails/resume_view_notification.txt', context)
+    
+    send_mail(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        html_message=html_message,
+        fail_silently=False,
+    )
+
+
 def home_view(request):
     return render(request, "home.html")
 
@@ -1905,14 +1934,41 @@ def resume_view(request, slug):
                     if not applications:
                         raise Http404
 
+                    # Check if this is the first view from this IP/email combination
+                    ip_address = get_client_ip(request)
+                    viewer_email = request.GET.get("e")
+                    user_agent = request.META.get("HTTP_USER_AGENT")
+                    
+                    first_view = not RequestLog.objects.filter(
+                        profile=profile,
+                        email=viewer_email,
+                        ip_address=ip_address
+                    ).exists()
+                    
+                    # Send email notification on first view
+                    if first_view:
+                        try:
+                            send_resume_view_notification(
+                                profile.user,
+                                viewer_email,
+                                company,
+                                applications.first().job.role if applications.first() and applications.first().job.role else None,
+                                ip_address,
+                                user_agent
+                            )
+                        except Exception as e:
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.error(f"Failed to send resume view notification: {e}")
+                    
                     # Log the request to the Request table
                     RequestLog.objects.create(
                         profile=profile,
                         company=company,
-                        email=request.GET.get("e"),
+                        email=viewer_email,
                         applications=applications.count(),
-                        ip_address=get_client_ip(request),
-                        user_agent=request.META.get("HTTP_USER_AGENT"),
+                        ip_address=ip_address,
+                        user_agent=user_agent,
                         referer=request.META.get("HTTP_REFERER"),
                     )
                 else:

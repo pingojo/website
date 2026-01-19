@@ -1,0 +1,19 @@
+Hi {{ user.first_name }},
+
+Great news! Someone from {{ company.name }} just viewed your resume!
+
+View Details:
+-------------
+Company: {{ company.name }}
+{% if role %}Role: {{ role.title }}
+{% endif %}Viewer Email: {{ viewer_email }}
+IP Address: {{ ip_address }}
+User Agent: {{ user_agent }}
+
+This is a promising sign of interest in your profile. Consider following up or preparing for a potential interview!
+
+Best regards,
+The Pingojo Team
+
+---
+This is an automated notification from Pingojo. You're receiving this because someone viewed your resume for the first time.
