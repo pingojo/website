@@ -1871,33 +1871,7 @@ def get_client_ip(request):
     return ip
 
 
-def send_resume_view_notification(user, viewer_email, company, role, ip_address, user_agent):
-    """Send email notification when resume is viewed for the first time"""
-    from django.core.mail import send_mail
-    from django.template.loader import render_to_string
-    
-    subject = f"Your resume was viewed by {company.name}!"
-    
-    context = {
-        'user': user,
-        'viewer_email': viewer_email,
-        'company': company,
-        'role': role,
-        'ip_address': ip_address,
-        'user_agent': user_agent,
-    }
-    
-    html_message = render_to_string('emails/resume_view_notification.html', context)
-    plain_message = render_to_string('emails/resume_view_notification.txt', context)
-    
-    send_mail(
-        subject,
-        plain_message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        html_message=html_message,
-        fail_silently=False,
-    )
+# Slack-only notifications; email notification removed
 
 
 def home_view(request):
@@ -1945,21 +1919,37 @@ def resume_view(request, slug):
                         ip_address=ip_address
                     ).exists()
                     
-                    # Send email notification on first view
+                    # Send Slack notification on first view
                     if first_view:
                         try:
-                            send_resume_view_notification(
-                                profile.user,
-                                viewer_email,
-                                company,
-                                applications.first().job.role if applications.first() and applications.first().job.role else None,
-                                ip_address,
-                                user_agent
+                            role = (
+                                applications.first().job.role
+                                if applications.first() and applications.first().job and applications.first().job.role
+                                else None
                             )
+                            webhook_url = getattr(settings, "SLACK_WEBHOOK_URL", None)
+                            if webhook_url:
+                                message = (
+                                    ":page_facing_up: Resume viewed\n"
+                                    f"User: {profile.user.username}\n"
+                                    f"Company: {company.name}\n"
+                                    f"Role: {role.title if role else '(unknown)'}\n"
+                                    f"Viewer Email: {viewer_email}\n"
+                                    f"IP: {ip_address}\n"
+                                    f"UA: {user_agent}\n"
+                                    f"Resume Key: {slug}"
+                                )
+                                payload = {
+                                    "text": message,
+                                    "username": "Resume View",
+                                    "icon_emoji": ":page_facing_up:",
+                                    "channel": "#updates",
+                                }
+                                requests.post(webhook_url, json=payload, timeout=10)
                         except Exception as e:
                             import logging
                             logger = logging.getLogger(__name__)
-                            logger.error(f"Failed to send resume view notification: {e}")
+                            logger.error(f"Failed to send Slack resume view notification: {e}")
                     
                     # Log the request to the Request table
                     RequestLog.objects.create(
