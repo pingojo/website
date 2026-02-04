@@ -871,6 +871,7 @@ def autocomplete(request, model):
     return JsonResponse(results, safe=False)
 
 
+@login_required
 def job_add(request):
     if request.method == "POST":
         form = JobForm(request.POST)

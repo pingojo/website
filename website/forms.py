@@ -182,56 +182,62 @@ class JobForm(forms.ModelForm):
         ]
 
     def clean_company(self):
-        """Cleans and retrieves or creates the company."""
+        """Validates that company name is provided."""
         name = self.cleaned_data.get("company")
-
-        if name:
-            company, created = Company.objects.get_or_create(
-                name=name,
-            )
-            return company
-        else:
+        if not name:
             raise forms.ValidationError("Company name is required.")
+        return name
 
     def clean_role(self):
-        """Cleans and retrieves or creates the role."""
+        """Validates that role title is provided."""
         title = self.cleaned_data.get("role")
-        if title:
-            role_slug = slugify(title[:50])  # Create a slug from the title
-            role, _ = Role.objects.get_or_create(
-                slug=role_slug, defaults={"title": title}
-            )
-            return role
-        else:
+        if not title:
             raise forms.ValidationError("Role is required.")
+        return title
 
     def clean(self):
-        """Performs additional cleaning for the form."""
+        """Performs additional validation for the form."""
         cleaned_data = super().clean()
-
-        # Retrieve the company and location data
-        company_name = cleaned_data.get("company")
-        city = cleaned_data.get("city")
-        state = cleaned_data.get("state")
-        country = cleaned_data.get("country")
-        email = cleaned_data.get("email")
-        website = cleaned_data.get("website")
-
-        # If company information is present, update its location
-        if company_name and city and state and country:
-            company = cleaned_data.get(
-                "company"
-            )  # This is the Company object from clean_company()
-            if company:
-                company.city = city
-                company.state = state
-                company.country = country
-                company.email = email
-                company.website = website
-                company.save()  # Save any updates to the company location
-
         # Additional validation can be placed here if needed
         return cleaned_data
+
+    def save(self, commit=True):
+        """Save the job and create/get related company and role objects."""
+        # Get or create the company
+        company_name = self.cleaned_data.get("company")
+        company, _ = Company.objects.get_or_create(name=company_name)
+        
+        # Update company with additional data if provided
+        city = self.cleaned_data.get("city")
+        state = self.cleaned_data.get("state")
+        country = self.cleaned_data.get("country")
+        email = self.cleaned_data.get("email")
+        website = self.cleaned_data.get("website")
+        
+        if city:
+            company.city = city
+        if state:
+            company.state = state
+        if country:
+            company.country = country
+        if email:
+            company.email = email
+        if website:
+            company.website = website
+        company.save()
+        
+        # Get or create the role
+        role_title = self.cleaned_data.get("role")
+        role_slug = slugify(role_title[:50])
+        role, _ = Role.objects.get_or_create(
+            slug=role_slug, defaults={"title": role_title}
+        )
+        
+        # Don't assign the string fields directly; instead assign the objects
+        self.instance.company = company
+        self.instance.role = role
+        
+        return super().save(commit=commit)
 
 
 class CompanyUpdateForm(forms.ModelForm):
