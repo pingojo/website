@@ -21,9 +21,9 @@ jobs:
         with:
           node-version: '20'
 
-      # Install @supabase/supabase-js dependency
+      # Install Supabase and WebSocket dependencies
       - name: Install Dependencies
-        run: npm install @supabase/supabase-js
+        run: npm install @supabase/supabase-js ws
 
       # Run the test script
       - name: Run Website Field Test
@@ -31,11 +31,14 @@ jobs:
           # Create a simple test script with graceful quota handling
           cat > test-website-field.js << 'EOF'
           const { createClient } = require('@supabase/supabase-js');
+          const WebSocket = require('ws');
 
           (async () => {
             const supabaseUrl = process.env.SUPABASE_URL || 'https://eyghpgfznmuahcqohmkk.supabase.co';
             const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5Z2hwZ2Z6bm11YWhjcW9obWtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTM5NTY4MDMsImV4cCI6MjAwOTUzMjgwM30.j_5poF_GPEZ6RoMwNjz1ndxaaw6CdGDFLuVVbJR_MAs';
-            const supabase = createClient(supabaseUrl, supabaseKey);
+            const supabase = createClient(supabaseUrl, supabaseKey, {
+              realtime: { transport: WebSocket }
+            });
             try {
               const { data, error } = await supabase
                 .from('company')
