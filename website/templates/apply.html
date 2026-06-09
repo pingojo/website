@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .apply-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .apply-summary {
+    border: 1px solid #ddd;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .cover-letter {
+    width: 100%;
+    min-height: 320px;
+    box-sizing: border-box;
+  }
+
+  .warning {
+    border: 1px solid #f0c36d;
+    background: #fff8e5;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .actions a {
+    display: inline-block;
+    margin-right: 12px;
+  }
+</style>
+
+<div class="apply-page">
+  <h1>Apply{% if job %}: {{ job.title }}{% endif %}</h1>
+
+  {% if error_message %}
+    <div class="warning">{{ error_message }}</div>
+  {% endif %}
+
+  {% if job %}
+    <div class="apply-summary">
+      <p><strong>Company:</strong> {{ company.name }}</p>
+      <p><strong>Role:</strong> {{ job.title }}</p>
+      {% if email %}
+        <p><strong>Email:</strong> <a href="mailto:{{ email }}">{{ email }}</a></p>
+      {% endif %}
+      {% if job.link %}
+        <p><strong>Job post:</strong> <a href="{{ job.link }}" target="_blank">{{ job.link }}</a></p>
+      {% endif %}
+      {% if company.website %}
+        <p><strong>Website:</strong> <a href="{{ company.website }}" target="_blank">{{ company.website }}</a></p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if cover_letter %}
+    <h2>Cover Letter</h2>
+    <textarea class="cover-letter" readonly>{{ cover_letter }}</textarea>
+    <div class="actions">
+      {% if email %}
+        <a href="mailto:{{ email }}?subject={{ mailto_subject|urlencode }}&body={{ cover_letter|urlencode }}">Open Email</a>
+      {% endif %}
+      {% if job %}
+        <a href="{% url 'job_detail' job.slug %}">View Job</a>
+      {% endif %}
+    </div>
+  {% elif job and not error_message %}
+    <div class="warning">
+      No cover letter was generated. Add an OpenAI API key to your profile, then open this page again.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

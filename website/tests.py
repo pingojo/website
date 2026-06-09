@@ -1,4 +1,5 @@
 import re
+from unittest.mock import patch
 
 from allauth.account.models import (
     EmailAddress,
@@ -25,6 +26,7 @@ from .models import (
     Job,
     Role,
     Stage,
+    Profile,
 )
 
 
@@ -257,6 +259,118 @@ class AddJobLinkTestCase(TestCase):
         )
 
  
+
+class ApplyFromExtensionTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="applyuser",
+            password="12345",
+            email="applyuser@example.com",
+            first_name="Apply",
+            last_name="User",
+        )
+        self.client.login(username="applyuser", password="12345")
+        self.profile = Profile.objects.create(user=self.user, openai_api_key="sk-test")
+        self.url = reverse("apply_from_extension")
+
+    def test_apply_creates_application_and_generates_cover_letter(self):
+        with patch("website.views.openai.ChatCompletion.create") as create:
+            create.return_value = {
+                "choices": [
+                    {
+                        "message": {
+                            "content": "Dear ExampleCo, I am excited to apply."
+                        }
+                    }
+                ]
+            }
+
+            response = self.client.get(
+                self.url,
+                {
+                    "email": "recruiting@exampleco.com",
+                    "job_url": "https://wellfound.com/jobs/1234567-senior-software-engineer-exampleco",
+                    "company_name": "ExampleCo",
+                    "job_title": "Senior Software Engineer",
+                    "website": "https://exampleco.com/",
+                    "create_cover_letter": "1",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dear ExampleCo, I am excited to apply.")
+        company = Company.objects.get(slug="exampleco")
+        job = Job.objects.get(company=company)
+        self.assertEqual(company.email, "recruiting@exampleco.com")
+        self.assertEqual(company.website, "https://exampleco.com/")
+        self.assertEqual(job.title, "Senior Software Engineer")
+        self.assertTrue(
+            Application.objects.filter(
+                user=self.user,
+                company=company,
+                job=job,
+                stage__name="Applied",
+            ).exists()
+        )
+        create.assert_called_once()
+
+    def test_apply_rejects_email_domain_mismatch(self):
+        response = self.client.get(
+            self.url,
+            {
+                "email": "person@example.com",
+                "company_name": "ExampleCo",
+                "job_title": "Senior Software Engineer",
+                "website": "https://exampleco.com/",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "The email domain does not match this company&#x27;s website.",
+        )
+        self.assertFalse(Application.objects.filter(user=self.user).exists())
+
+    def test_apply_without_openai_key_shows_profile_message(self):
+        self.profile.openai_api_key = ""
+        self.profile.save()
+
+        with patch("website.views.openai.ChatCompletion.create") as create:
+            response = self.client.get(
+                self.url,
+                {
+                    "email": "jobs@exampleco.com",
+                    "company_name": "ExampleCo",
+                    "job_title": "Senior Software Engineer",
+                    "website": "https://exampleco.com/",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Add your OpenAI API key on your profile before generating cover letters.",
+        )
+        self.assertTrue(Application.objects.filter(user=self.user).exists())
+        create.assert_not_called()
+
+    def test_profile_form_saves_openai_api_key(self):
+        response = self.client.post(
+            reverse("profile"),
+            {
+                "profile_form": "profile_form",
+                "bio": "Testing profile",
+                "html_resume": "",
+                "openai_api_key": "sk-updated",
+                "is_public": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.openai_api_key, "sk-updated")
+
 
 @override_settings(CAPTCHA_TEST_MODE=True)
 class SignUpTest(TestCase):

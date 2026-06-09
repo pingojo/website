@@ -24,7 +24,14 @@ from .models import (
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ["profile_picture", "bio", "is_public", "html_resume"]
+        fields = [
+            "profile_picture",
+            "bio",
+            "is_public",
+            "html_resume",
+            "openai_api_key",
+        ]
+        widgets = {"openai_api_key": forms.PasswordInput(render_value=True)}
 
     is_public = forms.BooleanField(
         label="Make Profile Public",

@@ -60,6 +60,7 @@ urlpatterns = [
         name="update-application-stage",
     ),
     path("job_add/", views.job_add, name="job_add"),
+    path("apply/", views.apply_from_extension, name="apply_from_extension"),
     path("autocomplete/<str:model>/", views.autocomplete, name="autocomplete"),
     #path("company_list/", CompanyListView.as_view(), name="company_list"),
     path("sources/", SourceListView.as_view(), name="source-list"),

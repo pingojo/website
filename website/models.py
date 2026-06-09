@@ -52,6 +52,7 @@ class Profile(BaseModel):
     is_public = models.BooleanField(default=True)
     html_resume = models.TextField(blank=True, null=True)
     resume_key = models.URLField(blank=True, null=True)
+    openai_api_key = models.CharField(max_length=255, blank=True, null=True)
 
     # location = models.CharField(max_length=255, blank=True, null=True)
     # website = models.URLField(blank=True, null=True)

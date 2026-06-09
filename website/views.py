@@ -3,9 +3,11 @@ import re
 import tempfile
 from datetime import datetime, time, timedelta
 from datetime import timezone as dt_timezone
+from urllib.parse import urlparse
 
 import html2text
 import requests
+import openai
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib import messages
@@ -497,6 +499,19 @@ logger = logging.getLogger(__name__)
 def update_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
+    if not (request.user.is_staff or request.user.is_superuser):
+        can_edit = False
+        if job.added_by_id == request.user.id:
+            can_edit = True
+        elif Application.objects.filter(user=request.user, job=job).exists():
+            can_edit = True
+
+        if not can_edit:
+            return JsonResponse(
+                {"success": False, "error": "Not authorized to update this job."},
+                status=403,
+            )
+
     if request.method == "POST":
         # job.title = request.POST.get('title')
         # job.description = request.POST.get('description')
@@ -529,6 +544,19 @@ def update_job(request, job_id):
 @login_required
 def update_company(request, company_id):
     company = get_object_or_404(Company, id=company_id)
+
+    if not (request.user.is_staff or request.user.is_superuser):
+        can_edit = False
+        if Application.objects.filter(user=request.user, company=company).exists():
+            can_edit = True
+        elif Job.objects.filter(company=company, added_by=request.user).exists():
+            can_edit = True
+
+        if not can_edit:
+            return JsonResponse(
+                {"success": False, "error": "Not authorized to update this company."},
+                status=403,
+            )
 
     if request.method == "POST":
         email = request.POST.get("email")
@@ -871,6 +899,7 @@ def autocomplete(request, model):
     return JsonResponse(results, safe=False)
 
 
+@login_required
 def job_add(request):
     if request.method == "POST":
         form = JobForm(request.POST)
@@ -889,6 +918,186 @@ def job_add(request):
     else:
         form = JobForm()
     return render(request, "job_add.html", {"form": form})
+
+
+
+def normalize_domain(value):
+    if not value:
+        return ""
+
+    parsed = urlparse(value if "://" in value else f"https://{value}")
+    domain = parsed.netloc or parsed.path
+    return domain.lower().removeprefix("www.").strip()
+
+
+def domain_matches_email(email, website):
+    if not email or "@" not in email:
+        return False
+
+    email_domain = normalize_domain(email.split("@", 1)[1])
+    website_domain = normalize_domain(website)
+    if not email_domain or not website_domain:
+        return False
+
+    return (
+        email_domain == website_domain
+        or email_domain.endswith(f".{website_domain}")
+        or website_domain.endswith(f".{email_domain}")
+    )
+
+
+def get_or_create_extension_job(request):
+    email = request.GET.get("email", "").strip()
+    job_url = request.GET.get("job_url", "").strip()
+    company_name = request.GET.get("company_name", "").strip()
+    job_title = request.GET.get("job_title", "").strip()
+    website = request.GET.get("website", "").strip()
+
+    job = None
+    if job_url:
+        job = Job.objects.filter(link=job_url).select_related("company", "role").first()
+        if not job:
+            job_slug = job_url.rstrip("/").split("/")[-1]
+            if job_slug:
+                job = (
+                    Job.objects.filter(link__icontains=job_slug)
+                    .select_related("company", "role")
+                    .first()
+                )
+
+    if job:
+        company = job.company
+        changed = False
+        if email and not company.email:
+            company.email = email
+            changed = True
+        if website and not company.website:
+            company.website = website
+            changed = True
+        if changed:
+            company.save()
+        return job, company, email
+
+    if not company_name:
+        company_name = normalize_domain(website) or "Unknown Company"
+
+    company_slug = slugify(company_name)[:50] or "company"
+    company, _ = Company.objects.get_or_create(
+        slug=company_slug,
+        defaults={
+            "name": company_name,
+            "website": website,
+            "email": email,
+        },
+    )
+
+    changed = False
+    if website and not company.website:
+        company.website = website
+        changed = True
+    if email and not company.email:
+        company.email = email
+        changed = True
+    if changed:
+        company.save()
+
+    role_title = job_title or "Open Role"
+    role_slug = slugify(role_title[:50]) or "open-role"
+    role, _ = Role.objects.get_or_create(
+        slug=role_slug,
+        defaults={"title": role_title},
+    )
+
+    job_slug = slugify(f"{role.title}-at-{company.name}")[:255] or "open-role"
+    job, _ = Job.objects.update_or_create(
+        company=company,
+        role=role,
+        defaults={
+            "slug": job_slug,
+            "title": role.title,
+            "link": job_url or website or "https://www.pingojo.com/",
+            "job_type": " ",
+            "remote": None,
+            "added_by": request.user,
+        },
+    )
+
+    return job, company, email
+
+
+def generate_cover_letter(user, job, company, email):
+    profile = Profile.objects.filter(user=user).first()
+    api_key = profile.openai_api_key if profile else None
+    if not api_key:
+        return "", "Add your OpenAI API key on your profile before generating cover letters."
+
+    prompt = (
+        "Write a concise, professional cover letter email for this job application. "
+        "Use one to three short paragraphs. Do not invent credentials. "
+        f"Applicant name: {user.get_full_name() or user.username}. "
+        f"Applicant email: {user.email}. "
+        f"Company: {company.name}. "
+        f"Role: {job.title}. "
+        f"Recruiting email: {email or company.email or ''}. "
+        f"Job URL: {job.link or ''}. "
+        f"Job description: {job.description_markdown or ''}"
+    )
+
+    openai.api_key = api_key
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You write clear, specific job application cover letters.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.4,
+            max_tokens=600,
+        )
+        return response["choices"][0]["message"]["content"].strip(), ""
+    except Exception:
+        return "", "The cover letter could not be generated. Check your OpenAI API key and try again."
+
+
+@login_required
+def apply_from_extension(request):
+    job, company, email = get_or_create_extension_job(request)
+    if email and company.website and not domain_matches_email(email, company.website):
+        return render(
+            request,
+            "apply.html",
+            {
+                "job": job,
+                "company": company,
+                "email": email,
+                "error_message": "The email domain does not match this company's website.",
+            },
+        )
+
+    stage, _ = Stage.objects.get_or_create(name="Applied", defaults={"order": 1})
+    Application.objects.get_or_create(
+        user=request.user,
+        job=job,
+        company=company,
+        defaults={"stage": stage},
+    )
+
+    cover_letter, error_message = generate_cover_letter(request.user, job, company, email)
+    return render(
+        request,
+        "apply.html",
+        {
+            "job": job,
+            "company": company,
+            "email": email,
+            "cover_letter": cover_letter,
+            "error_message": error_message,
+            "mailto_subject": f"Application for {job.title}",
+        },
+    )
 
 
 @login_required
@@ -1795,7 +2004,6 @@ class DashboardView(LoginRequiredMixin, ListView):
         return context
 
 
-from urllib.parse import urlparse
 
 
 def normalize_domain(url):
