@@ -1111,8 +1111,6 @@ def generate_cover_letter(user, job, company, email, selected_prompt=None):
         prompt_parts.append(f"User cover letter instructions: {selected_prompt.content}")
     prompt_parts.extend(
         [
-            f"Applicant name: {user.get_full_name() or user.username}.",
-            f"Applicant email: {user.email}.",
             f"Company: {company.name}.",
             f"Role: {job.title}.",
             f"Recruiting email: {email or company.email or ''}.",
@@ -1148,7 +1146,11 @@ def generate_cover_letter(user, job, company, email, selected_prompt=None):
             error_message = data.get("error", {}).get("message") or response.text
             return "", f"OpenAI API error: {error_message}"
 
-        return data["choices"][0]["message"]["content"].strip(), ""
+        cover_letter = data["choices"][0]["message"]["content"].strip()
+        signature_name = user.get_full_name().strip() or user.username
+        if signature_name:
+            cover_letter = f"{cover_letter}\n\nThanks,\n{signature_name}"
+        return cover_letter, ""
     except requests.RequestException as error:
         return "", f"OpenAI request failed: {error}"
     except (KeyError, IndexError, ValueError):

@@ -419,8 +419,13 @@ class ApplyFromExtensionTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Custom cover letter.")
+        self.assertContains(response, "Thanks,")
+        self.assertContains(response, "Apply User")
         user_message = post.call_args.kwargs["json"]["messages"][1]["content"]
         self.assertIn("Mention my payments infrastructure experience.", user_message)
+        self.assertNotIn("Apply User", user_message)
+        self.assertNotIn("applyuser", user_message)
+        self.assertNotIn("applyuser@example.com", user_message)
 
     def test_delete_prompt_removes_only_user_prompt(self):
         prompt = Prompt.objects.create(user=self.user, content="Delete me")
