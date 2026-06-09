@@ -303,7 +303,11 @@ class ApplyFromExtensionTestCase(TestCase):
             last_name="User",
         )
         self.client.login(username="applyuser", password="12345")
-        self.profile = Profile.objects.create(user=self.user, openai_api_key="sk-test")
+        self.profile = Profile.objects.create(
+            user=self.user,
+            openai_api_key="sk-test",
+            resume_key="20260609-1",
+        )
         self.url = reverse("apply_from_extension")
 
     def test_apply_creates_application_and_generates_cover_letter(self):
@@ -349,6 +353,14 @@ class ApplyFromExtensionTestCase(TestCase):
             ).exists()
         )
         post.assert_called_once()
+        user_message = post.call_args.kwargs["json"]["messages"][1]["content"]
+        self.assertNotIn("recruiting@exampleco.com", user_message)
+        self.assertNotIn("https://wellfound.com/jobs/1234567-senior-software-engineer-exampleco", user_message)
+        self.assertContains(response, "Resume: http://testserver/resume/20260609-1/?e=")
+        self.assertContains(
+            response,
+            "Original job post: https://wellfound.com/jobs/1234567-senior-software-engineer-exampleco",
+        )
 
     def test_apply_uses_current_cover_letter_prompt_by_default(self):
         prompt = Prompt.objects.create(
@@ -419,13 +431,15 @@ class ApplyFromExtensionTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Custom cover letter.")
-        self.assertContains(response, "Thanks,")
-        self.assertContains(response, "Apply User")
+        self.assertContains(response, "Resume: http://testserver/resume/20260609-1/?e=")
         user_message = post.call_args.kwargs["json"]["messages"][1]["content"]
         self.assertIn("Mention my payments infrastructure experience.", user_message)
         self.assertNotIn("Apply User", user_message)
         self.assertNotIn("applyuser", user_message)
         self.assertNotIn("applyuser@example.com", user_message)
+        self.assertNotIn("recruiting@exampleco.com", user_message)
+        self.assertNotIn("Job URL", user_message)
+        self.assertNotIn("Recruiting email", user_message)
 
     def test_delete_prompt_removes_only_user_prompt(self):
         prompt = Prompt.objects.create(user=self.user, content="Delete me")

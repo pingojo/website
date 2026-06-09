@@ -534,7 +534,6 @@ logger = logging.getLogger(__name__)
 #                  f"I am very interested in the role and would like to learn " \
 #                  f"more about the opportunity. Please let me know if you have " \
 #                  f"any questions or if there is anything else I can provide.\n\n" \
-#                  f"Thanks,\n\n{request.user.first_name} {request.user.last_name}"
 #     return redirect(f"https://mail.google.com/mail/?view=cm&fs=1&to={email}" \
 #                     f"&su={email_subject}&body={email_body}")
 
@@ -1097,7 +1096,15 @@ def get_or_create_extension_job(request):
     return job, company, email
 
 
-def generate_cover_letter(user, job, company, email, selected_prompt=None):
+def build_resume_url(request, user):
+    profile = Profile.objects.filter(user=user).first()
+    if not profile or not profile.resume_key:
+        return ""
+
+    return request.build_absolute_uri(f"/resume/{profile.resume_key}/?e=")
+
+
+def generate_cover_letter(request, user, job, company, email, selected_prompt=None):
     profile = Profile.objects.filter(user=user).first()
     api_key = profile.openai_api_key if profile else None
     if not api_key:
@@ -1105,7 +1112,7 @@ def generate_cover_letter(user, job, company, email, selected_prompt=None):
 
     prompt_parts = [
         "Write a concise, professional cover letter email for this job application.",
-        "Use one to three short paragraphs. Do not invent credentials.",
+        "Do not invent credentials.",
     ]
     if selected_prompt:
         prompt_parts.append(f"User cover letter instructions: {selected_prompt.content}")
@@ -1113,8 +1120,6 @@ def generate_cover_letter(user, job, company, email, selected_prompt=None):
         [
             f"Company: {company.name}.",
             f"Role: {job.title}.",
-            f"Recruiting email: {email or company.email or ''}.",
-            f"Job URL: {job.link or ''}.",
             f"Job description: {job.description_markdown or ''}",
         ]
     )
@@ -1147,9 +1152,14 @@ def generate_cover_letter(user, job, company, email, selected_prompt=None):
             return "", f"OpenAI API error: {error_message}"
 
         cover_letter = data["choices"][0]["message"]["content"].strip()
-        signature_name = user.get_full_name().strip() or user.username
-        if signature_name:
-            cover_letter = f"{cover_letter}\n\nThanks,\n{signature_name}"
+        appendix = []
+        resume_url = build_resume_url(request, user)
+        if resume_url:
+            appendix.append(f"Resume: {resume_url}")
+        if job.link:
+            appendix.append(f"Original job post: {job.link}")
+        if appendix:
+            cover_letter = f"{cover_letter}\n\n" + "\n".join(appendix)
         return cover_letter, ""
     except requests.RequestException as error:
         return "", f"OpenAI request failed: {error}"
@@ -1194,7 +1204,7 @@ def apply_from_extension(request):
     )
 
     cover_letter, error_message = generate_cover_letter(
-        request.user, job, company, email, selected_prompt
+        request, request.user, job, company, email, selected_prompt
     )
     return render(
         request,
