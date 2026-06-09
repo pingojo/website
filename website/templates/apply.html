@@ -92,11 +92,20 @@
   }
 
   .cover-letter {
+    display: none;
+  }
+
+  .cover-letter-display {
     width: 100%;
     min-height: 320px;
     box-sizing: border-box;
     padding: 8px;
     font-size: 0.95rem;
+    border: 1px solid #ccc;
+    background: #fff;
+    line-height: 1.6;
+    font-family: inherit;
+    overflow-y: auto;
   }
 
   .email-row {
@@ -199,6 +208,7 @@
           Copy (with links)
         </button>
       </div>
+      <div id="body-display" class="cover-letter-display">{{ cover_letter_html }}</div>
       <textarea id="body-field" class="cover-letter" readonly>{{ cover_letter }}</textarea>
     </div>
 

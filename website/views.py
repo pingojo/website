@@ -36,6 +36,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import escape, mark_safe
 from django.utils.text import slugify
 from django.utils.timezone import is_naive, make_aware
 from django.views import View, generic
@@ -1124,6 +1125,20 @@ def get_or_create_extension_job(request):
     return job, company, email
 
 
+def body_to_html(body_text):
+    """Convert plain cover letter text to HTML, turning Resume/Job post lines into <a> links."""
+    parts = []
+    for line in body_text.split('\n'):
+        m = re.match(r'^(Resume|Job post): (https?://\S+)$', line)
+        if m:
+            label = escape(m.group(1))
+            url = escape(m.group(2))
+            parts.append(f'{label}: <a href="{url}" target="_blank">{url}</a>')
+        else:
+            parts.append(escape(line))
+    return mark_safe('<br>'.join(parts))
+
+
 def build_resume_url(request, user, email=""):
     profile = Profile.objects.filter(user=user).first()
     if not profile or not profile.resume_key:
@@ -1145,7 +1160,7 @@ def generate_cover_letter(request, user, job, company, email, selected_prompt=No
         "Do not invent credentials.",
         "No markdown formatting.",
         'Respond with JSON only: {"subject": "...", "body": "..."}',
-        "End the body with 'Best regards,' on its own line followed by a blank signature line.",
+        "End the body with a professional sign-off (e.g. 'Best regards,' or 'Sincerely,') on its own line.",
     ]
     if selected_prompt:
         prompt_parts.append(f"Additional instructions: {selected_prompt.content}")
@@ -1188,6 +1203,11 @@ def generate_cover_letter(request, user, job, company, email, selected_prompt=No
         parsed = json.loads(data["choices"][0]["message"]["content"])
         subject = parsed.get("subject", f"Application for {job.title} at {company.name}").strip()
         body = parsed.get("body", "").strip()
+
+        # Append user's name after the AI's sign-off line (never sent to OpenAI — added post-response).
+        user_name = f"{user.first_name} {user.last_name}".strip()
+        if user_name:
+            body = f"{body.rstrip()}\n{user_name}"
 
         appendix = []
         resume_url = build_resume_url(request, user, email)
@@ -1256,6 +1276,7 @@ def apply_from_extension(request):
             "prompts": prompts,
             "selected_prompt": selected_prompt,
             "cover_letter": cover_letter,
+            "cover_letter_html": body_to_html(cover_letter) if cover_letter else "",
             "email_subject": email_subject,
             "error_message": error_message,
             "has_name": has_name,
