@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import tempfile
@@ -1123,26 +1124,32 @@ def get_or_create_extension_job(request):
     return job, company, email
 
 
-def build_resume_url(request, user):
+def build_resume_url(request, user, email=""):
     profile = Profile.objects.filter(user=user).first()
     if not profile or not profile.resume_key:
         return ""
 
-    return request.build_absolute_uri(f"/resume/{profile.resume_key}/?e=")
+    return request.build_absolute_uri(f"/resume/{profile.resume_key}/?e={email}")
 
 
 def generate_cover_letter(request, user, job, company, email, selected_prompt=None):
     profile = Profile.objects.filter(user=user).first()
     api_key = profile.openai_api_key if profile else None
     if not api_key:
-        return "", "Add your OpenAI API key on your profile before generating cover letters."
+        return "", "", "Add your OpenAI API key on your profile before generating cover letters.", ""
+
+    user_name = f"{user.first_name} {user.last_name}".strip()
 
     prompt_parts = [
-        "Write a concise, professional cover letter email for this job application.",
+        "Write a concise, professional job application email for this position.",
         "Do not invent credentials.",
+        "No markdown formatting.",
+        'Respond with JSON only: {"subject": "...", "body": "..."}',
     ]
+    if user_name:
+        prompt_parts.append(f"The applicant's name is {user_name}. Sign off with their name.")
     if selected_prompt:
-        prompt_parts.append(f"User cover letter instructions: {selected_prompt.content}")
+        prompt_parts.append(f"Additional instructions: {selected_prompt.content}")
     prompt_parts.extend(
         [
             f"Company: {company.name}.",
@@ -1164,34 +1171,39 @@ def generate_cover_letter(request, user, job, company, email, selected_prompt=No
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You write clear, specific job application cover letters.",
+                        "content": 'You write job application emails. Always respond with valid JSON: {"subject": "...", "body": "..."}',
                     },
                     {"role": "user", "content": prompt},
                 ],
+                "response_format": {"type": "json_object"},
                 "temperature": 0.4,
-                "max_tokens": 600,
+                "max_tokens": 700,
             },
             timeout=30,
         )
         data = response.json()
         if response.status_code >= 400:
             error_message = data.get("error", {}).get("message") or response.text
-            return "", f"OpenAI API error: {error_message}"
+            return "", "", f"OpenAI API error: {error_message}", prompt
 
-        cover_letter = data["choices"][0]["message"]["content"].strip()
+        parsed = json.loads(data["choices"][0]["message"]["content"])
+        subject = parsed.get("subject", f"Application for {job.title} at {company.name}").strip()
+        body = parsed.get("body", "").strip()
+
         appendix = []
-        resume_url = build_resume_url(request, user)
+        resume_url = build_resume_url(request, user, email)
         if resume_url:
             appendix.append(f"Resume: {resume_url}")
         if job.link:
-            appendix.append(f"Original job post: {job.link}")
+            appendix.append(f"Job post: {job.link}")
         if appendix:
-            cover_letter = f"{cover_letter}\n\n" + "\n".join(appendix)
-        return cover_letter, ""
+            body = f"{body}\n\n" + "\n".join(appendix)
+
+        return subject, body, "", prompt
     except requests.RequestException as error:
-        return "", f"OpenAI request failed: {error}"
-    except (KeyError, IndexError, ValueError):
-        return "", "OpenAI returned an unexpected response while generating the cover letter."
+        return "", "", f"OpenAI request failed: {error}", prompt
+    except (KeyError, IndexError, ValueError, json.JSONDecodeError):
+        return "", "", "OpenAI returned an unexpected response while generating the cover letter.", prompt
 
 
 @login_required
@@ -1218,6 +1230,7 @@ def apply_from_extension(request):
                 "email": email,
                 "prompts": prompts,
                 "selected_prompt": selected_prompt,
+                "has_name": bool(request.user.first_name and request.user.last_name),
                 "error_message": "The email domain does not match this company's website.",
             },
         )
@@ -1230,9 +1243,10 @@ def apply_from_extension(request):
         defaults={"stage": stage},
     )
 
-    cover_letter, error_message = generate_cover_letter(
+    email_subject, cover_letter, error_message, debug_prompt = generate_cover_letter(
         request, request.user, job, company, email, selected_prompt
     )
+    has_name = bool(request.user.first_name and request.user.last_name)
     return render(
         request,
         "apply.html",
@@ -1243,8 +1257,10 @@ def apply_from_extension(request):
             "prompts": prompts,
             "selected_prompt": selected_prompt,
             "cover_letter": cover_letter,
+            "email_subject": email_subject,
             "error_message": error_message,
-            "mailto_subject": f"Application for {job.title}",
+            "has_name": has_name,
+            "debug_prompt": debug_prompt,
         },
     )
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 <style>
@@ -14,10 +15,8 @@
     margin-bottom: 16px;
   }
 
-  .cover-letter {
-    width: 100%;
-    min-height: 320px;
-    box-sizing: border-box;
+  .apply-summary p {
+    margin: 4px 0;
   }
 
   .warning {
@@ -27,9 +26,69 @@
     margin-bottom: 16px;
   }
 
-  .actions a {
-    display: inline-block;
-    margin-right: 12px;
+  .info-banner {
+    border: 1px solid #b8daff;
+    background: #e8f4fd;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .field-block {
+    margin-bottom: 20px;
+  }
+
+  .field-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .field-header h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+
+  .copy-btn {
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .copy-btn:active {
+    background: #d0d0d0;
+  }
+
+  .copy-btn.copied {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+
+  .subject-input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+  }
+
+  .cover-letter {
+    width: 100%;
+    min-height: 320px;
+    box-sizing: border-box;
+    padding: 8px;
+    font-size: 0.95rem;
+  }
+
+  .email-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .prompt-selector {
@@ -39,10 +98,33 @@
   .prompt-selector select {
     max-width: 520px;
   }
+
+  .open-email-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #0069d9;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 12px;
+  }
+
+  .open-email-btn:hover {
+    background: #0056b3;
+    color: white;
+  }
 </style>
 
 <div class="apply-page">
   <h1>Apply{% if job %}: {{ job.title }}{% endif %}</h1>
+
+  {% if not has_name %}
+    <div class="info-banner">
+      Your first and last name are not set — the cover letter sign-off may be incomplete.
+      <a href="{% url 'profile' %}" style="margin-left:8px;">Fill in your name &rarr;</a>
+    </div>
+  {% endif %}
 
   {% if error_message %}
     <div class="warning">{{ error_message }}</div>
@@ -53,7 +135,11 @@
       <p><strong>Company:</strong> {{ company.name }}</p>
       <p><strong>Role:</strong> {{ job.title }}</p>
       {% if email %}
-        <p><strong>Email:</strong> <a href="mailto:{{ email }}">{{ email }}</a></p>
+        <p class="email-row">
+          <strong>Email:</strong>
+          <a href="mailto:{{ email }}">{{ email }}</a>
+          <button class="copy-btn" onclick="copyText('{{ email }}', this)">Copy</button>
+        </p>
       {% endif %}
       {% if job.link %}
         <p><strong>Job post:</strong> <a href="{{ job.link }}" target="_blank">{{ job.link }}</a></p>
@@ -85,20 +171,83 @@
   {% endif %}
 
   {% if cover_letter %}
-    <h2>Cover Letter</h2>
-    <textarea class="cover-letter" readonly>{{ cover_letter }}</textarea>
-    <div class="actions">
-      {% if email %}
-        <a href="mailto:{{ email }}?subject={{ mailto_subject|urlencode }}&body={{ cover_letter|urlencode }}">Open Email</a>
-      {% endif %}
-      {% if job %}
-        <a href="{% url 'job_detail' job.slug %}">View Job</a>
-      {% endif %}
+    <div class="field-block">
+      <div class="field-header">
+        <h2>Subject</h2>
+        <button class="copy-btn" onclick="copyField('subject-field', this)">Copy</button>
+      </div>
+      <input id="subject-field" class="subject-input" type="text" readonly
+             value="{{ email_subject }}">
     </div>
+
+    <div class="field-block">
+      <div class="field-header">
+        <h2>Body</h2>
+        <button class="copy-btn" onclick="copyField('body-field', this)">Copy</button>
+      </div>
+      <textarea id="body-field" class="cover-letter" readonly>{{ cover_letter }}</textarea>
+    </div>
+
+    {% if email %}
+      <a class="open-email-btn"
+         href="mailto:{{ email }}?subject={{ email_subject|urlencode }}&body={{ cover_letter|urlencode }}">
+        Open in Email Client
+      </a>
+    {% endif %}
+
+    {% if job %}
+      <a href="{% url 'job_detail' job.slug %}" style="margin-left:12px;">View Job</a>
+    {% endif %}
+
   {% elif job and not error_message %}
     <div class="warning">
       No cover letter was generated. Add an OpenAI API key to your profile, then open this page again.
     </div>
   {% endif %}
+
+  {% if debug_prompt %}
+    <details style="margin-top:32px; border-top:1px solid #ddd; padding-top:12px;">
+      <summary style="cursor:pointer; color:#666; font-size:0.85rem;">Debug: OpenAI prompt</summary>
+      <pre style="margin-top:10px; padding:12px; background:#f8f8f8; border:1px solid #ddd;
+                  white-space:pre-wrap; font-size:0.8rem; line-height:1.5;">{{ debug_prompt }}</pre>
+    </details>
+  {% endif %}
 </div>
+
+<script>
+  function copyField(fieldId, btn) {
+    const el = document.getElementById(fieldId);
+    const text = el.tagName === 'TEXTAREA' ? el.value : el.value;
+    copyText(text, btn);
+  }
+
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('copied');
+      }, 1800);
+    }).catch(() => {
+      // fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('copied');
+      }, 1800);
+    });
+  }
+</script>
 {% endblock %}
