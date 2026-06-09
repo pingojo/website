@@ -226,6 +226,15 @@
           </svg>
           Open in Gmail
         </a>
+        <button class="action-btn btn-red"
+                data-email="{{ email|urlencode }}"
+                data-subject="{{ email_subject|urlencode }}"
+                onclick="composeGmail(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
+            <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.512l-6.545-4.782v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.964l8.073-6.471C21.69 2.28 24 3.434 24 5.457z"/>
+          </svg>
+          Paste in Gmail
+        </button>
       {% endif %}
       {% if job %}
         <a class="action-btn btn-ghost" href="{% url 'job_detail' job.slug %}">View Job</a>
@@ -253,10 +262,11 @@
     return text.split('\n').map(line => {
       const m = line.match(linkPattern);
       if (m) {
-        return `${escHtml(m[1])}: <a href="${escHtml(m[2])}">${escHtml(m[2])}</a>`;
+        const label = m[1].toLowerCase() === 'job post' ? 'Job Post' : 'Resume';
+        return `<a href="${escHtml(m[2])}">${label}</a>`;
       }
       return escHtml(line);
-    }).join('<br>\n');
+    }).join('<br>');
   }
 
   function escHtml(s) {
@@ -297,6 +307,23 @@
       navigator.clipboard.writeText(text).then(() => flashCopied(btn)).catch(() => execCopy(text, btn));
     } else {
       execCopy(text, btn);
+    }
+  }
+
+  function composeGmail(btn) {
+    const body = document.getElementById('body-field').value;
+    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${btn.dataset.email}&su=${btn.dataset.subject}`;
+    const open = () => window.open(url, '_blank');
+    if (window.ClipboardItem) {
+      const html = textToHtml(body);
+      navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([body], { type: 'text/plain' })
+      })]).then(open).catch(() => navigator.clipboard.writeText(body).then(open).catch(open));
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(body).then(open).catch(open);
+    } else {
+      open();
     }
   }
 

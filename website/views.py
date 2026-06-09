@@ -1131,9 +1131,9 @@ def body_to_html(body_text):
     for line in body_text.split('\n'):
         m = re.match(r'^(Resume|Job post): (https?://\S+)$', line)
         if m:
-            label = escape(m.group(1))
             url = escape(m.group(2))
-            parts.append(f'{label}: <a href="{url}" target="_blank">{url}</a>')
+            link_text = 'Job Post' if m.group(1).lower() == 'job post' else 'Resume'
+            parts.append(f'<a href="{url}" target="_blank">{link_text}</a>')
         else:
             parts.append(escape(line))
     return mark_safe('<br>'.join(parts))
@@ -1203,6 +1203,9 @@ def generate_cover_letter(request, user, job, company, email, selected_prompt=No
         parsed = json.loads(data["choices"][0]["message"]["content"])
         subject = parsed.get("subject", f"Application for {job.title} at {company.name}").strip()
         body = parsed.get("body", "").strip()
+
+        # Remove placeholder signatures the AI may insert before we add the real name.
+        body = re.sub(r'\n?\[Your (?:Name|Signature)\]|\n?\[(?:Name|Signature)\]', '', body, flags=re.IGNORECASE).strip()
 
         # Append user's name after the AI's sign-off line (never sent to OpenAI — added post-response).
         user_name = f"{user.first_name} {user.last_name}".strip()
