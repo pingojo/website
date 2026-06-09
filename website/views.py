@@ -1138,16 +1138,15 @@ def generate_cover_letter(request, user, job, company, email, selected_prompt=No
     if not api_key:
         return "", "", "Add your OpenAI API key on your profile before generating cover letters.", ""
 
-    user_name = f"{user.first_name} {user.last_name}".strip()
-
+    # PRIVACY: never send personal info (name, email, resume URL, job links) to OpenAI.
+    # Only company name, role title, and job description are sent.
     prompt_parts = [
         "Write a concise, professional job application email for this position.",
         "Do not invent credentials.",
         "No markdown formatting.",
         'Respond with JSON only: {"subject": "...", "body": "..."}',
+        "End the body with 'Best regards,' on its own line followed by a blank signature line.",
     ]
-    if user_name:
-        prompt_parts.append(f"The applicant's name is {user_name}. Sign off with their name.")
     if selected_prompt:
         prompt_parts.append(f"Additional instructions: {selected_prompt.content}")
     prompt_parts.extend(

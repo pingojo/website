@@ -40,7 +40,7 @@
   .field-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 6px;
   }
 
@@ -51,22 +51,36 @@
   }
 
   .copy-btn {
-    padding: 4px 12px;
-    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     cursor: pointer;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    background: #fff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    user-select: none;
+  }
+
+  .copy-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
   }
 
   .copy-btn:active {
-    background: #d0d0d0;
+    background: #e5e7eb;
   }
 
   .copy-btn.copied {
-    background: #d4edda;
-    border-color: #28a745;
-    color: #155724;
+    background: #d1fae5;
+    border-color: #34d399;
+    color: #065f46;
   }
 
   .subject-input {
@@ -91,29 +105,34 @@
     gap: 8px;
   }
 
-  .prompt-selector {
-    margin-bottom: 16px;
+  .action-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
   }
 
-  .prompt-selector select {
-    max-width: 520px;
-  }
-
-  .open-email-btn {
-    display: inline-block;
-    padding: 8px 16px;
-    background: #0069d9;
-    color: white;
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
     text-decoration: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    margin-top: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
   }
 
-  .open-email-btn:hover {
-    background: #0056b3;
-    color: white;
-  }
+  .action-btn:hover { opacity: 0.88; }
+
+  .btn-blue  { background: #2563eb; color: #fff; }
+  .btn-red   { background: #dc2626; color: #fff; }
+  .btn-ghost { background: transparent; color: #374151; border: 1px solid #d1d5db; }
+  .btn-ghost:hover { background: #f3f4f6; }
 </style>
 
 <div class="apply-page">
@@ -138,7 +157,12 @@
         <p class="email-row">
           <strong>Email:</strong>
           <a href="mailto:{{ email }}">{{ email }}</a>
-          <button class="copy-btn" onclick="copyText('{{ email }}', this)">Copy</button>
+          <button class="copy-btn" onclick="copyText('{{ email }}', this)">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7">
+              <rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2H3.5A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>
+            </svg>
+            Copy
+          </button>
         </p>
       {% endif %}
       {% if job.link %}
@@ -150,31 +174,16 @@
     </div>
   {% endif %}
 
-  {% if prompts %}
-    <form method="get" class="prompt-selector">
-      {% for key, value in request.GET.items %}
-        {% if key != "prompt_id" %}
-          <input type="hidden" name="{{ key }}" value="{{ value }}">
-        {% endif %}
-      {% endfor %}
-      <label for="prompt_id"><strong>Cover letter prompt:</strong></label>
-      <select id="prompt_id" name="prompt_id" onchange="this.form.submit()">
-        <option value="">Default prompt</option>
-        {% for prompt in prompts %}
-          <option value="{{ prompt.id }}" {% if selected_prompt and selected_prompt.id == prompt.id %}selected{% endif %}>
-            {{ prompt.content|truncatechars:80 }}
-          </option>
-        {% endfor %}
-      </select>
-      <button type="submit">Use Prompt</button>
-    </form>
-  {% endif %}
-
   {% if cover_letter %}
     <div class="field-block">
       <div class="field-header">
         <h2>Subject</h2>
-        <button class="copy-btn" onclick="copyField('subject-field', this)">Copy</button>
+        <button class="copy-btn" onclick="copyField('subject-field', this)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7">
+            <rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2H3.5A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>
+          </svg>
+          Copy
+        </button>
       </div>
       <input id="subject-field" class="subject-input" type="text" readonly
              value="{{ email_subject }}">
@@ -183,21 +192,35 @@
     <div class="field-block">
       <div class="field-header">
         <h2>Body</h2>
-        <button class="copy-btn" onclick="copyField('body-field', this)">Copy</button>
+        <button class="copy-btn" onclick="copyField('body-field', this)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7">
+            <rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2H3.5A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>
+          </svg>
+          Copy (with links)
+        </button>
       </div>
       <textarea id="body-field" class="cover-letter" readonly>{{ cover_letter }}</textarea>
     </div>
 
-    {% if email %}
-      <a class="open-email-btn"
-         href="mailto:{{ email }}?subject={{ email_subject|urlencode }}&body={{ cover_letter|urlencode }}">
-        Open in Email Client
-      </a>
-    {% endif %}
-
-    {% if job %}
-      <a href="{% url 'job_detail' job.slug %}" style="margin-left:12px;">View Job</a>
-    {% endif %}
+    <div class="action-row">
+      {% if email %}
+        <a class="action-btn btn-ghost"
+           href="mailto:{{ email }}?subject={{ email_subject|urlencode }}&body={{ cover_letter|urlencode }}">
+          ✉ Open in Email Client
+        </a>
+        <a class="action-btn btn-red"
+           href="https://mail.google.com/mail/?view=cm&fs=1&to={{ email|urlencode }}&su={{ email_subject|urlencode }}&body={{ cover_letter|urlencode }}"
+           target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
+            <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.512l-6.545-4.782v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.964l8.073-6.471C21.69 2.28 24 3.434 24 5.457z"/>
+          </svg>
+          Open in Gmail
+        </a>
+      {% endif %}
+      {% if job %}
+        <a class="action-btn btn-ghost" href="{% url 'job_detail' job.slug %}">View Job</a>
+      {% endif %}
+    </div>
 
   {% elif job and not error_message %}
     <div class="warning">
@@ -215,39 +238,67 @@
 </div>
 
 <script>
+  function textToHtml(text) {
+    const linkPattern = /^(Resume|Job post): (https?:\/\/\S+)$/;
+    return text.split('\n').map(line => {
+      const m = line.match(linkPattern);
+      if (m) {
+        return `${escHtml(m[1])}: <a href="${escHtml(m[2])}">${escHtml(m[2])}</a>`;
+      }
+      return escHtml(line);
+    }).join('<br>\n');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function flashCopied(btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1800);
+  }
+
   function copyField(fieldId, btn) {
     const el = document.getElementById(fieldId);
-    const text = el.tagName === 'TEXTAREA' ? el.value : el.value;
-    copyText(text, btn);
+    const text = el.value;
+    const isBody = el.tagName === 'TEXTAREA';
+
+    if (isBody && window.ClipboardItem) {
+      const html = textToHtml(text);
+      const htmlBlob = new Blob([html], { type: 'text/html' });
+      const textBlob = new Blob([text], { type: 'text/plain' });
+      navigator.clipboard.write([new ClipboardItem({
+        'text/html': htmlBlob,
+        'text/plain': textBlob
+      })]).then(() => flashCopied(btn)).catch(() => plainCopy(text, btn));
+    } else {
+      plainCopy(text, btn);
+    }
   }
 
   function copyText(text, btn) {
-    navigator.clipboard.writeText(text).then(() => {
-      const orig = btn.textContent;
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = orig;
-        btn.classList.remove('copied');
-      }, 1800);
-    }).catch(() => {
-      // fallback for older browsers
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      const orig = btn.textContent;
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = orig;
-        btn.classList.remove('copied');
-      }, 1800);
-    });
+    plainCopy(text, btn);
+  }
+
+  function plainCopy(text, btn) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => flashCopied(btn)).catch(() => execCopy(text, btn));
+    } else {
+      execCopy(text, btn);
+    }
+  }
+
+  function execCopy(text, btn) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    flashCopied(btn);
   }
 </script>
 {% endblock %}
