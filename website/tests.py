@@ -1,5 +1,5 @@
 import re
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from allauth.account.models import (
     EmailAddress,
@@ -307,16 +307,19 @@ class ApplyFromExtensionTestCase(TestCase):
         self.url = reverse("apply_from_extension")
 
     def test_apply_creates_application_and_generates_cover_letter(self):
-        with patch("website.views.openai.ChatCompletion.create") as create:
-            create.return_value = {
-                "choices": [
-                    {
-                        "message": {
-                            "content": "Dear ExampleCo, I am excited to apply."
+        with patch("website.views.requests.post") as post:
+            post.return_value = Mock(
+                status_code=200,
+                json=lambda: {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": "Dear ExampleCo, I am excited to apply."
+                            }
                         }
-                    }
-                ]
-            }
+                    ]
+                },
+            )
 
             response = self.client.get(
                 self.url,
@@ -345,7 +348,7 @@ class ApplyFromExtensionTestCase(TestCase):
                 stage__name="Applied",
             ).exists()
         )
-        create.assert_called_once()
+        post.assert_called_once()
 
     def test_apply_injects_selected_prompt_into_cover_letter_request(self):
         prompt = Prompt.objects.create(
@@ -353,10 +356,13 @@ class ApplyFromExtensionTestCase(TestCase):
             content="Mention my payments infrastructure experience.",
         )
 
-        with patch("website.views.openai.ChatCompletion.create") as create:
-            create.return_value = {
-                "choices": [{"message": {"content": "Custom cover letter."}}]
-            }
+        with patch("website.views.requests.post") as post:
+            post.return_value = Mock(
+                status_code=200,
+                json=lambda: {
+                    "choices": [{"message": {"content": "Custom cover letter."}}]
+                },
+            )
 
             response = self.client.get(
                 self.url,
@@ -371,7 +377,7 @@ class ApplyFromExtensionTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Custom cover letter.")
-        user_message = create.call_args.kwargs["messages"][1]["content"]
+        user_message = post.call_args.kwargs["json"]["messages"][1]["content"]
         self.assertIn("Mention my payments infrastructure experience.", user_message)
 
     def test_delete_prompt_removes_only_user_prompt(self):
@@ -446,7 +452,7 @@ class ApplyFromExtensionTestCase(TestCase):
         self.profile.openai_api_key = ""
         self.profile.save()
 
-        with patch("website.views.openai.ChatCompletion.create") as create:
+        with patch("website.views.requests.post") as post:
             response = self.client.get(
                 self.url,
                 {
@@ -463,7 +469,27 @@ class ApplyFromExtensionTestCase(TestCase):
             "Add your OpenAI API key on your profile before generating cover letters.",
         )
         self.assertTrue(Application.objects.filter(user=self.user).exists())
-        create.assert_not_called()
+        post.assert_not_called()
+
+    def test_apply_shows_openai_api_error_message(self):
+        with patch("website.views.requests.post") as post:
+            post.return_value = Mock(
+                status_code=429,
+                text='{"error":{"message":"You exceeded your current quota."}}',
+                json=lambda: {"error": {"message": "You exceeded your current quota."}},
+            )
+            response = self.client.get(
+                self.url,
+                {
+                    "email": "jobs@exampleco.com",
+                    "company_name": "ExampleCo",
+                    "job_title": "Senior Software Engineer",
+                    "website": "https://exampleco.com/",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "OpenAI API error: You exceeded your current quota.")
 
     def test_profile_form_saves_openai_api_key(self):
         response = self.client.post(

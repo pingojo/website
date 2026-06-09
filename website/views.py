@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 
 import html2text
 import requests
-import openai
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib import messages
@@ -1104,23 +1103,37 @@ def generate_cover_letter(user, job, company, email, selected_prompt=None):
     )
     prompt = " ".join(prompt_parts)
 
-    openai.api_key = api_key
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You write clear, specific job application cover letters.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.4,
-            max_tokens=600,
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key.strip()}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You write clear, specific job application cover letters.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.4,
+                "max_tokens": 600,
+            },
+            timeout=30,
         )
-        return response["choices"][0]["message"]["content"].strip(), ""
-    except Exception:
-        return "", "The cover letter could not be generated. Check your OpenAI API key and try again."
+        data = response.json()
+        if response.status_code >= 400:
+            error_message = data.get("error", {}).get("message") or response.text
+            return "", f"OpenAI API error: {error_message}"
+
+        return data["choices"][0]["message"]["content"].strip(), ""
+    except requests.RequestException as error:
+        return "", f"OpenAI request failed: {error}"
+    except (KeyError, IndexError, ValueError):
+        return "", "OpenAI returned an unexpected response while generating the cover letter."
 
 
 @login_required
