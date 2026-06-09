@@ -346,6 +346,35 @@ class ApplyFromExtensionTestCase(TestCase):
         )
         create.assert_called_once()
 
+    def test_apply_resolves_existing_company_by_email_domain(self):
+        company = Company.objects.create(
+            name="ExampleCo",
+            slug="exampleco-existing",
+            website="https://exampleco.com",
+        )
+        role = Role.objects.create(title="Software Engineer")
+        job = Job.objects.create(company=company, role=role, title=role.title)
+
+        response = self.client.get(
+            self.url,
+            {
+                "email": "support@exampleco.com",
+                "job_title": "Open Role",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "ExampleCo")
+        self.assertNotContains(response, "Unknown Company")
+        self.assertTrue(
+            Application.objects.filter(
+                user=self.user,
+                company=company,
+                job=job,
+                stage__name="Applied",
+            ).exists()
+        )
+
     def test_apply_rejects_email_domain_mismatch(self):
         response = self.client.get(
             self.url,

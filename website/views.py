@@ -965,6 +965,26 @@ def domain_matches_email(email, website):
     )
 
 
+def get_company_by_email_or_website_domain(email, website):
+    domains = []
+    if email and "@" in email:
+        domains.append(normalize_domain(email.split("@", 1)[1]))
+    if website:
+        domains.append(normalize_domain(website))
+
+    for domain in dict.fromkeys(filter(None, domains)):
+        companies = Company.objects.filter(website__icontains=domain)
+        for company in companies:
+            if domain_matches_email(f"user@{domain}", company.website):
+                return company
+
+        company = Company.objects.filter(email__iendswith=f"@{domain}").first()
+        if company:
+            return company
+
+    return None
+
+
 def get_or_create_extension_job(request):
     email = request.GET.get("email", "").strip()
     job_url = request.GET.get("job_url", "").strip()
@@ -997,18 +1017,23 @@ def get_or_create_extension_job(request):
             company.save()
         return job, company, email
 
-    if not company_name:
-        company_name = normalize_domain(website) or "Unknown Company"
+    company = get_company_by_email_or_website_domain(email, website)
 
-    company_slug = slugify(company_name)[:50] or "company"
-    company, _ = Company.objects.get_or_create(
-        slug=company_slug,
-        defaults={
-            "name": company_name,
-            "website": website,
-            "email": email,
-        },
-    )
+    if company:
+        company_name = company.name
+    else:
+        if not company_name:
+            company_name = normalize_domain(website) or normalize_domain(email.split("@", 1)[1] if "@" in email else "") or "Unknown Company"
+
+        company_slug = slugify(company_name)[:50] or "company"
+        company, _ = Company.objects.get_or_create(
+            slug=company_slug,
+            defaults={
+                "name": company_name,
+                "website": website,
+                "email": email,
+            },
+        )
 
     changed = False
     if website and not company.website:
@@ -1019,6 +1044,16 @@ def get_or_create_extension_job(request):
         changed = True
     if changed:
         company.save()
+
+    if (not job_title or job_title == "Open Role") and company:
+        existing_job = (
+            Job.objects.filter(company=company)
+            .select_related("company", "role")
+            .order_by("-id")
+            .first()
+        )
+        if existing_job:
+            return existing_job, company, email
 
     role_title = job_title or "Open Role"
     role_slug = slugify(role_title[:50]) or "open-role"
