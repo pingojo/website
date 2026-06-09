@@ -1045,16 +1045,6 @@ def get_or_create_extension_job(request):
     if changed:
         company.save()
 
-    if (not job_title or job_title == "Open Role") and company:
-        existing_job = (
-            Job.objects.filter(company=company)
-            .select_related("company", "role")
-            .order_by("-id")
-            .first()
-        )
-        if existing_job:
-            return existing_job, company, email
-
     role_title = job_title or "Open Role"
     role_slug = slugify(role_title[:50]) or "open-role"
     role, _ = Role.objects.get_or_create(

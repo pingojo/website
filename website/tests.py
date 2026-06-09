@@ -346,31 +346,41 @@ class ApplyFromExtensionTestCase(TestCase):
         )
         create.assert_called_once()
 
-    def test_apply_resolves_existing_company_by_email_domain(self):
+    def test_apply_resolves_company_by_email_domain_and_uses_current_job_url(self):
         company = Company.objects.create(
             name="ExampleCo",
             slug="exampleco-existing",
             website="https://exampleco.com",
         )
-        role = Role.objects.create(title="Software Engineer")
-        job = Job.objects.create(company=company, role=role, title=role.title)
+        old_role = Role.objects.create(title="Old Greenhouse Role")
+        old_job = Job.objects.create(
+            company=company,
+            role=old_role,
+            title=old_role.title,
+            link="https://boards.greenhouse.io/exampleco/jobs/old",
+        )
+        current_url = "https://wellfound.com/jobs/123-exampleco-current-role"
 
         response = self.client.get(
             self.url,
             {
                 "email": "support@exampleco.com",
-                "job_title": "Open Role",
+                "job_url": current_url,
+                "job_title": "Current Wellfound Role",
             },
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "ExampleCo")
+        self.assertContains(response, current_url)
         self.assertNotContains(response, "Unknown Company")
+        current_job = Job.objects.get(link=current_url)
+        self.assertNotEqual(current_job.id, old_job.id)
         self.assertTrue(
             Application.objects.filter(
                 user=self.user,
                 company=company,
-                job=job,
+                job=current_job,
                 stage__name="Applied",
             ).exists()
         )
