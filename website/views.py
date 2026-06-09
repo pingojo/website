@@ -395,6 +395,25 @@ def delete_prompt(request, prompt_id):
     return redirect("profile")
 
 
+@login_required
+def set_cover_letter_prompt(request, prompt_id):
+    if request.method != "POST":
+        return redirect("profile")
+
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    prompt = get_object_or_404(Prompt, id=prompt_id, user=request.user)
+
+    if request.POST.get("use_for_cover_letters"):
+        profile.cover_letter_prompt = prompt
+        messages.success(request, "Your cover letter prompt has been selected.")
+    elif profile.cover_letter_prompt_id == prompt.id:
+        profile.cover_letter_prompt = None
+        messages.success(request, "Your cover letter prompt has been cleared.")
+
+    profile.save(update_fields=["cover_letter_prompt"])
+    return redirect("profile")
+
+
 def profile_view(request, prompt_id=None):
     # create Profile for the user if it doesn not exist
     Profile.objects.get_or_create(user=request.user)
@@ -1142,8 +1161,13 @@ def apply_from_extension(request):
     prompts = Prompt.objects.filter(user=request.user).order_by("-modified")
     selected_prompt = None
     prompt_id = request.GET.get("prompt_id")
-    if prompt_id:
-        selected_prompt = prompts.filter(id=prompt_id).first()
+    if "prompt_id" in request.GET:
+        if prompt_id:
+            selected_prompt = prompts.filter(id=prompt_id).first()
+    else:
+        profile = Profile.objects.filter(user=request.user).select_related("cover_letter_prompt").first()
+        if profile and profile.cover_letter_prompt and profile.cover_letter_prompt.user_id == request.user.id:
+            selected_prompt = profile.cover_letter_prompt
 
     if email and company.website and not domain_matches_email(email, company.website):
         return render(

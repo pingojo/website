@@ -53,6 +53,13 @@ class Profile(BaseModel):
     html_resume = models.TextField(blank=True, null=True)
     resume_key = models.URLField(blank=True, null=True)
     openai_api_key = models.CharField(max_length=255, blank=True, null=True)
+    cover_letter_prompt = models.ForeignKey(
+        "Prompt",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="cover_letter_profiles",
+    )
 
     # location = models.CharField(max_length=255, blank=True, null=True)
     # website = models.URLField(blank=True, null=True)

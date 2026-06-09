@@ -350,6 +350,48 @@ class ApplyFromExtensionTestCase(TestCase):
         )
         post.assert_called_once()
 
+    def test_apply_uses_current_cover_letter_prompt_by_default(self):
+        prompt = Prompt.objects.create(
+            user=self.user,
+            content="Lead with my security background.",
+        )
+        self.profile.cover_letter_prompt = prompt
+        self.profile.save()
+
+        with patch("website.views.requests.post") as post:
+            post.return_value = Mock(
+                status_code=200,
+                json=lambda: {
+                    "choices": [{"message": {"content": "Default prompt cover letter."}}]
+                },
+            )
+            response = self.client.get(
+                self.url,
+                {
+                    "email": "recruiting@exampleco.com",
+                    "company_name": "ExampleCo",
+                    "job_title": "Senior Software Engineer",
+                    "website": "https://exampleco.com/",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Default prompt cover letter.")
+        user_message = post.call_args.kwargs["json"]["messages"][1]["content"]
+        self.assertIn("Lead with my security background.", user_message)
+
+    def test_set_cover_letter_prompt_updates_profile(self):
+        prompt = Prompt.objects.create(user=self.user, content="Use this one")
+
+        response = self.client.post(
+            reverse("set_cover_letter_prompt", args=[prompt.id]),
+            {"use_for_cover_letters": "1"},
+        )
+
+        self.assertRedirects(response, reverse("profile"))
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.cover_letter_prompt, prompt)
+
     def test_apply_injects_selected_prompt_into_cover_letter_request(self):
         prompt = Prompt.objects.create(
             user=self.user,

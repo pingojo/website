@@ -99,6 +99,11 @@ urlpatterns = [
         views.delete_prompt,
         name="delete_prompt",
     ),
+    path(
+        "accounts/profile/prompts/<int:prompt_id>/cover-letter/",
+        views.set_cover_letter_prompt,
+        name="set_cover_letter_prompt",
+    ),
     path("api/application_count/", views.application_count, name="application_count"),
     path("captcha/", include("captcha.urls")),
     path("profiles/", ProfileListView.as_view(), name="profile-list"),

@@ -163,6 +163,13 @@
             <li>
                 {{ prompt.content }}
                 <a href="{% url 'profile_with_prompt' prompt.id %}">Edit</a>
+                <form method="post" action="{% url 'set_cover_letter_prompt' prompt.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <label>
+                        <input type="checkbox" name="use_for_cover_letters" value="1" onchange="this.form.submit()" {% if user.profile.cover_letter_prompt_id == prompt.id %}checked{% endif %}>
+                        Use for cover letters
+                    </label>
+                </form>
                 <form method="post" action="{% url 'delete_prompt' prompt.id %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit">Delete</button>
