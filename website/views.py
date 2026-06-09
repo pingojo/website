@@ -1018,6 +1018,23 @@ def get_or_create_extension_job(request):
     company_name = request.GET.get("company_name", "").strip()
     job_title = request.GET.get("job_title", "").strip()
     website = request.GET.get("website", "").strip()
+    pingojo_job_slug = request.GET.get("pingojo_job_slug", "").strip()
+
+    # Direct lookup by Pingojo job slug — most reliable, set after job is first added
+    if pingojo_job_slug:
+        job = Job.objects.filter(slug=pingojo_job_slug).select_related("company", "role").first()
+        if job:
+            company = job.company
+            changed = False
+            if email and not company.email:
+                company.email = email
+                changed = True
+            if website and not company.website:
+                company.website = website
+                changed = True
+            if changed:
+                company.save()
+            return job, company, email
 
     job = None
     if job_url:
