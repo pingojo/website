@@ -1072,6 +1072,16 @@ def get_or_create_extension_job(request):
     if changed:
         company.save()
 
+    # If no job title was provided, check if we can reuse an existing real job for
+    # this company rather than creating a placeholder "Open Role" entry.
+    if not job_title and company:
+        existing = Job.objects.filter(company=company).select_related("role").exclude(role__slug="open-role").order_by("-id").first()
+        if existing:
+            if job_url and not existing.link:
+                existing.link = job_url
+                existing.save(update_fields=["link"])
+            return existing, company, email
+
     role_title = job_title or "Open Role"
     role_slug = slugify(role_title[:50]) or "open-role"
     role, _ = Role.objects.get_or_create(
