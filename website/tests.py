@@ -258,6 +258,38 @@ class AddJobLinkTestCase(TestCase):
             f"{new_job.role.slug}-at-{new_job.company.slug}", response.json()["job_url"]
         )
 
+
+class GetCompanyEmailViewTestCase(TestCase):
+    def setUp(self):
+        self.company = Company.objects.create(
+            name="ExampleCo",
+            email="support@exampleco.com",
+            website="https://exampleco.com",
+        )
+        self.role = Role.objects.create(title="Software Engineer")
+        self.job = Job.objects.create(
+            company=self.company,
+            role=self.role,
+            link="https://wellfound.com/jobs/123-exampleco-software-engineer",
+        )
+        self.url = reverse("get_company_email")
+
+    def test_returns_company_website_by_company_name(self):
+        response = self.client.get(self.url, {"company_name": "exampleco"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["email"], "support@exampleco.com")
+        self.assertEqual(response.json()["website"], "https://exampleco.com")
+        self.assertEqual(response.json()["company_name"], "ExampleCo")
+
+    def test_returns_company_website_by_job_url(self):
+        response = self.client.get(self.url, {"job_url": self.job.link})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["website"], "https://exampleco.com")
+        self.assertEqual(response.json()["job_url"], self.job.link)
+        self.assertEqual(response.json()["job_title"], "Software Engineer")
+
  
 
 class ApplyFromExtensionTestCase(TestCase):

@@ -155,10 +155,29 @@ def edit_note_view(request, application_id):
 
 class GetCompanyEmailView(View):
     def get(self, request):
-        company_name = request.GET.get("company_name")
-        company = Company.objects.filter(name=company_name).first()
+        company_name = (request.GET.get("company_name") or "").strip()
+        job_url = (request.GET.get("job_url") or "").strip()
+        company = None
+        job = None
+
+        if job_url:
+            job = Job.objects.filter(link=job_url).select_related("company", "role").first()
+            if job:
+                company = job.company
+
+        if not company and company_name:
+            company = Company.objects.filter(name__iexact=company_name).first()
+
         if company:
-            return JsonResponse({"email": company.email})
+            return JsonResponse(
+                {
+                    "email": company.email,
+                    "website": company.website,
+                    "company_name": company.name,
+                    "job_url": job.link if job else "",
+                    "job_title": job.role.title if job and job.role else "",
+                }
+            )
 
         return JsonResponse({"error": "Company not found"}, status=404)
 
