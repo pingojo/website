@@ -155,7 +155,12 @@
   {% endif %}
 
   {% if error_message %}
-    <div class="warning">{{ error_message }}</div>
+    <div class="warning">
+      {{ error_message }}
+      {% if override_url %}
+        <a href="{{ override_url }}" style="margin-left:10px; font-weight:600;">Continue anyway &rarr;</a>
+      {% endif %}
+    </div>
   {% endif %}
 
   {% if job %}

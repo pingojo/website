@@ -1212,14 +1212,9 @@ def generate_cover_letter(request, user, job, company, email, selected_prompt=No
         if user_name:
             body = f"{body.rstrip()}\n{user_name}"
 
-        appendix = []
         resume_url = build_resume_url(request, user, email)
         if resume_url:
-            appendix.append(f"Resume: {resume_url}")
-        if job.link:
-            appendix.append(f"Job post: {job.link}")
-        if appendix:
-            body = f"{body}\n\n" + "\n".join(appendix)
+            body = f"{body}\n\nResume: {resume_url}"
 
         return subject, body, "", prompt
     except requests.RequestException as error:
@@ -1242,7 +1237,11 @@ def apply_from_extension(request):
         if profile and profile.cover_letter_prompt and profile.cover_letter_prompt.user_id == request.user.id:
             selected_prompt = profile.cover_letter_prompt
 
-    if email and company.website and not domain_matches_email(email, company.website):
+    override = request.GET.get("override") == "1"
+    if not override and email and company.website and not domain_matches_email(email, company.website):
+        params = request.GET.copy()
+        params["override"] = "1"
+        override_url = f"{request.path}?{params.urlencode()}"
         return render(
             request,
             "apply.html",
@@ -1254,6 +1253,7 @@ def apply_from_extension(request):
                 "selected_prompt": selected_prompt,
                 "has_name": bool(request.user.first_name and request.user.last_name),
                 "error_message": "The email domain does not match this company's website.",
+                "override_url": override_url,
             },
         )
 
