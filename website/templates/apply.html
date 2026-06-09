@@ -31,6 +31,14 @@
     display: inline-block;
     margin-right: 12px;
   }
+
+  .prompt-selector {
+    margin-bottom: 16px;
+  }
+
+  .prompt-selector select {
+    max-width: 520px;
+  }
 </style>
 
 <div class="apply-page">
@@ -54,6 +62,26 @@
         <p><strong>Website:</strong> <a href="{{ company.website }}" target="_blank">{{ company.website }}</a></p>
       {% endif %}
     </div>
+  {% endif %}
+
+  {% if prompts %}
+    <form method="get" class="prompt-selector">
+      {% for key, value in request.GET.items %}
+        {% if key != "prompt_id" %}
+          <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+      {% endfor %}
+      <label for="prompt_id"><strong>Cover letter prompt:</strong></label>
+      <select id="prompt_id" name="prompt_id" onchange="this.form.submit()">
+        <option value="">Default prompt</option>
+        {% for prompt in prompts %}
+          <option value="{{ prompt.id }}" {% if selected_prompt and selected_prompt.id == prompt.id %}selected{% endif %}>
+            {{ prompt.content|truncatechars:80 }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit">Use Prompt</button>
+    </form>
   {% endif %}
 
   {% if cover_letter %}

@@ -386,6 +386,16 @@ def profile(request, username=None):
 
 
 @login_required
+def delete_prompt(request, prompt_id):
+    if request.method != "POST":
+        return redirect("profile")
+
+    prompt = get_object_or_404(Prompt, id=prompt_id, user=request.user)
+    prompt.delete()
+    messages.success(request, "Your prompt has been deleted.")
+    return redirect("profile")
+
+
 def profile_view(request, prompt_id=None):
     # create Profile for the user if it doesn not exist
     Profile.objects.get_or_create(user=request.user)
@@ -1069,23 +1079,30 @@ def get_or_create_extension_job(request):
     return job, company, email
 
 
-def generate_cover_letter(user, job, company, email):
+def generate_cover_letter(user, job, company, email, selected_prompt=None):
     profile = Profile.objects.filter(user=user).first()
     api_key = profile.openai_api_key if profile else None
     if not api_key:
         return "", "Add your OpenAI API key on your profile before generating cover letters."
 
-    prompt = (
-        "Write a concise, professional cover letter email for this job application. "
-        "Use one to three short paragraphs. Do not invent credentials. "
-        f"Applicant name: {user.get_full_name() or user.username}. "
-        f"Applicant email: {user.email}. "
-        f"Company: {company.name}. "
-        f"Role: {job.title}. "
-        f"Recruiting email: {email or company.email or ''}. "
-        f"Job URL: {job.link or ''}. "
-        f"Job description: {job.description_markdown or ''}"
+    prompt_parts = [
+        "Write a concise, professional cover letter email for this job application.",
+        "Use one to three short paragraphs. Do not invent credentials.",
+    ]
+    if selected_prompt:
+        prompt_parts.append(f"User cover letter instructions: {selected_prompt.content}")
+    prompt_parts.extend(
+        [
+            f"Applicant name: {user.get_full_name() or user.username}.",
+            f"Applicant email: {user.email}.",
+            f"Company: {company.name}.",
+            f"Role: {job.title}.",
+            f"Recruiting email: {email or company.email or ''}.",
+            f"Job URL: {job.link or ''}.",
+            f"Job description: {job.description_markdown or ''}",
+        ]
     )
+    prompt = " ".join(prompt_parts)
 
     openai.api_key = api_key
     try:
@@ -1109,6 +1126,12 @@ def generate_cover_letter(user, job, company, email):
 @login_required
 def apply_from_extension(request):
     job, company, email = get_or_create_extension_job(request)
+    prompts = Prompt.objects.filter(user=request.user).order_by("-modified")
+    selected_prompt = None
+    prompt_id = request.GET.get("prompt_id")
+    if prompt_id:
+        selected_prompt = prompts.filter(id=prompt_id).first()
+
     if email and company.website and not domain_matches_email(email, company.website):
         return render(
             request,
@@ -1117,6 +1140,8 @@ def apply_from_extension(request):
                 "job": job,
                 "company": company,
                 "email": email,
+                "prompts": prompts,
+                "selected_prompt": selected_prompt,
                 "error_message": "The email domain does not match this company's website.",
             },
         )
@@ -1129,7 +1154,9 @@ def apply_from_extension(request):
         defaults={"stage": stage},
     )
 
-    cover_letter, error_message = generate_cover_letter(request.user, job, company, email)
+    cover_letter, error_message = generate_cover_letter(
+        request.user, job, company, email, selected_prompt
+    )
     return render(
         request,
         "apply.html",
@@ -1137,6 +1164,8 @@ def apply_from_extension(request):
             "job": job,
             "company": company,
             "email": email,
+            "prompts": prompts,
+            "selected_prompt": selected_prompt,
             "cover_letter": cover_letter,
             "error_message": error_message,
             "mailto_subject": f"Application for {job.title}",

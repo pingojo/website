@@ -160,7 +160,14 @@
         <h2>Your Prompts</h2>
         <ul>
             {% for prompt in prompts %}
-            <li>{{ prompt.content }} <a href="{% url 'profile_with_prompt' prompt.id %}">Edit</a></li>
+            <li>
+                {{ prompt.content }}
+                <a href="{% url 'profile_with_prompt' prompt.id %}">Edit</a>
+                <form method="post" action="{% url 'delete_prompt' prompt.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Delete</button>
+                </form>
+            </li>
             {% endfor %}
         </ul>
     </div>

@@ -27,6 +27,7 @@ from .models import (
     Role,
     Stage,
     Profile,
+    Prompt,
 )
 
 
@@ -345,6 +346,44 @@ class ApplyFromExtensionTestCase(TestCase):
             ).exists()
         )
         create.assert_called_once()
+
+    def test_apply_injects_selected_prompt_into_cover_letter_request(self):
+        prompt = Prompt.objects.create(
+            user=self.user,
+            content="Mention my payments infrastructure experience.",
+        )
+
+        with patch("website.views.openai.ChatCompletion.create") as create:
+            create.return_value = {
+                "choices": [{"message": {"content": "Custom cover letter."}}]
+            }
+
+            response = self.client.get(
+                self.url,
+                {
+                    "email": "recruiting@exampleco.com",
+                    "company_name": "ExampleCo",
+                    "job_title": "Senior Software Engineer",
+                    "website": "https://exampleco.com/",
+                    "prompt_id": prompt.id,
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Custom cover letter.")
+        user_message = create.call_args.kwargs["messages"][1]["content"]
+        self.assertIn("Mention my payments infrastructure experience.", user_message)
+
+    def test_delete_prompt_removes_only_user_prompt(self):
+        prompt = Prompt.objects.create(user=self.user, content="Delete me")
+        other_user = User.objects.create_user(username="otheruser", password="12345")
+        other_prompt = Prompt.objects.create(user=other_user, content="Keep me")
+
+        response = self.client.post(reverse("delete_prompt", args=[prompt.id]))
+
+        self.assertRedirects(response, reverse("profile"))
+        self.assertFalse(Prompt.objects.filter(id=prompt.id).exists())
+        self.assertTrue(Prompt.objects.filter(id=other_prompt.id).exists())
 
     def test_apply_resolves_company_by_email_domain_and_uses_current_job_url(self):
         company = Company.objects.create(
