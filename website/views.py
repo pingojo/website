@@ -1560,6 +1560,7 @@ class AddJobLink(APIView):
                     "company": application.company.name,
                     "stage": application.stage.name,
                     "date_applied": application.date_applied,
+                    "email": application.company.email or "",
                 }
             )
 
