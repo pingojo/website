@@ -250,6 +250,52 @@ class BouncedEmailAPI(APIView):
         )
 
 
+class UpdateCompanyWebsiteView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [FormParser, MultiPartParser, JSONParser]
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+
+        company_name = data.get("company_name", "").strip()
+        website = data.get("website", "").strip()
+
+        if not company_name:
+            raise ValidationError({"company_name": "This field is required."})
+        if not website:
+            raise ValidationError({"website": "This field is required."})
+
+        # Validate website URL format
+        if not website.startswith(("http://", "https://")):
+            raise ValidationError({"website": "Website must start with http:// or https://"})
+
+        # Find the company
+        company = Company.objects.filter(name__iexact=company_name).first()
+
+        if not company:
+            return Response(
+                {"detail": "Company not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Update the website
+        company.website = website
+        company.save()
+
+        # Clear relevant cache
+        cache_key = f"detail_{company.id}_user_{request.user.id}"
+        cache.delete(cache_key)
+
+        return Response(
+            {
+                "detail": "Company website updated successfully.",
+                "company_name": company.name,
+                "website": company.website,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 @login_required
 def application_count(request):
     # Get the current time

@@ -21,6 +21,7 @@ from website.views import (  # CompanyListView,
     ProfileListView,
     ResumeUploadView,
     SourceListView,
+    UpdateCompanyWebsiteView,
 )
 
 register_converter(HashIdConverter, "hashid")
@@ -119,6 +120,11 @@ urlpatterns = [
         "api/get_company_email/",
         GetCompanyEmailView.as_view(),
         name="get_company_email",
+    ),
+    path(
+        "api/update_company_website/",
+        UpdateCompanyWebsiteView.as_view(),
+        name="update_company_website",
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
