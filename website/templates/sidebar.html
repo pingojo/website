@@ -1,5 +1,11 @@
 {% load humanize %}
-<div class="sidebar">
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<div class="sidebar" id="sidebar">
     <ul class="sidebar-links">
         <li>
             <a href="{% url 'jobs_list' %}" class="{% if request.path == '/jobs/' %}active{% endif %}">
@@ -66,6 +72,40 @@
 </div>
 
 <style>
+    .sidebar-toggle {
+        display: none;
+        flex-direction: column;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 10px;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1001;
+    }
+
+    .sidebar-toggle span {
+        width: 25px;
+        height: 3px;
+        background-color: #333;
+        margin: 5px 0;
+        transition: all 0.3s;
+        border-radius: 2px;
+    }
+
+    .sidebar-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(8px, 8px);
+    }
+
+    .sidebar-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .sidebar-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+    }
+
     .sidebar {
         width: 150px;
         position: fixed;
@@ -131,5 +171,67 @@
     .sidebar-footer .fab {
         font-size: 18px;
     }
+
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+        .sidebar-toggle {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 100%;
+            height: auto;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            background-color: white;
+            border-bottom: 1px solid #ccc;
+            z-index: 999;
+            padding-top: 0;
+            justify-content: flex-start;
+        }
+
+        .sidebar.active {
+            max-height: 500px;
+        }
+
+        .sidebar-links {
+            width: 100%;
+            flex-grow: 0;
+        }
+
+        .sidebar-links li a {
+            padding: 12px 20px;
+            font-size: 16px;
+        }
+
+        .sidebar-footer {
+            display: none;
+        }
+    }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        toggle.addEventListener('click', function() {
+            toggle.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+
+        // Close sidebar when a link is clicked
+        const links = sidebar.querySelectorAll('a');
+        links.forEach(link => {
+            link.addEventListener('click', function() {
+                toggle.classList.remove('active');
+                sidebar.classList.remove('active');
+            });
+        });
+    });
+</script>
 

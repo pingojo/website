@@ -473,4 +473,46 @@ footer a:hover {
         display: block;
         margin: 10px auto;
     }
+
+    header {
+        padding: 15px 10px;
+    }
+
+    .search-form-company {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .search-input {
+        width: 100% !important;
+        border-radius: 5px !important;
+        margin-bottom: 8px;
+        border-left: 1px solid #ccc !important;
+    }
+
+    .search-type-select {
+        width: 100% !important;
+        border-radius: 5px !important;
+        margin-bottom: 8px;
+    }
+
+    .search-btn {
+        border-radius: 5px !important;
+        width: 100%;
+    }
+
+    .auth-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .login-btn {
+        width: 100%;
+        margin-right: 0 !important;
+        margin-bottom: 8px;
+    }
+
+    #profileIcon {
+        margin-right: 0 !important;
+    }
 }
