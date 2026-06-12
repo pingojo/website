@@ -2022,19 +2022,28 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # Existing query setup...
         view_param = self.request.GET.get("view")
-        sort_by = self.request.GET.get("sort_by", "last_email")
-        sort_order = "asc" if "-" not in sort_by else "desc"
+        default_sort = "days" if view_param == "resume_view" else "last_email"
+        sort_by = self.request.GET.get("sort_by", default_sort)
+        sort_order = self.request.GET.get("sort_order", "asc")
+        if sort_by.startswith("-"):
+            sort_by = sort_by[1:]
+            sort_order = "desc"
         order_prefix = "" if sort_order == "asc" else "-"
         user = self.request.user
 
         # Map sort fields...
         sort_fields = {
             "company": "company__name",
-            "role": "job__title",
+            "role": "job__role__title",
+            "salary": "job__salary_max",
             "salary_max": "job__salary_max",
             "salary_min": "job__salary_min",
-            "applied": "created",
+            "applied": "date_applied",
             "last_email": "date_of_last_email",
+            "stage": "stage__order",
+            "cv_views": "resume_views",
+            "link": "job__link",
+            "company_email": "job__company__email",
         }
 
         if view_param == "resume_view":
@@ -2051,17 +2060,6 @@ class DashboardView(LoginRequiredMixin, ListView):
                     filter=Q(company__requestlog__profile__user=user),
                 )
             ).filter(resume_views__gt=0)
-            today = timezone.now().date()
-            applications = (
-                applications.annotate(
-                    days_since_last_email_sort=ExpressionWrapper(
-                        Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
-                        output_field=DurationField(),
-                    )
-                )
-                .annotate(days_int=ExtractDay(F("days_since_last_email_sort")))
-                .order_by(f"{order_prefix}days_int")
-            )
 
         else:
             # Fetch applications by stage...
@@ -2087,32 +2085,33 @@ class DashboardView(LoginRequiredMixin, ListView):
                     applications = applications.filter(
                         date_applied__date=parsed_date.date()
                     )
-                    sort_by = "-date_applied"
+                    if "sort_by" not in self.request.GET:
+                        sort_by = "applied"
+                        order_prefix = "-"
                 except ValueError:
                     pass
 
-            # Special sorting case for days and email...
-            if sort_by == "days":
-                today = timezone.now().date()
-                applications = (
-                    applications.annotate(
-                        days_since_last_email=ExpressionWrapper(
-                            Coalesce(F("date_of_last_email"), Value(today))
-                            - Value(today),
-                            output_field=DurationField(),
-                        )
+        # Special sorting case for days and email...
+        if sort_by == "days":
+            today = timezone.now().date()
+            applications = (
+                applications.annotate(
+                    days_since_last_email_sort=ExpressionWrapper(
+                        Coalesce(F("date_of_last_email"), Value(today)) - Value(today),
+                        output_field=DurationField(),
                     )
-                    .annotate(days_int=ExtractDay(F("days_since_last_email")))
-                    .order_by(f"{order_prefix}days_int")
                 )
-            elif sort_by == "email":
-                applications = applications.annotate(
-                    email_count=Count("email")
-                ).order_by(f"{order_prefix}email_count")
-            elif sort_by in sort_fields:
-                applications = applications.order_by(
-                    f"{order_prefix}{sort_fields[sort_by]}"
-                )
+                .annotate(days_int=ExtractDay(F("days_since_last_email_sort")))
+                .order_by(f"{order_prefix}days_int")
+            )
+        elif sort_by == "email":
+            applications = applications.annotate(
+                email_count=Count("email", distinct=True)
+            ).order_by(f"{order_prefix}email_count")
+        elif sort_by in sort_fields:
+            applications = applications.order_by(
+                f"{order_prefix}{sort_fields[sort_by]}"
+            )
 
         # Prefetch related objects...
         applications = applications.prefetch_related(
@@ -2232,9 +2231,17 @@ class DashboardView(LoginRequiredMixin, ListView):
         )
 
         # Pass sorting and stage context...
-        context["sort_by"] = self.request.GET.get("sort_by", "applied")
-        context["sort_order"] = self.request.GET.get("sort_order", "desc")
-        context["stage"] = self.request.GET.get("stage", "Scheduled")
+        default_sort = (
+            "days" if self.request.GET.get("view") == "resume_view" else "last_email"
+        )
+        sort_by = self.request.GET.get("sort_by", default_sort)
+        sort_order = self.request.GET.get("sort_order", "asc")
+        if sort_by.startswith("-"):
+            sort_by = sort_by[1:]
+            sort_order = "desc"
+        context["sort_by"] = sort_by
+        context["sort_order"] = sort_order
+        context["stage"] = self.request.GET.get("stage", "Applied")
 
         return context
 

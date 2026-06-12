@@ -1,0 +1,7 @@
+{% if sort_by == key and sort_order == 'asc' %}
+    <a href="{% querystring sort_by=key sort_order='desc' page=None %}">{{ label }} &#9650;</a>
+{% elif sort_by == key %}
+    <a href="{% querystring sort_by=key sort_order='asc' page=None %}">{{ label }} &#9660;</a>
+{% else %}
+    <a href="{% querystring sort_by=key sort_order='asc' page=None %}">{{ label }}</a>
+{% endif %}
